@@ -3780,10 +3780,11 @@ function buildScreenCard(featureId, screen) {
     <div style="position:absolute;left:${pin.x*100}%;top:${pin.y*100}%;transform:translate(-50%,-100%) rotate(-45deg);width:16px;height:16px;background:var(--accent);border:1.5px solid white;border-radius:50% 50% 50% 0;display:flex;align-items:center;justify-content:center;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.5)">
       <span style="transform:rotate(45deg);font-size:8px;font-weight:700;color:white">${pi+1}</span>
     </div>`).join('');
+  // Use composite (image + drawing merged) if available, else raw image
+  const previewSrc = screen.compositeData || screen.imageData;
   const preview = hasImage
     ? `<div style="position:relative;width:100%;height:100%">
-        <img src="${screen.imageData}" alt="${screen.label}" style="width:100%;height:100%;object-fit:cover;display:block" />
-        ${screen.drawingData ? `<img src="${screen.drawingData}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none" />` : ''}
+        <img src="${previewSrc}" alt="${screen.label}" style="width:100%;height:100%;object-fit:cover;display:block" />
         ${pinsOverlay}
       </div>`
     : `<div class="upload-placeholder"><div class="ph-icon">&#128444;</div><div>Click to attach design</div></div>`;
@@ -4035,11 +4036,25 @@ function clearAnnotDrawing() {
 }
 
 function saveAnnotation() {
-  const canvas = document.getElementById('annotator-canvas');
+  const annotCanvas = document.getElementById('annotator-canvas');
+  const annotImg = document.getElementById('annotator-img');
   const screens = getHandoffScreens(_annotFeatureId);
   const screen = screens.find(s => s.id === _annotScreenId);
   if (!screen) return;
-  screen.drawingData = canvas.toDataURL();
+
+  // Keep raw drawing for re-editing in the annotator
+  screen.drawingData = annotCanvas.toDataURL();
+
+  // Composite: merge original image + drawing into one image at display size
+  // so the card preview shows them perfectly aligned
+  const merge = document.createElement('canvas');
+  merge.width = annotImg.offsetWidth;
+  merge.height = annotImg.offsetHeight;
+  const mCtx = merge.getContext('2d');
+  mCtx.drawImage(annotImg, 0, 0, merge.width, merge.height);
+  mCtx.drawImage(annotCanvas, 0, 0, merge.width, merge.height);
+  screen.compositeData = merge.toDataURL();
+
   saveHandoffScreens(_annotFeatureId, screens);
   const fid = _annotFeatureId;
   closeAnnotator();
