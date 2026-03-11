@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Index Cost — Design Spec</title>
+<style>
+  :root {
+    --bg: #F0F2F5;
+    --surface: #FFFFFF;
+    --border: #DDE1E7;
+    --text: #1A1D23;
+    --muted: #6B7280;
+    --gray20: #333333;
+    --gray60: #999999;
+    --green: #16A34A;
+    --green-light: #DCFCE7;
+    --green-border: #86EFAC;
+    --orange: #D97706;
+    --orange-light: #FEF3C7;
+    --orange-border: #FCD34D;
+    --blue-dark: #1E40AF;
+    --blue-light: #EFF6FF;
+    --blue-border: #BFDBFE;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 24px 80px;
+    gap: 0;
+  }
+
+  /* ── APP CHROME ── */
+  .app-chrome {
+    width: 100%; max-width: 960px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: clip;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+  }
+  .app-topbar {
+    background: #1A1D23; padding: 12px 20px;
+    display: flex; align-items: center; gap: 8px;
+    flex-shrink: 0;
+  }
+  .mac-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .app-title { font-size: 12px; color: #9CA3AF; margin-left: 8px; }
+
+  /* ── DOC LAYOUT ── */
+  .doc-body { display: flex; min-height: 600px; }
+
+  /* ── LEFT NAV ── */
+  .doc-nav {
+    width: 220px; flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    background: #FAFBFC;
+    position: sticky; top: 0; align-self: flex-start;
+    height: 100vh; overflow-y: auto;
+  }
+  .doc-nav-title {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--muted); padding: 0 16px 8px;
+  }
+  .doc-nav a {
+    display: block; padding: 6px 16px; font-size: 13px; color: var(--muted);
+    text-decoration: none; border-left: 2px solid transparent;
+    transition: all 0.1s;
+  }
+  .doc-nav a:hover { color: var(--text); background: #F0F2F5; }
+  .doc-nav a.active { color: var(--text); font-weight: 600; border-left-color: #1A1D23; background: #F0F2F5; }
+  .doc-nav-sep { height: 1px; background: var(--border); margin: 12px 16px; }
+
+  /* ── MAIN CONTENT ── */
+  .doc-content { flex: 1; padding: 40px 48px; }
+
+  /* ── COVER ── */
+  .cover { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+  .cover-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--muted); margin-bottom: 8px;
+  }
+  .cover-title {
+    font-size: 28px; font-weight: 700; letter-spacing: -0.04em;
+    color: var(--text); margin-bottom: 12px; line-height: 1.2;
+  }
+  .cover-meta { display: flex; gap: 20px; flex-wrap: wrap; }
+  .meta-item { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .meta-item strong { color: var(--text); }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 56px; scroll-margin-top: 32px; }
+  .section-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--muted); margin-bottom: 6px;
+  }
+  .section-title {
+    font-size: 20px; font-weight: 700; letter-spacing: -0.03em;
+    color: var(--text); margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title .screen-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 6px;
+    background: #1A1D23; color: #fff; font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .subsection { margin-bottom: 32px; }
+  .subsection-title {
+    font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 12px;
+    letter-spacing: -0.02em;
+  }
+
+  /* ── WIREFRAME ── */
+  .wireframe {
+    background: #F8FAFC; border: 1px solid var(--border); border-radius: 6px;
+    padding: 16px 20px; font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-size: 12px; line-height: 1.7; color: var(--gray20);
+    margin-bottom: 16px; overflow-x: auto; white-space: pre;
+  }
+
+  /* ── TABLE ── */
+  .spec-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .spec-table th {
+    background: #F8FAFC; padding: 8px 14px; text-align: left;
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .spec-table td {
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    vertical-align: top; line-height: 1.5;
+  }
+  .spec-table tr:last-child td { border-bottom: none; }
+  .spec-table tr:hover td { background: #FAFBFC; }
+  .spec-table td:first-child { font-weight: 600; white-space: nowrap; }
+  .spec-table td code {
+    background: #F0F2F5; padding: 1px 5px; border-radius: 3px;
+    font-family: 'Menlo', monospace; font-size: 12px;
+  }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    display: flex; gap: 10px; padding: 12px 14px; border-radius: 6px;
+    font-size: 13px; line-height: 1.5; margin-bottom: 12px;
+  }
+  .callout-icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+  .callout-warn { background: var(--orange-light); border: 1px solid var(--orange-border); color: var(--orange); }
+  .callout-info { background: var(--blue-light); border: 1px solid var(--blue-border); color: var(--blue-dark); }
+  .callout-note { background: #F8FAFC; border: 1px solid var(--border); color: var(--muted); }
+
+  /* ── INLINE STYLES ── */
+  .tag {
+    display: inline-flex; align-items: center;
+    padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 600;
+  }
+  .tag-new { background: var(--orange-light); color: var(--orange); border: 1px solid var(--orange-border); }
+  .tag-tbd { background: #F3F4F6; color: var(--muted); border: 1px solid var(--border); }
+  .tag-v1 { background: var(--blue-light); color: var(--blue-dark); border: 1px solid var(--blue-border); }
+
+  p { margin-bottom: 8px; font-size: 13px; color: var(--gray20); line-height: 1.6; }
+  ul { margin: 0 0 12px 18px; }
+  ul li { font-size: 13px; color: var(--gray20); line-height: 1.7; }
+  strong { font-weight: 600; }
+  code {
+    background: #F0F2F5; padding: 1px 5px; border-radius: 3px;
+    font-family: 'Menlo', monospace; font-size: 12px; color: var(--gray20);
+  }
+
+  /* ── SEQUENCE TABLE ── */
+  .seq-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .seq-table td { padding: 10px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .seq-table tr:last-child td { border-bottom: none; }
+  .seq-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #1A1D23; color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .seq-screen { font-weight: 600; }
+  .seq-purpose { color: var(--muted); font-size: 12px; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div class="app-chrome">
+  <div class="app-topbar">
+    <div class="mac-dot" style="background:#FF5F57"></div>
+    <div class="mac-dot" style="background:#FFBD2E"></div>
+    <div class="mac-dot" style="background:#28CA41"></div>
+    <span class="app-title">BuildOps — Design Spec · Index Cost</span>
+  </div>
+
+  <div class="doc-body">
+
+    <!-- ── LEFT NAV ── -->
+    <div class="doc-nav">
+      <div class="doc-nav-title">Screens</div>
+      <a href="#s1" class="active">1 · Cost Catalogue List</a>
+      <a href="#s2">2 · Catalogue Details</a>
+      <a href="#s3">3 · Archive Flow</a>
+      <a href="#s4">4 · Job Creation</a>
+      <a href="#s5">5 · Job Details</a>
+      <a href="#s6">6 · Job Report</a>
+      <a href="#s7">7 · PDF Settings</a>
+      <div class="doc-nav-sep"></div>
+      <a href="#sequence">Design Sequence</a>
+    </div>
+
+    <!-- ── MAIN CONTENT ── -->
+    <div class="doc-content">
+
+      <!-- COVER -->
+      <div class="cover">
+        <div class="cover-label">Feature Design Spec</div>
+        <div class="cover-title">Index Cost</div>
+        <div class="cover-meta">
+          <div class="meta-item"><strong>Branch</strong> feature/index-cost</div>
+          <div class="meta-item"><strong>Status</strong> In Progress</div>
+          <div class="meta-item"><strong>Last updated</strong> 2026-03-10</div>
+        </div>
+      </div>
+
+
+      <!-- ══ SCREEN 1 ══ -->
+      <div class="section" id="s1">
+        <div class="section-label">Screen 1</div>
+        <div class="section-title"><span class="screen-num">1</span> Cost Catalogue List Page + Create Modal</div>
+
+        <!-- 1A -->
+        <div class="subsection">
+          <div class="subsection-title">1A · List Page — Settings &gt; Cost Catalogues</div>
+          <div class="wireframe">┌─────────────────────────────────────────────────────────────────┐
+│ PageHeader                                                       │
+│  Cost Catalogues                    [+ Create Cost Catalogue]    │
+├─────────────────────────────────────────────────────────────────┤
+│ [Search by name...]          [☐ Include Archived]                │
+├────────────────────┬──────────────┬──────────────┬──────────────┤
+│ Name               │ Description  │ Created Date │              │
+├────────────────────┼──────────────┼──────────────┼──────────────┤
+│ SmartCare – Texas  │ Texas region │ Mar 1, 2026  │  ⋯           │
+│ SmartCare – FL     │ Florida reg  │ Feb 20, 2026 │  ⋯           │
+│ SmartCare – NYC    │ NY region    │ Jan 15, 2026 │  ⋯           │
+│  [archived, grayed]│              │              │  ⋯           │
+└────────────────────┴──────────────┴──────────────┴──────────────┘</div>
+
+          <table class="spec-table">
+            <thead><tr><th>Behavior</th><th>Detail</th></tr></thead>
+            <tbody>
+              <tr><td>Empty state</td><td>Illustration + "No cost catalogues yet. Create one to get started." + CTA button</td></tr>
+              <tr><td>Overflow menu (⋯)</td><td>Edit · Archive</td></tr>
+              <tr><td>Archived toggle on</td><td>Archived rows render grayed with <code>[Archived]</code> chip on name</td></tr>
+              <tr><td>FF off</td><td>Entire page hidden from nav — not just content, full route removed</td></tr>
+              <tr><td>Navigation placement</td><td>Settings sidebar, peer to Pricebooks</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 1B -->
+        <div class="subsection">
+          <div class="subsection-title">1B · Create Catalogue Modal</div>
+          <div class="wireframe">┌──────────────────────────────────────────┐
+│  Create Cost Catalogue              [✕]  │
+├──────────────────────────────────────────┤
+│  Name *                                  │
+│  ┌────────────────────────────────────┐  │
+│  │ e.g. SmartCare – Texas             │  │
+│  └────────────────────────────────────┘  │
+│  Name is required          ← inline error (on blur)
+│                                          │
+│  Description                             │
+│  ┌────────────────────────────────────┐  │
+│  │                                    │  │
+│  └────────────────────────────────────┘  │
+│                                          │
+│              [Cancel]  [Create Catalogue]│
+└──────────────────────────────────────────┘</div>
+
+          <table class="spec-table">
+            <thead><tr><th>Behavior</th><th>Detail</th></tr></thead>
+            <tbody>
+              <tr><td>Submit button</td><td>Shows spinner + disabled state on API call</td></tr>
+              <tr><td>On success</td><td>Close modal + row added to top of list + success toast: "Cost Catalogue created."</td></tr>
+              <tr><td>On API error</td><td>Error toast: "Something went wrong. Please try again."</td></tr>
+              <tr><td>Adding entries</td><td>Entries are added from the Details page — not here <span class="tag tag-v1">v1</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <!-- ══ SCREEN 2 ══ -->
+      <div class="section" id="s2">
+        <div class="section-label">Screen 2</div>
+        <div class="section-title"><span class="screen-num">2</span> Cost Catalogue Details Page</div>
+
+        <p>Pattern: <code>LeftSidebarWithContent</code> with tab-based sub-sections, similar to Pricebook details.</p>
+
+        <div class="wireframe" style="margin-top:12px;">┌────────────────────────────────────────────────────────────────────┐
+│ ← Cost Catalogues    SmartCare – Texas             [Edit] [Archive]│
+├─────────────┬──────────────────────────────────────────────────────┤
+│ Overview    │  [Items]                                              │
+│ Items       ├─────────────────────────────────────────────────────  │
+│             │  [Search items...]          [+ Add Entry]             │
+│             ├──────────┬──────────────────┬──────────┬─────────────┤
+│             │ Item Name│ Item ID          │ Std Cost │ Index Cost  │
+│             ├──────────┼──────────────────┼──────────┼─────────────┤
+│             │ Copper   │ ITM-00123        │ $98.00   │ $115.00  ✎  │
+│             │ Freon R22│ ITM-00456        │ $42.00   │ $52.00   ✎  │
+│             │ Valve 3/4│ ITM-00789        │ $12.00   │  —           │
+│             └──────────┴──────────────────┴──────────┴─────────────┘
+└─────────────┴──────────────────────────────────────────────────────┘</div>
+
+        <div class="subsection">
+          <div class="subsection-title">Column Behavior</div>
+          <table class="spec-table">
+            <thead><tr><th>Column</th><th>Rule</th><th>Width</th></tr></thead>
+            <tbody>
+              <tr><td>Item Name</td><td>Fill</td><td>200px min</td></tr>
+              <tr><td>Item ID</td><td>Hug</td><td>120px</td></tr>
+              <tr><td>Standard Cost</td><td>$</td><td>136px max — read-only, grayed label</td></tr>
+              <tr><td>Index Cost</td><td>$</td><td>136px max — editable inline</td></tr>
+              <tr><td>Overflow</td><td>—</td><td>32px</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">States &amp; Behaviors</div>
+          <table class="spec-table">
+            <thead><tr><th>Behavior</th><th>Detail</th></tr></thead>
+            <tbody>
+              <tr><td><code>—</code> in Index Cost</td><td>Item exists in Item List but has no catalogue entry yet</td></tr>
+              <tr><td>✎ pencil icon</td><td>Hover on Index Cost cell to reveal edit icon → inline edit → save on blur/Enter</td></tr>
+              <tr><td>+ Add Entry</td><td>Searchable item picker modal → set Index Cost → Save</td></tr>
+              <tr><td>Overflow per row</td><td>"Edit" · "Remove entry" (label: "Restore default costs")</td></tr>
+              <tr><td>Standard Cost column</td><td>Shown as FYI/comparison only — read-only, slightly muted label color</td></tr>
+              <tr><td>Overview tab</td><td>Shows Name, Description (editable), Created by, Created date</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-warn">
+            <span class="callout-icon">⚠</span>
+            <div><strong>Open decision:</strong> Confirm Standard Cost column intent with Priyanka/Miguel before finalizing.</div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ══ SCREEN 3 ══ -->
+      <div class="section" id="s3">
+        <div class="section-label">Screen 3</div>
+        <div class="section-title"><span class="screen-num">3</span> Archive Flow</div>
+
+        <p>Triggered from: List page overflow menu <strong>or</strong> Details page header action.</p>
+
+        <div class="wireframe" style="margin-top:12px;">┌────────────────────────────────────────────┐
+│  Archive Cost Catalogue              [✕]   │
+├────────────────────────────────────────────┤
+│                                            │
+│  Are you sure you want to archive          │
+│  "SmartCare – Texas"?                      │
+│                                            │
+│  ⚠  Jobs currently using this catalogue   │
+│     will not be affected.                  │
+│                                            │
+│              [Cancel]  [Archive Catalogue] │
+└────────────────────────────────────────────┘</div>
+
+        <table class="spec-table">
+          <thead><tr><th>Behavior</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td>[Archive Catalogue]</td><td>Primary destructive button style</td></tr>
+            <tr><td>On confirm</td><td>Row moves to archived state — grayed with <code>[Archived]</code> chip, only visible when "Include Archived" toggle is on</td></tr>
+            <tr><td>On failure</td><td>Error toast</td></tr>
+            <tr><td>Unarchive</td><td>Out of scope for v1 — no unarchive action in overflow <span class="tag tag-v1">v1</span></td></tr>
+            <tr><td>Archived detail page</td><td>Banner at top: "This catalogue is archived. It cannot be assigned to new jobs."</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+
+      <!-- ══ SCREEN 4 ══ -->
+      <div class="section" id="s4">
+        <div class="section-label">Screen 4</div>
+        <div class="section-title"><span class="screen-num">4</span> Job Creation: Catalogue Selector</div>
+
+        <p>Injected into the existing New Job modal/wizard alongside the Pricebook selector.</p>
+
+        <div class="wireframe" style="margin-top:12px;">┌─────────────────────────────────────────────────────────────┐
+│  New Job                                              [✕]   │
+├─────────────────────────────────────────────────────────────┤
+│  Customer *         [Acme Corp                         ▾]   │
+│  Property *         [123 Main St – Dallas, TX          ▾]   │
+│  Job Number         [Auto-generated]                        │
+│  ─────────────────────────────────────────────────────────  │
+│  Pricing                                                    │
+│  Pricebook          [SmartCare – Texas – Material      ▾]   │
+│  Cost Catalogue     [SmartCare – Texas                 ▾]   │  ← NEW
+│  ─────────────────────────────────────────────────────────  │
+│  ...other fields...                                         │
+│                                          [Cancel]  [Create] │
+└─────────────────────────────────────────────────────────────┘</div>
+
+        <table class="spec-table">
+          <thead><tr><th>Behavior</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td>Placement</td><td>Directly below Pricebook selector — same visual grouping under "Pricing" section</td></tr>
+            <tr><td>Optional field</td><td>Nullable — no catalogue = falls back to existing unit cost logic</td></tr>
+            <tr><td>Dropdown contents</td><td>Active catalogues only (no archived)</td></tr>
+            <tr><td>Helper text</td><td>"Used as the pricing cost basis. Does not affect job costing or actual costs."</td></tr>
+            <tr><td>FF guard</td><td>Entire Cost Catalogue field hidden when <code>cost-catalogues</code> FF is off</td></tr>
+            <tr><td>Label</td><td>"Cost Catalogue" <span class="tag tag-tbd">TBD</span> — may update to "Index Cost Catalogue" pending customer validation</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+
+      <!-- ══ SCREEN 5 ══ -->
+      <div class="section" id="s5">
+        <div class="section-label">Screen 5</div>
+        <div class="section-title"><span class="screen-num">5</span> Job Details: Catalogue Display &amp; Edit</div>
+
+        <p>Injected into the existing Job Details page in the pricing/billing section.</p>
+
+        <div class="wireframe" style="margin-top:12px;">┌─────────────────────────────────────────────────────────────────┐
+│  Job #JB-10483 · Acme Corp – 123 Main St                        │
+├──────────────────┬──────────────────────────────────────────────┤
+│  Details         │  Pricing &amp; Billing                           │
+│  Parts &amp; Mat.    │  ┌───────────────────────────────────────┐   │
+│  Labor           │  │ Pricebook       SmartCare – Texas Mat  │   │
+│  Fees            │  │ Cost Catalogue  SmartCare – Texas   ✎  │   │  ← NEW
+│  ...             │  └───────────────────────────────────────┘   │
+└──────────────────┴──────────────────────────────────────────────┘</div>
+
+        <div class="subsection" style="margin-top:16px;">
+          <div class="subsection-title">Inline Edit Behavior</div>
+          <table class="spec-table">
+            <thead><tr><th>Behavior</th><th>Detail</th></tr></thead>
+            <tbody>
+              <tr><td>Click ✎</td><td>Opens inline dropdown selector</td></tr>
+              <tr><td>Dropdown</td><td>Active catalogues only</td></tr>
+              <tr><td>"None" option</td><td>Available to remove catalogue assignment</td></tr>
+              <tr><td>On save</td><td>Success toast: "Cost Catalogue updated."</td></tr>
+              <tr><td>FF off / no costCatalogueId</td><td>Field not shown</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <!-- ══ SCREEN 6 ══ -->
+      <div class="section" id="s6">
+        <div class="section-label">Screen 6</div>
+        <div class="section-title"><span class="screen-num">6</span> Job Report: Table Columns + Add Item Modals</div>
+
+        <!-- 6A -->
+        <div class="subsection">
+          <div class="subsection-title">6A · Purchased Items / Inventory Parts / 3WM Tables</div>
+          <p>All three tables get the same column treatment.</p>
+          <div class="wireframe" style="margin-top:10px;">Parts &amp; Materials — Purchased Items
+┌──────────┬─────┬──────┬────────────┬──────────┬────────┬────────────┬────────┐
+│ Item Name│ Qty │ UOM  │ Unit Cost  │ Index    │ Markup │ Unit Price │        │
+│          │     │      │ (Actual)   │ Cost     │   %    │            │   ⋯    │
+├──────────┼─────┼──────┼────────────┼──────────┼────────┼────────────┼────────┤
+│ Copper   │  2  │  ft  │  $98.00    │ $115.00  │  15%   │  $132.25   │   ⋯    │
+│ Freon R22│  1  │  can │  $42.00    │ $52.00   │  15%   │  $59.80    │   ⋯    │
+│ Valve    │  3  │  ea  │  $12.00    │   —      │  15%   │  $13.80    │   ⋯    │
+└──────────┴─────┴──────┴────────────┴──────────┴────────┴────────────┴────────┘</div>
+
+          <p style="margin-bottom:12px;"><strong>Column order:</strong> Item Name · Qty · UOM · Unit Cost (Actual) · Index Cost · Markup % · Unit Price · Overflow</p>
+
+          <table class="spec-table">
+            <thead><tr><th>Column</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td>Unit Cost (Actual)</td><td>Always shown. Read-only &amp; grayed when item has a catalogue entry. Tooltip: "Actual purchase/inventory cost. Used for job costing only."</td></tr>
+              <tr><td>Index Cost <span class="tag tag-new">New</span></td><td>Shows <code>CostCatalogueEntry.unitCost</code> for matched items, <code>—</code> for unmatched. Read-only. Tooltip: "Pricing basis from your Cost Catalogue. Markup is applied to this value."</td></tr>
+              <tr><td>Unit Price</td><td>Calculated from Index Cost (not Unit Cost) when catalogue entry exists</td></tr>
+              <tr><td>Conditional render</td><td>Both new columns hidden entirely when FF off <strong>or</strong> job has no <code>costCatalogueId</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 6B -->
+        <div class="subsection">
+          <div class="subsection-title">6B · Add Item Modal (job with a catalogue assigned)</div>
+          <div class="wireframe">┌──────────────────────────────────────────────────┐
+│  Add Purchased Item                         [✕]  │
+├──────────────────────────────────────────────────┤
+│  Item *      [Copper Wire                    ▾]  │
+│  Quantity *  [2        ]  UOM  [ft         ▾]   │
+│                                                  │
+│  ── Pricing ─────────────────────────────────── │
+│  Unit Cost (Actual)   $98.00   (from PO line)    │
+│  Index Cost           $115.00  (from catalogue)  │
+│  Markup               15%                        │
+│  ────────────────────────────────────────────── │
+│  Unit Price Preview   $132.25                    │
+│                                                  │
+│                       [Cancel]  [Add Item]        │
+└──────────────────────────────────────────────────┘</div>
+
+          <table class="spec-table">
+            <thead><tr><th>Behavior</th><th>Detail</th></tr></thead>
+            <tbody>
+              <tr><td>Unit Price preview</td><td>Calculated using Index Cost as the markup basis</td></tr>
+              <tr><td>No catalogue entry on item</td><td>Unit Cost (Actual) used as markup basis; Index Cost row shows <code>—</code></td></tr>
+              <tr><td>Cost rows</td><td>Read-only in v1 — users cannot override the cost basis here <span class="tag tag-v1">v1</span></td></tr>
+              <tr><td>Labels</td><td>"Unit Cost (Actual)" and "Index Cost" clearly labeled to prevent confusion</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <!-- ══ SCREEN 7 ══ -->
+      <div class="section" id="s7">
+        <div class="section-label">Screen 7</div>
+        <div class="section-title"><span class="screen-num">7</span> Job Report PDF: Index Cost + Customer Toggle</div>
+
+        <div class="callout callout-warn" style="margin-bottom:20px;">
+          <span class="callout-icon">⚠</span>
+          <div><strong>New Jira ticket needed</strong> — Cabo flagged this surface in today's sync. Currently not covered by existing eng tickets.</div>
+        </div>
+
+        <!-- 7A -->
+        <div class="subsection">
+          <div class="subsection-title">7A · PDF Settings Panel</div>
+          <p>Accessible from the Job Report page in the PDF configuration section.</p>
+          <div class="wireframe" style="margin-top:10px;">┌────────────────────────────────────────────────────────┐
+│  Job Report PDF Settings                               │
+├────────────────────────────────────────────────────────┤
+│  Show on PDF                                           │
+│  ☑  Labor summary                                      │
+│  ☑  Parts &amp; Materials                                  │
+│  ☑  Index Cost column          ← NEW TOGGLE            │
+│  ☐  Actual Unit Cost column                            │
+│  ☑  Markup %                                           │
+│  ☑  Unit Price                                         │
+└────────────────────────────────────────────────────────┘</div>
+
+          <table class="spec-table" style="margin-top:12px;">
+            <thead><tr><th>Behavior</th><th>Detail</th></tr></thead>
+            <tbody>
+              <tr><td>Default state</td><td>Toggle <strong>off</strong> — Index Cost not shown on PDF by default. Customers opt in.</td></tr>
+              <tr><td>Rationale</td><td>Showing index cost to end customers could cause confusion; opt-in is safer.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 7B -->
+        <div class="subsection">
+          <div class="subsection-title">7B · PDF Layout (Index Cost toggle on)</div>
+          <div class="wireframe">PARTS &amp; MATERIALS
+
+  Item Name       Qty    Unit Cost    Index Cost    Markup    Unit Price
+  ─────────────────────────────────────────────────────────────────────
+  Copper Wire      2 ft   $98.00       $115.00       15%       $132.25
+  Freon R22 can    1 ea   $42.00       $52.00        15%       $59.80
+  Valve 3/4        3 ea   $12.00         —           15%       $13.80
+  ─────────────────────────────────────────────────────────────────────
+                                                     Total:   $206.05</div>
+
+          <table class="spec-table" style="margin-top:12px;">
+            <thead><tr><th>Note</th><th>Detail</th></tr></thead>
+            <tbody>
+              <tr><td>Index Cost column</td><td>Only renders in PDF when toggle is on</td></tr>
+              <tr><td>No catalogue entry</td><td><code>—</code> shown — same as on-screen</td></tr>
+              <tr><td>Column order</td><td>Mirrors the on-screen table for consistency</td></tr>
+              <tr><td>Actual Unit Cost column</td><td>Shown by default on PDF (matches existing behavior), can be hidden via its own toggle</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <!-- ══ DESIGN SEQUENCE ══ -->
+      <div class="section" id="sequence">
+        <div class="section-title" style="border-bottom:none;padding-bottom:0;margin-bottom:16px;">Design Sequence</div>
+        <table class="seq-table">
+          <tbody>
+            <tr>
+              <td style="width:48px;"><span class="seq-num">1</span></td>
+              <td>
+                <div class="seq-screen">Cost Catalogue List Page + Create Modal</div>
+                <div class="seq-purpose">Settings foundation</div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="seq-num">2</span></td>
+              <td>
+                <div class="seq-screen">Cost Catalogue Details Page</div>
+                <div class="seq-purpose">Core data management</div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="seq-num">3</span></td>
+              <td>
+                <div class="seq-screen">Archive Flow</div>
+                <div class="seq-purpose">Completes Settings</div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="seq-num">4</span></td>
+              <td>
+                <div class="seq-screen">Job Creation: Catalogue Selector</div>
+                <div class="seq-purpose">Job-level assignment</div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="seq-num">5</span></td>
+              <td>
+                <div class="seq-screen">Job Details: Catalogue Display &amp; Edit</div>
+                <div class="seq-purpose">Job-level management</div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="seq-num">6</span></td>
+              <td>
+                <div class="seq-screen">Job Report: Table Columns + Modals</div>
+                <div class="seq-purpose">Revenue-side visibility</div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="seq-num">7</span></td>
+              <td>
+                <div class="seq-screen">Job Report PDF: Index Cost + Toggle</div>
+                <div class="seq-purpose">Newly scoped surface — needs Jira ticket</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /doc-content -->
+  </div><!-- /doc-body -->
+</div><!-- /app-chrome -->
+
+</body>
+</html>

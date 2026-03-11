@@ -1,0 +1,3523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Feature Context Hub — Ying Zhang</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #21253a;
+    --border: #2a2f45;
+    --accent: #6c7bff;
+    --accent-dim: #3d4680;
+    --text: #e2e4f0;
+    --text-muted: #8b90a8;
+    --text-dim: #5a5f7a;
+    --green: #3ecf8e;
+    --green-bg: #0d2e1f;
+    --yellow: #f5a623;
+    --yellow-bg: #2e2210;
+    --blue: #4facfe;
+    --blue-bg: #0d1f2e;
+    --purple: #b794f4;
+    --purple-bg: #1e1030;
+    --red: #fc8181;
+    --red-bg: #2d1010;
+    --gray: #8b90a8;
+    --gray-bg: #1e2030;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ─────────────────────────────────── */
+  #sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 20px 16px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-header h1 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 2px;
+  }
+
+  .sidebar-header p {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .sidebar-nav {
+    padding: 10px 8px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 8px 8px 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background .15s;
+    margin-bottom: 2px;
+  }
+
+  .nav-item:hover { background: var(--surface2); }
+  .nav-item.active { background: var(--accent-dim); }
+  .nav-item.active .nav-label { color: var(--text); }
+
+  .nav-icon { font-size: 15px; flex-shrink: 0; }
+
+  .nav-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.3;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 20px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* ── MAIN ─────────────────────────────────────── */
+  #main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 40px;
+    min-width: 0;
+  }
+
+  /* ── VIEWS ────────────────────────────────────── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── SCHEDULE VIEW ────────────────────────────── */
+  .schedule-header {
+    margin-bottom: 28px;
+  }
+
+  .schedule-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .schedule-header p {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+
+  .schedule-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: border-color .15s, transform .1s;
+  }
+
+  .schedule-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  .sc-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .sc-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .sc-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .sc-focus {
+    font-size: 12px;
+    color: var(--text-dim);
+    padding: 6px 10px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    border-left: 2px solid var(--accent-dim);
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 99px;
+    margin-top: 12px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: var(--accent);
+    transition: width .4s ease;
+  }
+
+  .sc-tasks {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+
+  .sc-tasks span {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* ── FEATURE DETAIL ───────────────────────────── */
+  .feature-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .feature-title-block h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .feature-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .meta-sep { color: var(--border); }
+
+  .feature-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    background: var(--surface2);
+    color: var(--text-muted);
+    transition: all .15s;
+  }
+
+  .btn:hover { border-color: var(--accent); color: var(--text); }
+
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .btn-primary:hover { background: #7d8cff; border-color: #7d8cff; color: #fff; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+
+  .tab {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 16px;
+    cursor: pointer;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all .15s;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Context card */
+  .context-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin-bottom: 16px;
+  }
+
+  .context-card h3 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .context-card p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  .decision-list {
+    list-style: none;
+    margin-top: 4px;
+  }
+
+  .decision-list li {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+    padding: 5px 0;
+    padding-left: 16px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .decision-list li:last-child { border-bottom: none; }
+
+  .decision-list li::before {
+    content: '·';
+    position: absolute;
+    left: 4px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .constraint-tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-muted);
+    margin: 3px 3px 3px 0;
+  }
+
+  /* Team row */
+  .team-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .team-person {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 20px;
+    color: var(--text-muted);
+  }
+
+  .avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+    color: var(--accent);
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  /* Links */
+  .links-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .link-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--blue);
+    background: var(--blue-bg);
+    border: 1px solid rgba(79,172,254,.2);
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: border-color .15s;
+  }
+
+  .link-chip:hover { border-color: var(--blue); }
+
+  /* Checklist */
+  .checklist {
+    list-style: none;
+    margin-top: 4px;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .check-item:last-child { border-bottom: none; }
+
+  .check-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .check-label {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text);
+    flex: 1;
+    cursor: pointer;
+    transition: color .15s;
+  }
+
+  .check-label.done {
+    text-decoration: line-through;
+    color: var(--text-dim);
+  }
+
+  /* Done items */
+  .done-list {
+    list-style: none;
+    margin-top: 4px;
+  }
+
+  .done-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .done-item:last-child { border-bottom: none; }
+
+  .done-item::before {
+    content: '✓';
+    color: var(--green);
+    font-size: 12px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    font-weight: 700;
+  }
+
+  .done-item span {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* Questions */
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--yellow);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-bottom: 8px;
+  }
+
+  .question-card p {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .question-card .q-meta {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  /* Status badges */
+  .badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .badge-design    { background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(183,148,244,.25); }
+  .badge-dev       { background: var(--blue-bg);   color: var(--blue);   border: 1px solid rgba(79,172,254,.25); }
+  .badge-discovery { background: var(--yellow-bg); color: var(--yellow); border: 1px solid rgba(245,166,35,.25); }
+  .badge-qa        { background: var(--green-bg);  color: var(--green);  border: 1px solid rgba(62,207,142,.25); }
+  .badge-done      { background: var(--gray-bg);   color: var(--gray);   border: 1px solid rgba(139,144,168,.2); }
+
+  /* Inline edit */
+  .editable-note {
+    width: 100%;
+    min-height: 80px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.6;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color .15s;
+    margin-top: 8px;
+  }
+
+  .editable-note:focus { border-color: var(--accent); }
+  .editable-note::placeholder { color: var(--text-dim); }
+
+  /* Divider */
+  .section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+  /* Focus ribbon */
+  .focus-ribbon {
+    background: linear-gradient(135deg, var(--accent-dim), #1a1540);
+    border: 1px solid var(--accent-dim);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .focus-ribbon-icon { font-size: 20px; }
+
+  .focus-ribbon-text {
+    flex: 1;
+  }
+
+  .focus-ribbon-text strong {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 3px;
+  }
+
+  .focus-ribbon-text span {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Current step editor */
+  .current-step-wrapper {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .current-step-wrapper textarea {
+    flex: 1;
+    min-height: 56px;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+  }
+
+  .empty-state h3 { font-size: 16px; margin-bottom: 8px; color: var(--text-muted); }
+  .empty-state p { font-size: 13px; }
+
+  /* ── MARKDOWN DOC RENDERER ───────────────────── */
+  .md-body {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text);
+  }
+
+  .md-body h1, .md-body h2, .md-body h3, .md-body h4 {
+    color: var(--text);
+    font-weight: 700;
+    margin: 28px 0 10px;
+    line-height: 1.3;
+  }
+
+  .md-body h1 { font-size: 20px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .md-body h2 { font-size: 17px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  .md-body h3 { font-size: 15px; color: var(--accent); }
+  .md-body h4 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
+
+  .md-body p { margin: 0 0 12px; }
+
+  .md-body ul, .md-body ol {
+    margin: 0 0 12px 20px;
+  }
+
+  .md-body li { margin-bottom: 5px; }
+
+  .md-body a { color: var(--blue); text-decoration: none; }
+  .md-body a:hover { text-decoration: underline; }
+
+  .md-body strong { color: var(--text); font-weight: 600; }
+
+  .md-body code {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    color: var(--purple);
+  }
+
+  .md-body pre {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 0 0 14px;
+  }
+
+  .md-body pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--green);
+    font-size: 12px;
+  }
+
+  .md-body blockquote {
+    border-left: 3px solid var(--accent);
+    margin: 0 0 14px;
+    padding: 8px 16px;
+    background: var(--surface2);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    color: var(--text-muted);
+  }
+
+  .md-body blockquote p { margin: 0; }
+
+  .md-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 16px;
+    font-size: 13px;
+  }
+
+  .md-body th {
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-align: left;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .md-body td {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .md-body tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+
+  .md-body hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 24px 0;
+  }
+
+  .doc-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .doc-toolbar-left {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .doc-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+  }
+
+  .doc-empty h3 { font-size: 15px; color: var(--text-muted); margin-bottom: 8px; }
+  .doc-empty p { font-size: 13px; margin-bottom: 16px; }
+
+  .doc-paste-area {
+    width: 100%;
+    min-height: 200px;
+    background: var(--surface2);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    resize: vertical;
+    outline: none;
+    transition: border-color .15s;
+    display: none;
+  }
+
+  .doc-paste-area:focus { border-color: var(--accent); border-style: solid; }
+
+  /* ── STATUS SELECT ───────────────────────────── */
+  .status-select {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    padding: 4px 22px 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='currentColor' opacity='.6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    background-size: 8px;
+  }
+  .status-select.badge-design    { background-color: var(--purple-bg); color: var(--purple); border: 1px solid rgba(183,148,244,.25); }
+  .status-select.badge-dev       { background-color: var(--blue-bg);   color: var(--blue);   border: 1px solid rgba(79,172,254,.25); }
+  .status-select.badge-discovery { background-color: var(--yellow-bg); color: var(--yellow); border: 1px solid rgba(245,166,35,.25); }
+  .status-select.badge-qa        { background-color: var(--green-bg);  color: var(--green);  border: 1px solid rgba(62,207,142,.25); }
+  .status-select.badge-done      { background-color: var(--gray-bg);   color: var(--gray);   border: 1px solid rgba(139,144,168,.2); }
+  .status-select option { background: var(--surface2); color: var(--text); }
+
+  /* ── INLINE DUE EDIT ─────────────────────────── */
+  .due-input {
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 2px 6px;
+    outline: none;
+    width: 120px;
+    font-family: inherit;
+    transition: border-color .15s;
+  }
+  .due-input:focus { border-color: var(--accent); }
+
+  /* ── ADD ITEM ROW ────────────────────────────── */
+  .add-item-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    align-items: center;
+  }
+
+  .add-item-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .add-item-input:focus { border-color: var(--accent); }
+  .add-item-input::placeholder { color: var(--text-dim); }
+
+  /* ── REMOVE BUTTON ───────────────────────────── */
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    padding: 0 2px;
+    flex-shrink: 0;
+    transition: color .15s;
+  }
+  .remove-btn:hover { color: var(--red); }
+
+  /* ── RESOLVE BUTTON ──────────────────────────── */
+  .resolve-btn {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all .15s;
+  }
+  .resolve-btn:hover { border-color: var(--green); color: var(--green); }
+  .resolve-btn.resolved { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+
+  .question-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 8px; }
+  .design-link-input {
+    width: 100%; padding: 8px 12px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: var(--surface-raised); color: var(--text);
+    font-size: 13px; box-sizing: border-box;
+  }
+  .design-link-input:focus { outline: none; border-color: var(--accent); }
+  .design-img-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .design-img-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; position: relative; background: var(--surface-raised); }
+  .design-img-card img { width: 100%; display: block; max-height: 160px; object-fit: cover; }
+  .design-img-card .img-remove { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,.55); color: #fff; border: none; border-radius: 4px; padding: 2px 7px; font-size: 11px; cursor: pointer; }
+  .design-img-card .img-url { font-size: 11px; color: var(--text-dim); padding: 4px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .design-open-btn { margin-top: 8px; display: inline-flex; align-items: center; gap: 4px; }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--green);
+    color: #0a1f12;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all .25s;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  #toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── CUSTOMER CALLS TAB ──────────────────────── */
+  .call-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+
+  .call-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .call-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .call-card-title input {
+    background: none;
+    border: none;
+    border-bottom: 1px dashed var(--border);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    outline: none;
+    flex: 1;
+    min-width: 0;
+    padding: 2px 4px;
+    transition: border-color .15s;
+  }
+
+  .call-card-title input:focus { border-bottom-color: var(--accent); }
+  .call-card-title input::placeholder { color: var(--text-dim); font-weight: 400; }
+
+  .call-date-input {
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 3px 8px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color .15s;
+    width: 130px;
+    flex-shrink: 0;
+  }
+  .call-date-input:focus { border-color: var(--accent); }
+  .call-date-input::placeholder { color: var(--text-dim); }
+
+  .call-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .call-link-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .call-link-row input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    color: var(--text);
+    font-size: 12px;
+    font-family: 'SF Mono', monospace;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .call-link-row input:focus { border-color: var(--accent); }
+  .call-link-row input::placeholder { color: var(--text-dim); }
+
+  .call-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 14px 0;
+  }
+
+  .call-transcript {
+    width: 100%;
+    min-height: 130px;
+    max-height: 320px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.65;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    resize: vertical;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .call-transcript:focus { border-color: var(--accent); color: var(--text); }
+  .call-transcript::placeholder { color: var(--text-dim); }
+
+  .summary-section { margin-top: 14px; }
+
+  .summary-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .call-summary {
+    width: 100%;
+    min-height: 100px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.75;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .call-summary:focus { border-color: var(--accent); }
+  .call-summary::placeholder { color: var(--text-dim); }
+
+  .summary-rendered {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+    min-height: 60px;
+  }
+
+  /* Summary expand modal */
+  .summary-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.65);
+    z-index: 200;
+  }
+
+  .summary-modal-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    z-index: 201;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    width: min(820px, 92vw);
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 64px rgba(0,0,0,.5);
+  }
+
+  .summary-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .summary-modal-head strong {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .summary-modal-body {
+    padding: 28px 32px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .generate-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(108,123,255,.4);
+    cursor: pointer;
+    background: var(--accent-dim);
+    color: var(--accent);
+    transition: all .15s;
+  }
+  .generate-btn:hover:not(:disabled) { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .generate-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+<div id="sidebar">
+  <div class="sidebar-header">
+    <h1>Feature Hub</h1>
+    <p>Ying Zhang · Staff Product Designer</p>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <div class="nav-item active" data-view="schedule" onclick="showView('schedule', this)">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">Schedule Overview</span>
+    </div>
+
+    <div class="nav-section-label" style="margin-top:8px">Features</div>
+    <div id="nav-features"></div>
+  </nav>
+  <div class="sidebar-footer">
+    Last updated: <span id="last-updated">—</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ MAIN ══════════════════════════════════ -->
+<div id="main">
+
+  <!-- SCHEDULE VIEW -->
+  <div id="view-schedule" class="view active">
+    <div class="schedule-header">
+      <h2>Schedule Overview</h2>
+      <p>All active features at a glance. Click a card to dive into the details.</p>
+    </div>
+    <div class="schedule-grid" id="schedule-grid"></div>
+  </div>
+
+  <!-- FEATURE VIEWS are injected here -->
+  <div id="feature-views"></div>
+
+</div>
+
+<div id="toast">Saved</div>
+
+<!-- SUMMARY EXPAND MODAL -->
+<div id="summary-modal" style="display:none">
+  <div class="summary-modal-overlay" onclick="closeSummaryModal()"></div>
+  <div class="summary-modal-box">
+    <div class="summary-modal-head">
+      <strong id="summary-modal-title">Call Summary</strong>
+      <div style="display:flex;gap:8px">
+        <button class="btn" style="font-size:12px" onclick="copySummaryFromModal()">Copy</button>
+        <button class="btn" style="font-size:12px" onclick="closeSummaryModal()">✕ Close</button>
+      </div>
+    </div>
+    <div class="summary-modal-body md-body" id="summary-modal-content"></div>
+  </div>
+</div>
+
+<!-- ══ DOMAIN DOCS (raw markdown — edit or paste in-app) ══════════════════ -->
+<script type="text/plain" id="doc-index-cost">
+# Index Cost — Design Spec
+
+**Branch:** `feature/index-cost`
+**Status:** In Progress
+**Last Updated:** 2026-03-10
+
+---
+
+## Table of Contents
+
+1. [Screen 1 — Cost Catalogue List Page + Create Modal](#screen-1)
+2. [Screen 2 — Cost Catalogue Details Page](#screen-2)
+3. [Screen 3 — Archive Flow](#screen-3)
+4. [Screen 4 — Job Creation: Catalogue Selector](#screen-4)
+5. [Screen 5 — Job Details: Catalogue Display & Edit](#screen-5)
+6. [Screen 6 — Job Report: Table Columns + Add Item Modals](#screen-6)
+7. [Screen 7 — Job Report PDF: Index Cost + Customer Toggle](#screen-7)
+8. [Design Sequence](#design-sequence)
+
+---
+
+## Screen 1 — Cost Catalogue List Page + Create Modal
+
+### 1A. List Page · Settings > Cost Catalogues
+
+```
++------------------------------------------------------------------+
+| PageHeader                                                        |
+|  Cost Catalogues                    [+ Create Cost Catalogue]     |
++------------------------------------------------------------------+
+| [Search by name...]          [  Include Archived]                 |
++--------------------+--------------+--------------+---------------+
+| Name               | Description  | Created Date |               |
++--------------------+--------------+--------------+---------------+
+| SmartCare - Texas  | Texas region | Mar 1, 2026  |  ...          |
+| SmartCare - FL     | Florida reg  | Feb 20, 2026 |  ...          |
+| SmartCare - NYC    | NY region    | Jan 15, 2026 |  ...          |
+| [archived, grayed] |              |              |  ...          |
++--------------------+--------------+--------------+---------------+
+```
+
+**States & Behaviors**
+
+| Behavior | Detail |
+|---|---|
+| Empty state | Illustration + "No cost catalogues yet. Create one to get started." + CTA button |
+| Overflow menu (...) | Edit · Archive |
+| Archived toggle on | Archived rows render grayed with `[Archived]` chip on name |
+| FF off | Entire page hidden from nav — not just content, full route removed |
+| Navigation placement | Settings sidebar, peer to Pricebooks |
+
+### 1B. Create Catalogue Modal
+
+**States & Behaviors**
+
+| Behavior | Detail |
+|---|---|
+| Submit button | Shows spinner + disabled state on API call |
+| On success | Close modal + row added to top of list + success toast: "Cost Catalogue created." |
+| On API error | Error toast: "Something went wrong. Please try again." |
+| Adding entries | Entries are added from the Details page — not here (v1) |
+
+---
+
+## Screen 2 — Cost Catalogue Details Page
+
+> Pattern: `LeftSidebarWithContent` with tab-based sub-sections, similar to Pricebook details.
+
+### Column Behavior
+
+| Column | Rule | Width |
+|---|---|---|
+| Item Name | Fill | 200px min |
+| Item ID | Hug | 120px |
+| Standard Cost | $ | 136px max — read-only, grayed label |
+| Index Cost | $ | 136px max — editable inline |
+| Overflow | — | 32px |
+
+### States & Behaviors
+
+| Behavior | Detail |
+|---|---|
+| `--` in Index Cost | Item exists in Item List but has no catalogue entry yet |
+| Pencil icon (e) | Hover on Index Cost cell to reveal edit icon → inline edit → save on blur/Enter |
+| + Add Entry | Searchable item picker modal → set Index Cost → Save |
+| Overflow menu per row | "Edit" · "Remove entry" (label: "Restore default costs") |
+| Standard Cost column | Shown as FYI/comparison only — read-only, slightly muted label color |
+
+> **Open decision:** Confirm Standard Cost column intent with Priyanka/Miguel before finalizing.
+
+---
+
+## Screen 3 — Archive Flow
+
+> Triggered from: List page overflow menu OR Details page header action.
+
+**States & Behaviors**
+
+| Behavior | Detail |
+|---|---|
+| On confirm | Row moves to archived state — grayed row with `[Archived]` chip |
+| Unarchive | Out of scope for v1 |
+| Archived detail page | Banner at top: "This catalogue is archived. It cannot be assigned to new jobs." |
+
+---
+
+## Screen 4 — Job Creation: Catalogue Selector
+
+> Injected into the existing New Job modal/wizard alongside the Pricebook selector.
+
+**States & Behaviors**
+
+| Behavior | Detail |
+|---|---|
+| Placement | Directly below Pricebook selector — same visual grouping under "Pricing" section |
+| Optional field | Nullable — no catalogue = falls back to existing unit cost logic |
+| Helper text | "Used as the pricing cost basis. Does not affect job costing or actual costs." |
+| FF guard | Entire Cost Catalogue field hidden when `cost-catalogues` FF is off |
+| Label | "Cost Catalogue" (TBD — may update to "Index Cost Catalogue") |
+
+---
+
+## Screen 5 — Job Details: Catalogue Display & Edit
+
+> Injected into the existing Job Details page in the pricing/billing section.
+
+**Inline Edit Behavior for Cost Catalogue**
+
+| Behavior | Detail |
+|---|---|
+| Click pencil icon | Opens inline dropdown selector |
+| "None" option | Available to remove catalogue assignment |
+| On save | Success toast: "Cost Catalogue updated." |
+
+---
+
+## Screen 6 — Job Report: Table Columns + Add Item Modals
+
+### 6A. On-Screen Table
+
+**Column Order:** Item Name · Qty · UOM · Unit Cost (Actual) · Index Cost · Markup % · Unit Price · Overflow
+
+| Column | Notes |
+|---|---|
+| Unit Cost (Actual) | Always shown. Read-only when item has a catalogue entry. Tooltip: "Actual purchase/inventory cost. Used for job costing only." |
+| Index Cost | New column. Shows `CostCatalogueEntry.unitCost` for matched items, `--` for unmatched. Read-only. Tooltip: "Pricing basis from your Cost Catalogue. Markup is applied to this value." |
+| Unit Price | Calculated from Index Cost (not Unit Cost) when catalogue entry exists |
+| Conditional render | Both new columns hidden when FF off OR job has no `costCatalogueId` |
+
+### 6B. Add Item Modal
+
+| Behavior | Detail |
+|---|---|
+| Unit Price preview | Calculated using Index Cost as the markup basis |
+| No catalogue entry on item | Unit Cost (Actual) used as markup basis; Index Cost row shows `--` |
+| Cost rows | Read-only in the modal — users cannot override the cost basis (v1) |
+
+---
+
+## Screen 7 — Job Report PDF: Index Cost + Customer Toggle
+
+**Default state:** Toggle **off** — Index Cost is not shown on PDF by default. Customers opt in.
+
+> **Rationale:** Showing index cost to end customers could cause confusion; opt-in is safer.
+
+**PDF-Specific Notes**
+
+| Note | Detail |
+|---|---|
+| Index Cost column | Only renders in PDF when toggle is on |
+| No catalogue entry | `--` shown (same as on-screen) |
+| Column order | Mirrors on-screen table for consistency |
+
+> **New Jira ticket needed** — Cabo flagged this surface in today's sync. Currently not covered by existing eng tickets.
+
+---
+
+## Design Sequence
+
+| Priority | Screen | Purpose |
+|---|---|---|
+| 1 | Cost Catalogue List Page + Create Modal | Settings foundation |
+| 2 | Cost Catalogue Details Page | Core data management |
+| 3 | Archive Flow | Completes Settings |
+| 4 | Job Creation: Catalogue Selector | Job-level assignment |
+| 5 | Job Details: Catalogue Display & Edit | Job-level management |
+| 6 | Job Report: Table Columns + Modals | Revenue-side visibility |
+| 7 | Job Report PDF: Index Cost + Toggle | Newly scoped surface (needs Jira ticket) |
+</script>
+<!-- ══ DOMAIN DOCS (KB sections per feature) ════════════════════════════ -->
+
+<script type="text/plain" id="ddoc-index-cost">
+# Index Cost — Customer Discovery & SIP Evidence
+
+**Design Ticket:** [SERVICE-4335](https://buildops.atlassian.net/browse/SERVICE-4335)
+**Epic:** [SERVICE-4214](https://buildops.atlassian.net/browse/SERVICE-4214)
+**SIP Issues:** SIP-8787 · SIP (Index Cost Bulk Updates)
+
+---
+
+## What Customers Are Saying
+
+### SIP: "Ability to Use Index Cost for Pricing on Job Report"
+**Customer:** SmartCare (and others adopting Index Cost)
+
+**Problem:**
+Job Reports today continue to rely on costs from source purchasing documents (POs, AP Bills) or Inventory Issues — **not** from the Index Cost. This undermines the entire purpose of Index Cost and creates an inconsistency between the pricing strategy set in the Cost Catalogue and what actually appears on the job report.
+
+**Business Impact:**
+- Margins are frequently eroded or inconsistently applied
+- Pricing accuracy depends on individual vigilance rather than system enforcement
+- Teams spend excessive time validating costs and markups instead of higher-value work
+- Customers adopting Index Cost do not realize its full value until Job Report uses it
+
+**Current Workaround:**
+Supervisors, managers, or billing clerks manually verify that pricing is calculated using the correct cost before invoicing — highly manual and error-prone.
+
+---
+
+### SIP: "Item-Level Index Cost Bulk Updates Applied to Pricebooks"
+
+**Problem:**
+Customers need to update pricing for a specific item when its supplier cost changes due to an external index, and apply that change **only to selected pricebooks**. BuildOps does not support targeted, item-level bulk updates tied to index cost changes.
+
+**Business Impact:**
+- Manual updates for every high-frequency cost change on indexed items
+- Risk of inconsistent pricing across pricebooks when updates are missed
+
+**Current Workaround:**
+Manually identify impacted pricebooks, then update the item price one pricebook at a time. Some customers maintain separate tracking outside BuildOps to manage index changes.
+
+**Context:**
+- Customers using Inventory, Procurement, and multiple pricebooks tied to different customers/regions/contracts
+- Index-based cost changes on individual items are common and recurring — not an edge case
+- Under contract with due date **2026-06-30**
+
+---
+
+## Design Scope (SERVICE-4335)
+
+The design ticket covers:
+1. **Cost Catalogue UI** — list view, create/edit cost catalogue entries
+2. **Job Report integration** — using index cost as markup base (max(Index Cost, Purchase Cost))
+3. **Property-level inheritance** — property inherits a Cost Catalogue; job inherits from property
+4. **Phase 1 only**: No manual override at job level, no pricebook-level cost override
+
+## What's Built (feature/index-cost branch)
+- `CostCatalogueList` UI with mock data (commit c7d322ae)
+- Index cost design spec (commit 48f9ea65)
+- Component preview: `docs/index-cost-component-preview.html`
+</script>
+
+<script type="text/plain" id="ddoc-avalara-tax">
+# Avalara Tax Exemptions — Domain Knowledge (IP-5363)
+
+## Problem
+
+Some customers are tax-exempt (government, nonprofits). When these customers have an exemption certificate in Avalara:
+- AR invoices correctly show zero tax ✅
+- But BuildOps doesn't **retrieve** or **display** the exemption certificate details
+- BuildOps doesn't provide **customer-level AP/AR taxability defaults**
+- AP purchases for the same job still require manual configuration
+
+## Why AR Exemptions Cannot Auto-Drive AP
+
+> ⚠️ **Important legal distinction:** AR exemption certificates apply to sales only. AP tax depends on the contractor's resale status, jurisdiction, use vs. resale classification, and vendor behavior. Automatically reusing AR certificates for AP would misapply tax law in many cases.
+
+- An AR exemption certificate tells Avalara: "Do not charge sales tax on invoices issued to this customer."
+- It does **NOT** mean the contractor is exempt from paying tax when buying materials
+- Correct approach: provide explicit, auditable AP controls (`AP Work Taxability Type`, `Use Taxable`)
+
+## Solution: 4 Workstreams
+
+### Workstream 1 — Retrieve & Store Exemption Certificate from Avalara
+
+- Extend customer Avalara sync to retrieve exemption certificate data
+- Store: `certificateId`, `exemptionCertRegion`, `exemptionReason`, `effectiveDate`, `expirationDate`, `status`
+- On-demand **"Refresh from Avalara"** action on Customer detail
+
+| Status | Condition |
+|---|---|
+| ✅ Exempt in Avalara | Valid cert + not expired |
+| ⚠️ Certificate Expired/Revoked | Valid cert + expired |
+| ❌ No certificate | No cert found |
+| ❓ Unknown | Sync failed — show last sync timestamp |
+
+### Workstream 2 — Customer-Level Taxability Fields (New)
+
+| Field | Type | Gating |
+|---|---|---|
+| `isUseTaxable` | Boolean (default: false) | `ap-taxes` flag |
+| `apWorkTaxabilityTypeId` | FK to WorkTaxabilityType | `work-taxability-types` + Avalara |
+| `arWorkTaxabilityTypeId` | FK to WorkTaxabilityType | `work-taxability-types` + Avalara |
+
+### Workstream 3 — Defaulting & Inheritance
+
+Customer fields default into: Project, Job, Maintenance Job, Service Agreement. Rule: "Customer fields provide defaults, not locked behavior" — all can be manually overridden.
+
+### Workstream 4 — Exemption Status on Documents
+
+| Document | What's shown |
+|---|---|
+| PO / Receipt / Bill | Read-only badge: "Exempt in Avalara (AR)" / "No certificate" / "Unknown" |
+| AR Invoice | Badge + certificate summary + "Last synced" timestamp |
+
+Display is **informational only** — does not automatically change AP tax calculation.
+
+## Feature Flags
+
+| Flag | Controls |
+|---|---|
+| `work-taxability-types` | AP/AR Work Taxability Type fields on Customer, Job, SA |
+| `ap-taxes` | Use Taxable field + AP tax configuration |
+
+## Non-Goals
+
+- Auto-applying AR exemptions to AP (tax law violation)
+- Periodic background sync of certificates (deferred)
+- Editing exemption certificates from BuildOps (read-only — managed in Avalara)
+
+## Related Links
+
+- [IP-5363 - Avalara Tax Exemptions PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4260888584)
+- [TDD - IP-5363](https://buildops.atlassian.net/wiki/spaces/EN/pages/4334288898)
+- [IPP-337 - Job Taxability Settings PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4263018514)
+</script>
+
+<script type="text/plain" id="ddoc-pricebook-fee">
+# Pricebook Fee Configuration — Domain Knowledge
+
+## Context
+
+Fee configuration is a **direct dependency of Pricebook Separation**. When Labor and Material pricebooks are decoupled, fees (truck charges, service charges, consumables) no longer cleanly belong to either cost type.
+
+## What Are Fees?
+
+Fees are **revenue-only items** — no cost behind them, no markup calculation, no job costing impact. Examples: Truck charge ($85 flat), Service charge ($75 flat), Torch kit, recovery fee (consumables).
+
+> Contrast with material items: materials carry both a cost and a revenue component. Fee items are pure revenue — they book to their own revenue account, not material revenue.
+
+## Two Approaches Evaluated
+
+### Option 1: Fee Pricebook
+
+| Pro | Con |
+|---|---|
+| Familiar model | Adds a 3rd pricebook to select |
+| Consistent with separation model | Fees may differ only occasionally — overkill for most |
+
+### Option 2: Property-Level Fee Item Library ✅ Current Direction
+
+A centralized **Fee Item Library** organized by category. Properties select one fee item per category.
+
+| Category | Example Items |
+|---|---|
+| Truck Charge | "Standard Truck Charge $85", "Negotiated SC from $75→$50" |
+| Service Charge | "Standard Service Charge $75" |
+
+**Propagation options when a fee item is updated:**
+- Update item in central Fee Library → auto-updates all properties referencing it
+- OR update per-property independently
+
+| Pro | Con |
+|---|---|
+| Independent selection — Truck Charge and Service Charge chosen separately per property | Requires new "Fee Item Library" concept |
+| Easy to add variants (negotiated rates) | |
+| No combinatorial pricebook explosion | |
+| Supports centralized bulk updates via controlled propagation | |
+| Keeps fees revenue-only and separate from cost components | |
+
+## What Needs to Change
+
+1. Introduce `Fee` as a distinct item type in the Item List
+2. Fee items are revenue-only — no `unitCost`, no markup, no job costing impact
+3. Fee defaults per property — a property can have a default truck charge + service charge
+4. Pricebook UI — Fee tab only appears on pricebooks if the cost type supports it
+
+## Related Links
+
+- [PRD - Truck Fee / Default Fee Enhancements](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4296900616)
+- [Fee Configuration Options: Pricebook vs Property-Level](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4316692507)
+</script>
+
+<script type="text/plain" id="doc-vendors-unified">
+# Vendors & Subcontractors Unified Experience — Domain Docs (IP-5536)
+
+## Problem
+
+The **Subcontractors** page and **Vendors** page live in completely separate places, even though subcontractors are fundamentally a type of vendor. This causes:
+- Users switching between two pages for related workflows
+- **Divergent data models** — contacts, addresses, notes, and status stored differently for suppliers vs. subcontractors
+- Inconsistent archival behavior (Supplier uses "Active" checkbox; Subcontractor uses "Deactivate")
+- Duplicate vendor records created when a vendor is both a supplier and a subcontractor
+
+## Proposed Solution
+
+Consolidate into a **single unified Vendors experience** under the Directory menu.
+
+## Key Changes
+
+### Vendor Types (New)
+
+| Type | Description |
+|---|---|
+| **Supplier** | Existing type. Provides goods/materials. |
+| **Subcontractor** | Existing type. Provides labor services. |
+| **Supplier & Subcontractor** | ⭐ New type. Eliminates need for duplicate records. |
+
+> ⚠️ **Sage 300 exception:** "Supplier & Subcontractor" type is NOT available for Sage 300/HH2 tenants.
+
+### Unified Vendor List Page (3 tabs)
+
+| Tab | Shows |
+|---|---|
+| **All** | Every vendor regardless of type |
+| **Suppliers** | type = Supplier OR Supplier & Subcontractor |
+| **Subcontractors** | type = Subcontractor OR Supplier & Subcontractor |
+
+### New Vendor Detail Page (adaptive by type)
+
+- **Supplier type** → Vendor Info, Billing/Shipping Address, Contact, Notes, POs & Subcontracts tab, Contacts tab, Bills tab
+- **Subcontractor or Supplier & Subcontractor** → All of the above + Compliance tab, Retainage Settings, Subcontractor Type, Service Zone, Tags
+
+### Unified Creation Wizard
+
+- **Supplier flow** → Vendor Type, Vendor Name, Use Taxable, Billing Address, Shipping Address, Contact, Notes
+- **Subcontractor flow** → All of the above + Subcontractor Type (multi-select), Service Zone (multi-select), Tags (multi-select), Retainage Settings (conditional)
+- When a vendor is created with type = Subcontractor or Supplier & Subcontractor → **auto-generates the linked Subcontractor record**
+
+### Auto-generation Field Mapping (Vendor → Subcontractor)
+
+| Subcontractor Field | Source from Vendor |
+|---|---|
+| Name | `Vendor.name` |
+| Email | `Vendor.email` |
+| Phone | `Vendor.phone` |
+| Business Address | Vendor Billing Address |
+| Subcontractor Type | Multi-select from wizard |
+| Service Zone | Multi-select from wizard |
+| Tags | Multi-select from wizard |
+| Status (isActive) | `Vendor.isActive` |
+| Contacts | Vendor's primary contact added as `SubcontractorContact` |
+
+### Unified Archive/Unarchive
+
+- Both types now use a single **Archive** action (kebab menu → Archive)
+- Sets `Vendor.isArchived = true`
+- Confirmation dialogue required
+- Type changes that would cause data loss (Subcontractor → Supplier) are **blocked**
+
+## Feature Flag
+
+`subcontracts` FF must be ON. When ON, the new unified Vendors experience replaces both old pages.
+
+## Open Questions
+
+| # | Question |
+|---|---|
+| 1 | Should edits to the Vendor record after creation sync to the linked Subcontractor record, or is auto-generation a one-time event? |
+| 2 | What markup rate applies for Supplier & Subcontractor vendors in financial calculations? |
+| 3 | How should Supplier & Subcontractor vendors be categorized in Project Report Services? |
+
+## Related Links
+
+- [Vendors & Subcontractors Unified Experience PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4308467713)
+- [IP-5383: Vendor/Subcontractor Unification TDD](https://buildops.atlassian.net/wiki/spaces/EN/pages/4332617736)
+</script>
+
+<script type="text/plain" id="doc-job-taxability">
+# Job Taxability Settings — Domain Docs (IPP-337 — PPC)
+
+## Problem
+
+Service contractors operate on a simple, all-or-nothing tax model. PPC's current system (IFS) supports three clear states: **Taxable / Non-Taxable / Exempt**. Today in BuildOps, this is fragmented across multiple steps and configuration points.
+
+PPC's core rule:
+> "The job is either taxable or not, and therefore, the things we purchase are the opposite."
+
+| Job Type | AR (Customer Invoice) | AP (Vendor Purchases) |
+|---|---|---|
+| **Taxable** | Charge sales tax to customer | Tax-exempt (resale certificate) |
+| **Non-Taxable** | No sales tax | Taxable (consumption/use tax) |
+| **Exempt Customer/Job** | No tax | No tax (government, nonprofit, etc.) |
+
+## Solution: Work Taxability Types
+
+A structured, hierarchical system for controlling AP and AR taxability across the entire job lifecycle.
+
+### New Concept: Work Taxability Type
+
+Configurable value (set in Tax Settings) that controls:
+- **Line Taxability Rule:** Always Taxable / Always Non-Taxable / Inherit from Item List
+
+### New Entity Fields
+
+| Entity | New Fields |
+|---|---|
+| `WorkTaxabilityType` | `lineTaxabilityRule` (ALWAYS_TAXABLE / ALWAYS_NON_TAXABLE / INHERIT) |
+| `JobBlueprint` (Job Template) | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |
+| `Job` | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |
+| `ServiceAgreement` | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |
+| `Customer` | `apWorkTaxabilityTypeId` + `arWorkTaxabilityTypeId` |
+
+### Defaulting Hierarchy
+
+```
+Customer defaults → Job Template re-defaults → SA re-defaults → Job (manual override)
+```
+
+### PO/Invoice Line Behavior
+
+When a PO is created for a job:
+- ALWAYS_TAXABLE → all lines `Taxable = true`
+- ALWAYS_NON_TAXABLE → all lines `Taxable = false`
+- INHERIT → each line inherits from the Item List `taxable` setting
+
+### Feature Flags
+
+| Flag | Controls |
+|---|---|
+| `work-taxability-types` | Exposes Work Taxability fields on Job Templates, Jobs, SAs, Customers |
+| `ap-taxes` | Exposes AP tax configuration settings |
+
+## PPC's Three Core Scenarios
+
+| Scenario | AR | AP |
+|---|---|---|
+| Taxable Job | Tax collected (sales tax) | Tax-exempt (resale certificate) |
+| Non-Taxable Job | Tax-exempt | Taxable (consumption/use tax) |
+| Exempt Customer/Job | Tax-exempt | Tax-exempt |
+
+## New Screen: Tax Settings
+
+`Company → Tax Settings` consolidates:
+- Work Taxability configuration (when `work-taxability-types` = true)
+- Sales Tax list
+- AP Taxes configuration (when `ap-taxes` = true and Avalara = false)
+
+## Related Links
+
+- [IPP-337 - Job Taxability Settings PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4263018514)
+- [Job Taxability - Meeting Notes (PPC)](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4262461453)
+</script>
+
+<script type="text/plain" id="doc-pricebook-separation">
+# Pricebook Separation (Split by Cost Type) — Domain Docs
+
+## Problem
+
+Today, a single pricebook bundles **Labor + Materials + Equipment** pricing together, causing combinatorial explosion.
+
+> Service Logic example: 118 labor rate structures × 42 material markups = **4,956 pricebooks** required. Impossible to maintain.
+
+## Solution: One Pricebook Per Cost Type
+
+Each pricebook has exactly **one cost type**:
+
+| Cost Type | What it covers |
+|---|---|
+| **Material** | Parts, inventory items, purchased materials |
+| **Labor** | Labor rates, hour types, labor groups |
+| **Equipment** | Equipment rental, usage rates |
+
+> ⚠️ Multi-cost-type pricebooks will NOT be allowed under the new model. Existing "full" pricebooks remain backward compatible during migration.
+
+## Key Architectural Decisions
+
+### Cost Type Composition
+- Each new pricebook selects exactly 1 cost type on creation
+- Cost type cannot be changed after creation
+- Existing full pricebooks continue working (backward compatibility)
+
+### Job-Level Selection
+- When creating a job, user selects up to 3 pricebooks (one per cost type)
+- If a full pricebook is selected → populates labor and equipment fields too (backward compat)
+- Each entity resolves pricing from the matching cost-type pricebook
+
+### Pricing Resolution Logic
+
+```
+Inventory Part added → resolve from Material pricebook
+Labor line added    → resolve from Labor pricebook
+Equipment added     → resolve from Equipment pricebook
+```
+
+### Inheritance Chain
+
+- Invoice created from a job → inherits all three pricebook IDs from the job
+- Invoice created from SA → inherits from SA → Customer → Company
+- Ad-hoc invoice → inherits from Customer → Company
+
+## What's Out of Scope (Phase 1)
+
+- Splitting out existing pricebooks into separate cost-type books
+- Archiving partial pricebooks
+- Multi-select vendor types in all reporting surfaces
+
+## Related Links
+
+- [PRD - Splitting Pricebook Components](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4153737329)
+</script>
+
+<script type="text/plain" id="doc-pricebook-bulk-edits">
+# Pricebook Bulk Edits — Domain Docs
+
+## Problem
+
+SmartCare manages **400+ pricebooks** across 15 operating companies. When contract terms or labor rates change:
+- A single contract amendment may affect **20–50 pricebooks**
+- A union rate increase affects **50+ pricebooks**
+- Commodity price changes (refrigerant, copper) may require updates **daily or weekly**
+- Today: each pricebook must be opened, edited, and saved individually — hours of work per cycle
+
+## Solution: Two Complementary Entry Points
+
+### Option A — Proactive Bulk Edit (Pricebook List)
+For planned, top-down changes affecting many known pricebooks:
+1. Search/filter pricebooks by name or customer → checkbox multi-select
+2. Choose edit type: Material Markup / Labor Rates / Fixed Price Items / Equipment
+3. Configure the change in an editing panel (mirrors existing single-PB editor)
+4. Confirmation step: shows count + names of affected pricebooks, warns on skipped items
+5. Apply → post-save summary shows successes/failures
+
+### Option C — In-Context Propagation
+For reactive changes discovered while editing a single pricebook:
+- User saves an edit to a markup tier, labor rate, or fixed price item
+- System prompts: "Apply these changes to other price books?"
+- User opens multi-select panel → chooses additional pricebooks → confirms
+
+> **Recommended: Both A and C** — they serve complementary use cases.
+
+## Four Edit Surfaces
+
+| Surface | Example Use Case |
+|---|---|
+| **Material markup tiers** | Spartan Nash contract: bump all markup tiers from 15% → 18% across 20 pricebooks |
+| **Labor rates** | Union rate increase: Chicago Local 507 journeyman $150 → $155 across 50+ pricebooks |
+| **Fixed price items** | Refrigerant price change: update fixed price across all pricebooks that carry this item |
+| **Equipment** | HVAC unit pricing update: update fixed price or markup across pricebooks |
+
+## Key Rules
+
+- ✅ Bulk edits apply **only** to explicitly selected pricebooks — no unintended updates
+- ✅ Permission-gated — not available to job reviewers or lower-privilege roles
+- ✅ If a selected pricebook doesn't have the targeted item → **skip + surface in post-save summary**
+- ✅ Confirmation step before applying
+- ❌ Not in scope: index cost, bulk pricebook creation/cloning, automated/scheduled updates
+
+## Success Metrics
+
+| Metric | Target |
+|---|---|
+| Time to apply rate change across 20 PBs | < 5 min (from ~60–90 min manual) |
+| Price books updated per bulk session | ≥ 10 on average |
+
+## Related Links
+
+- [PRD: Pricebook Bulk Edits](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4344709161)
+- [Draft PRD - Bulk Upsert for Pricebook](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4023386122)
+</script>
+
+<script type="text/plain" id="doc-multiple-vendor-locations">
+# Multiple Vendor Locations — Domain Docs (IP-1002)
+
+## What It Is
+
+BuildOps supports multiple locations per vendor — in production since IP-1002. Each vendor location represents a physical branch with its own contact, billing address, and shipping address.
+
+This is especially important for large national vendors (Trane, Carrier, Ferguson) that operate across multiple US states. The correct vendor location determines:
+- Who to contact for the order
+- Where the order ships from
+- Which bill-to address appears on the PO
+
+## Data Model
+
+```
+Vendor
+  ├── defaultLocationId (FK → VendorLocation.id)
+  └── VendorLocation (1:N)
+        ├── id
+        ├── vendorId
+        ├── name (e.g. "Ferguson Denver", "Ferguson Phoenix")
+        ├── billingAddress
+        ├── shippingAddress
+        ├── contact (name, phone, email)
+        └── isDefault (bool)
+```
+
+## How It Drives Bulk PO Grouping
+
+Bulk POs are split into separate POs when any of these three dimensions differ:
+
+```
+vendorId + vendorLocationId + shippingDestination → ONE PO
+```
+
+**Concrete example:** 10 maintenances, all using Ferguson as the filter vendor:
+
+| Maintenances | State | Vendor Location | Ships to | Result |
+|---|---|---|---|---|
+| 7 maintenances | Colorado | Ferguson Denver | CO warehouse | **1 PO** |
+| 3 maintenances | Arizona | Ferguson Phoenix | AZ warehouse | **1 PO** |
+| **Total** | | | | **2 POs** |
+
+## Phase 1 vs Phase 2
+
+**Phase 1 (current):**
+- Default vendor location used (`Vendor.defaultLocationId`) when no override set
+- User can override location in the Bulk PO confirmation dialog
+
+**Phase 2 (deferred):**
+- Auto-suggest the vendor location whose state matches the property's state
+- E.g., if maintenance is in Colorado → auto-suggest Ferguson Denver
+
+## Shipping Destination Options
+
+| Option | Typical Use |
+|---|---|
+| **Warehouse** | ⭐ Most common — deliver ahead of time, "tagged and bagged" for tech pickup |
+| Vendor Location | Pick up from vendor's branch |
+| Job / Project Site | Deliver directly to the property address |
+| Manually entered | One-off address |
+
+## Related Links
+
+- [IP-1002 Multiple Vendor Locations PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/3461316618)
+</script>
+
+<script type="text/plain" id="doc-pricebook-fee">
+# Pricebook Fee Configuration — Spec & Discovery
+
+**PRD:** [Truck Fee / Default Fee Enhancements](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4296900616)
+**Design Ticket:** SERVICE-4366
+**Customer Calls:** [11/11/2025 (Fathom)](https://fathom.video/share/z4VQBQgCiWvqBE9m9ytpUT7FjhTimZcv) · [12/15/2025 (Fathom)](https://fathom.video/share/ZNkjPcMeAMNUQZsajRQy9dueAMgAGvdz)
+**Prototype Branch:** `fee-settings`
+
+---
+
+## Why This Exists
+
+Fees (dispatch charges, truck charges, mileage, service fees) are currently modeled as item-type records inside the item list under a "fee" item type — forcing them through pricebook markup/cost fields that are irrelevant. Fees are revenue-only, flat-amount; not inventory or non-inventory items.
+
+This causes:
+- Customers routinely override cost/markup to "fixed price" because markup doesn't apply to fees
+- Entire item list (1,000–3,000 items) shown when adding a fee to a job
+- Fee defaulting logic coupled to the item catalog, not to job/property configuration
+
+---
+
+## What Customers Said
+
+**Jason Saunders (ServiceLogic):**
+> *"Generally truck charges are flat fees, right? $50 per call, $50 per guy, whatever that is. So it sounds like in the parts and material markup, we still have lumped together the flat truck charge along with the markup percentage."*
+
+> *"Completely independent. They're, and generally procedurally, the salespeople are going to handle a truck charge discussion negotiation independent of markup."*
+
+> *"You have 100 price books — a flat markup of 1 to 100%. But I also have 10 truck charges. Right there we've got 1,000 combinations in that example. So no, this is not going to work."*
+
+**Tolin Mechanical:**
+- Manually adds charges at billing time per visit based on contract language
+- Max two truck charges per visit at a set threshold; some customers waived entirely
+- Uses a third-party AI billing tool to read work order notes and determine the right charge
+- Rate update process: manually updated December 31st — no scheduled future rates
+
+**Piedmont Service Group:**
+- Per truck, per technician — two techs = two separate charges
+- 11 divisions with different rates ($85, $75, $35)
+- Billers manually change the amount on every single invoice — no automation
+
+**Air Texas:**
+- Truck charge baked directly into the pricing matrix (one-to-one)
+- Any variation requires creating an entirely new pricing matrix
+
+**IES (Jason Saunders reference standard):**
+- Predefined pick list items: TC10, TC20, TC30, TC50
+- Contract admin selects the right one when setting up the location
+
+---
+
+## Decision: Approach D — Fee Settings Page + Property Selector
+
+**Rejected: Fee Pricebook approach** — combinatorial explosion:
+> 3 truck + 3 service charges → 15 pricebooks. Add 1 more fee type → 47 pricebooks. Untenable.
+
+**Selected: Property-Level Dropdown with Centralized Fee Library**
+
+| | Pricebook Approach | Property Dropdown (Selected) |
+|---|---|---|
+| Centralized control | ✅ | ✅ via bulk update propagation |
+| Scalability | ❌ explosion | ✅ linear |
+| Tech impact | High | Low, contained |
+| Visibility | Name only | Exact fee item visible |
+| Effort | L | S |
+
+**Solution:**
+1. **Fee Settings page** under Settings — list of fee records (name, unit price, taxable, per-visit/per-job, revenue type)
+2. **Property detail page** — multi-select fee field; selected fees auto-apply when visit completes
+3. **Migration**: existing `item_type=fee` items → new fee table (feature-flagged, gradual)
+
+---
+
+## Prototype (fee-settings branch)
+
+- `02790410` — Fee Settings list page prototype built
+- `8542304` — FeeDrawer add/edit component
+- `9aa4d889` — PropertyFeeSelector component
+- `f000d5e8` — useResolveFeeProps hook for job creation wizard
+- `4b4fc0` — LD gate removed, prototype active
+</script>
+
+<script type="text/plain" id="doc-bulk-po">
+# Bulk PO Creation — Customer Discovery (IPP-326)
+
+**Discovery Call:** [Dec 12, 2025 (Gong)](https://us-1330.app.gong.io/call?id=4381445529237724212)
+**Spec:** IPP-326 | **DRI:** Tamara Mekhantseva
+**Customers:** Service Logic · Tolin Mechanical · Piedmont Service Group · IES
+
+---
+
+## What We Heard
+
+### Tolin Mechanical (Bobbi Duran, Director Corporate Services; Nick Dosen, CFO)
+> *"I generate all of the filters that need to be ordered by contract into an excel spreadsheet... I forward that to our filter company."* — Bobbi Duran
+
+> *"It's a little unreasonable to have us go hand-enter like 3,000 filters. We're going to have to come up with a way to import it."* — Nick Dosen
+
+- **700+ contracts** across Colorado and Arizona
+- Orders placed **last week of each month, 6 weeks in advance**
+- Single vendor per state (drop-ship, no inventory holding)
+- Current process: Agreement Central → Excel → PDF email to vendor → vendor delivers "tagged and bagged by contract number"
+- No formal receiving process; vendor accuracy is trusted
+- No item-to-equipment mapping; they order by contract totals, not per-unit
+
+### Piedmont Service Group (Kenneth Oesch, CFO)
+- 11 divisions, each with different rates ($85, $75, $35, etc.)
+- Billers manually look at who was on the call and change the amount on **every single invoice**
+- No automation exists — entirely manual across all 11 divisions
+
+### IES / Jason Saunders (Reference Standard)
+- One bulk PO action in current ERP generates POs per inventory site
+- PO lines include: Property ID, Job ID, Visit date, Material SKU + Qty, Warehouse
+- **This is the benchmark BuildOps should match**
+
+---
+
+## Key Discoveries
+
+| Topic | Finding |
+|-------|---------|
+| Entry point | Maintenance List bulk action (not SA level) — procurement managers work from the list |
+| Ordering timing | 6 weeks ahead; scheduling/tech assignment is NOT a prerequisite for ordering |
+| Grouping | One PO per vendor (or vendor × department when maintenances span multiple depts) |
+| Vendor resolution | Phase 1: item's `preferredVendorId` only; state-based routing deferred to Phase 2 |
+| Cost model | Non-inventory, expense-only; PO is non-posting committed cost; receipt ≠ journal entry |
+| Intacct | High likelihood bills generated in Intacct via AP automation and read back to BuildOps |
+| Import dependency | Tolin has ~3,000 filters — bulk import of task materials is a de facto prerequisite |
+
+---
+
+## What Was NOT Decided
+
+- Bounded limit per bulk operation (Tolin has 700 contracts — needs engineering sizing)
+- `includeInBulkPO` propagation model (SA template → generated maintenances)
+- Whether to call PO create endpoint N times or build a new bulk endpoint
+- Intacct: export on Draft creation or Submitted status?
+
+---
+
+## Prototype
+
+Branch: `feature/bulk-po` — run locally with `git checkout feature/bulk-po && yarn start`
+
+Key commits:
+- `251587d7` feat: add bulk PO creation for maintenance — ASSETS-3200
+- `ee451b89` fix: show no-eligible-items warning when API returns 0 task entries
+- `ffacc9ad` feat: add Create PO bulk action to SA maintenances table
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════════════
+const FEATURES = [
+  {
+    id: "index-cost",
+    icon: "🗂",
+    title: "Index Cost (Cost Catalogue)",
+    status: "Design",
+    hasDoc: true,
+    docLabel: "Design Spec",
+    docSrc: "docs/index-cost-component-preview.html",
+    hasDomainDoc: true,
+    customer: "SmartCare",
+    due: "Jun 30, 2026",
+    team: [
+      { name: "Priyanka Satish", role: "PM" },
+      { name: "Miguel Vesco Galvez", role: "Eng" },
+      { name: "Guilherme Cabo", role: "TDD" },
+    ],
+    currentFocus: "UX flows for Cost Catalogue + Job Report",
+    summary: "Customers (SmartCare) can't define a stable cost reference independent of purchasing volatility. Pricing today is tied to PO/inventory costs which fluctuate, causing margin leakage and manual overrides. Index Cost introduces a Cost Catalogue — a stable, intentionally managed cost used as the markup basis at the job report level.",
+    decisions: [
+      "Solution: Introduce a Cost Catalogue entity (similar to Pricebooks) with per-item indexed costs",
+      "Index cost catalog is tied to Property (not tenant-wide) — property inherits a catalog, job inherits from property",
+      "Phase 1: No manual override of cost catalog at the job level (auto-inherits)",
+      "Pricing logic: use max(Index Cost, Purchase Cost) as markup base, applied per line item on Job Report",
+      "Index cost ≠ vendor catalog (SmartCare's is a BuildOps-managed pricing baseline)",
+      "True cost (actual purchase/inventory cost) remains unchanged on job costing",
+    ],
+    constraints: [
+      "No GL / accounting changes",
+      "No pricebook-level cost override in Phase 1",
+      "No inventory valuation methods (FIFO, LIFO)",
+      "Feature Flag: indexed-cost-pricebooks | Pre-req: dynamic-pricebooks",
+    ],
+    links: [
+      { label: "Draft PRD", url: "https://buildops.atlassian.net/wiki/spaces/BPD/pages/4156850184" },
+      { label: "TDD", url: "https://buildops.atlassian.net/wiki/spaces/EN/pages/4164387003" },
+      { label: "Design Ticket SERVICE-4335", url: "https://buildops.atlassian.net/browse/SERVICE-4335" },
+      { label: "Epic SERVICE-4214", url: "https://buildops.atlassian.net/browse/SERVICE-4214" },
+      { label: "JPD INVOICE-20", url: "https://buildops.atlassian.net/browse/INVOICE-20" },
+      { label: "SIP — Index Cost on Job Report", url: "https://buildops.atlassian.net/browse/SIP-8787" },
+      { label: "SmartCare Debrief Jan 23", url: "https://buildops.atlassian.net/wiki/spaces/BPD/pages/4211441745" },
+    ],
+    done: [
+      "Discovery call with SmartCare (Jan 23, 2026) — design attended, key decisions captured",
+      "Alignment with Priyanka on Phase 1 scope (property-level catalog inheritance, no job-level override)",
+      "TDD drafted (data model: CostCatalogue, CostCatalogueEntry, Job.costCatalogueId)",
+      "Design ticket created (SERVICE-4335)",
+    ],
+    todo: [
+      "UX flows for Cost Catalogue List page",
+      "Cost Catalogue creation modal/page",
+      "Cost Catalogue detail page (item list vs entries, similar to Pricebook entries)",
+      "Update/archive flows for Cost Catalogue",
+      "UI for upsert/remove CostCatalogueEntry",
+      "Job creation: where/how user selects (or sees) the assigned cost catalogue",
+      "Job Report: new column showing indexed cost alongside line item cost",
+      "Creation modals for Inventory/PO lines: show indexed cost, use it for price preview",
+    ],
+    questions: [
+      "What is the fallback behavior when a job has no cost catalogue ID or the item has no entry in the selected catalogue?",
+      "Can we make cost catalogue selection required when index cost feature is enabled?",
+      "UnitCostWithTax behavior — needs discussion with IP team (IP-1865 referenced)",
+      "When PB is inactive but activated later — which cost should it pick? (Priyanka to verify)",
+    ],
+  },
+  {
+    id: "bulk-po",
+    icon: "📦",
+    title: "Bulk PO Creation from Maintenance Jobs",
+    status: "Design",
+    hasDoc: true,
+    docLabel: "Domain Docs",
+    customer: "ServiceLogic (Tolin Mechanical, Piedmont, IES)",
+    due: "Jun 15, 2026",
+    team: [
+      { name: "Tamara Mekhantseva", role: "PM" },
+      { name: "Jon Rodness", role: "Eng Mgr" },
+      { name: "Manvi Gupta", role: "Domain Expert" },
+    ],
+    currentFocus: "Bulk action UI + flag settings",
+    summary: "ServiceLogic manages 700+ contracts and needs to generate bulk POs for consumables (filters, belts) ~6 weeks in advance, grouped by vendor and location. Today BuildOps only supports per-maintenance PO creation — creating 3,000+ filters manually is operationally impossible. Feature needs a bulk action on the Maintenance List.",
+    decisions: [
+      "Entry point: \"Create Purchase Orders\" bulk action on Maintenance List (select multiple → create POs)",
+      "POs auto-grouped by vendor (option to also group by department being considered)",
+      "Confirmation dialog shows preview of POs before creation",
+      "POs created in Draft status",
+      "New includeInBulkPO boolean flag on TaskMaterial — defaults false; propagates to generated maintenances with per-instance override",
+      "PO Status column on Maintenance List and SA → Maintenances tab",
+      "Out of scope Phase 1: Automated/scheduled PO generation, SA-level bulk PO entry point, bill of materials view, automated vendor emailing",
+    ],
+    constraints: [
+      "Non-inventory, expense-only flow",
+      "Committed costs tracked at PO creation",
+      "Intacct integration must work without inventory complexity",
+      "Feature gated behind feature flag",
+    ],
+    links: [
+      { label: "IPP-326 Initiative", url: "https://buildops.atlassian.net/browse/IPP-326" },
+      { label: "DRAFT PRD", url: "https://buildops.atlassian.net/wiki/spaces/BPD/pages/4324327450" },
+      { label: "Confluence Meeting Notes", url: "https://buildops.atlassian.net/wiki/spaces/BPD/pages/4093607949" },
+      { label: "Epic IP-5171", url: "https://buildops.atlassian.net/browse/IP-5171" },
+      { label: "Cycle 0 Spec PR #22890", url: "https://github.com/BuildHero/buildhero-webapp/pull/22890" },
+      { label: "Tech Spike IP-5593", url: "https://buildops.atlassian.net/browse/IP-5593" },
+      { label: "🎙 Dec 12 Discovery Call (Gong)", url: "https://us-1330.app.gong.io/call?id=4381445529237724212" },
+      { label: "ServiceLogic Product Blockers Doc", url: "https://docs.google.com/document/d/1xIxATPeOGw-w33-6emPAo5kvOJJTYHtfCwIn1YlhPJc" },
+    ],
+    done: [
+      "Discovery calls with ServiceLogic complete",
+      "PRD in draft (Tamara); Cycle 0 spec authored (PR #22890 filed)",
+      "Alignment on PO grouping by vendor, draft status, confirmed with ServiceLogic",
+      "Intacct integration export timing confirmed",
+      "SA team import timeline confirmed",
+      "Questions sent async to Manvi Gupta on checklist/task material inheritance",
+    ],
+    todo: [
+      "Bulk action on Maintenance List (select + trigger)",
+      "PO preview / confirmation dialog (grouped by vendor)",
+      "\"Include in Bulk PO\" flag setting UI (on task material / checklist)",
+      "PO Status column on Maintenance List",
+      "Settings pages (vendor grouping config, department grouping option)",
+      "Post-creation feedback / success + failure states",
+    ],
+    questions: [
+      "For maintenances with different locations — when creating PO, does vendor auto-fill based on vendor location default tied to job location?",
+      "Can checklist templates carry parts & materials to SAs? (Manvi async question)",
+      "Can property tasks be auto-added to SAs?",
+      "Can items assigned to assets flow anywhere / auto-add to tasks or SAs?",
+      "Vendor location resolution risk — unclear how preferred vendors are selected by default",
+      "Performance limits: how many items/POs can be processed in a single bulk operation?",
+      "Redis de-duplication: Lekha noted this should be rolled out before this capability",
+    ],
+  },
+  {
+    id: "avalara-tax",
+    icon: "🧾",
+    title: "Avalara Tax Exemption",
+    status: "Design",
+    hasDoc: true,
+    docLabel: "Design Spec",
+    docSrc: "docs/IP-5363-avalara-tax-exemptions.html",
+    hasDomainDoc: true,
+    customer: "SmartCare / Haynes",
+    due: "TBD",
+    team: [
+      { name: "Tamara Mekhantseva", role: "PM" },
+      { name: "Lucas Torres", role: "Eng" },
+      { name: "Sam Seo", role: "Coordination" },
+    ],
+    currentFocus: "Exemption cert display + Customer taxability UI",
+    summary: "BuildOps already syncs customers to Avalara so exemption certificates can be applied in Avalara. The gap: BuildOps doesn't currently display exemption certificate info back in the BuildOps UI. Also need to expose AP & AR Work Taxability at the Customer level.",
+    decisions: [
+      "Avalara integration already exists (IP-3505); this extends it",
+      "Design owns: (a) showing exemption cert info from Avalara, and (b) Customer-level AP & AR Work Taxability UI",
+      "Sam Seo's team (web) and Mobile (Wendy) are building in parallel — coordinate to avoid duplicate FE work",
+      "Use Taxable checkbox: show on all vendor types as long as ap-taxes = true (even when Avalara disabled)",
+      "Sales taxable bills → Sales Invoice type (no Avalara consumer use transaction)",
+      "Use taxable bills → Purchase Invoice type → creates Avalara Consumer Use Transaction",
+      "Switching use tax on/off for line items → must void/regenerate transaction in Avalara (known bug area)",
+    ],
+    constraints: [
+      "Coordinate FE patterns with Sam Seo's PPC taxability feature to avoid duplication",
+    ],
+    links: [
+      { label: "IP-5363 Spike", url: "https://buildops.atlassian.net/browse/IP-5363" },
+      { label: "Avalara Integration Hub", url: "https://buildops.atlassian.net/wiki/spaces/BPD/pages/2618458169" },
+    ],
+    done: [
+      "Spike ticket reviewed; scope clarified with Tamara (Feb 24)",
+      "Avalara sync behavior understood (sales vs use taxable flow)",
+      "Design spec started locally (noted in Slack Mar 10 in #ip-private)",
+      "Coordination started with Sam Seo re: shared FE patterns with PPC taxability feature",
+    ],
+    todo: [
+      "Where/how exemption certificate info is shown in BuildOps (from Avalara)",
+      "Customer-level AP & AR Work Taxability UI",
+      "Sync pattern with Sam Seo's work to reuse FE framework",
+      "Finalize and share design spec (currently local)",
+    ],
+    questions: [
+      "Can a customer have multiple Avalara exemption certificates, or only one valid at a time?",
+      "Where exactly in the customer profile should certificates be displayed?",
+      "FE pattern: how do we share/reuse the customer-level taxability UI with Sam Seo's PPC work?",
+    ],
+  },
+  {
+    id: "job-taxability",
+    icon: "💼",
+    title: "Job Taxability Settings (PPC)",
+    status: "Dev",
+    hasDoc: true,
+    docLabel: "Domain Docs",
+    customer: "PPC Partners",
+    due: "Apr 15, 2026",
+    team: [
+      { name: "Tamara Mekhantseva", role: "PM" },
+      { name: "Sam Seo", role: "Eng Lead (web)" },
+    ],
+    currentFocus: "Review in-progress eng work, invoice defaulting",
+    summary: "Job-level taxability settings that allow jobs to inherit AP/AR work taxability from a Job Template, with overrides at the job level. Adds LineTaxabilityRule to WorkTaxabilityType. For PPC's exempt customer scenario.",
+    decisions: [
+      "Feature flag: enable-job-level-taxability",
+      "DB migration for LineTaxabilityRule complete",
+      "Job creation wizard / Job Details screen updated",
+      "Job Template Settings added",
+      "WorkTaxabilityType entity extended",
+    ],
+    constraints: [
+      "Mobile parity question outstanding — coordinate before Apr 15",
+      "Customer.defaultJobBlueprintId migration pending (IP-5567)",
+    ],
+    links: [
+      { label: "PRD IPP-337", url: "https://buildops.atlassian.net/wiki/spaces/BPD/pages/4263018514" },
+      { label: "Epic IP-5460", url: "https://buildops.atlassian.net/browse/IP-5460" },
+    ],
+    done: [
+      "Feature flag created (enable-job-level-taxability)",
+      "DB migration for LineTaxabilityRule complete",
+      "Job creation wizard / Job Details screen updated",
+      "Job Template Settings added",
+      "Work Taxability Type Settings updated",
+      "WorkTaxabilityType entity extended",
+    ],
+    todo: [
+      "Enhance Add/Edit PO Line with LineTaxabilityRule (in progress by eng)",
+      "Invoice item + grid labels",
+      "Invoice item taxable defaulting logic during invoice generation",
+      "Deprecate feature flag",
+    ],
+    questions: [
+      "Should Customer.defaultJobBlueprintId migration be done now to support auto-defaulting job template on customer selection? (Sam Seo created IP-5567)",
+      "Mobile parity: should mobile also enforce Require Job Template setting before Apr 15?",
+    ],
+  },
+  {
+    id: "vendors-unified",
+    icon: "🔧",
+    title: "Vendors / Subcontractors Unified Experience",
+    status: "Dev",
+    hasDoc: true,
+    docLabel: "Domain Docs",
+    customer: "Internal / Multiple",
+    due: "TBD",
+    team: [
+      { name: "Tamara Mekhantseva", role: "PM" },
+    ],
+    currentFocus: "Scope definition",
+    summary: "Redesigning the end-to-end experience for managing subcontractors and vendors — unifying vendor/subcontractor creation and detail views.",
+    decisions: [
+      "Use Taxable checkbox: show for all vendor types when ap-taxes = true (confirmed)",
+    ],
+    constraints: [
+      "Interaction with Avalara exemption work needs to be mapped",
+    ],
+    links: [
+      { label: "Confluence: Vendors + Subcontractors", url: "https://buildops.atlassian.net/wiki/spaces/BPD/pages/4308467713" },
+    ],
+    done: [
+      "Initial page / requirements started (Tamara shared link Feb 25)",
+      "Use Taxable checkbox behavior confirmed: show for all vendor types when ap-taxes = true",
+    ],
+    todo: [
+      "Unified creation flow for vendor/subcontractor",
+      "Unified detail view",
+    ],
+    questions: [
+      "Scope of unification: which surfaces and vendor types are in scope?",
+      "How does this interact with the Avalara exemption work?",
+    ],
+  },
+  {
+    id: "pricebook-fee",
+    icon: "📋",
+    title: "Pricebook Fee Configuration",
+    status: "Design",
+    hasDoc: true,
+    docLabel: "Design Spec",
+    hasDomainDoc: true,
+    customer: "ServiceLogic, Tolin, Piedmont, Air Texas, IES",
+    due: "TBD",
+    team: [
+      { name: "Priyanka Satish", role: "PM" },
+    ],
+    currentFocus: "Design for Fee Settings page + property-level fee selector",
+    summary: "Fees (truck charges, service charges, mileage) today live inside the item list as 'fee-type' items, forcing them through pricebook markup/cost fields that don't apply to flat-rate revenue items. Goal: decouple fees from the item list, create a standalone Fee Settings page, and let properties assign fees directly — one per category (Service Charge, Truck Charge, etc.). Related to the pricebook separation initiative (SERVICE-4215).",
+    decisions: [
+      "Approach D selected: Fee Settings page (standalone) + property-level fee selector",
+      "Rejected: Fee Pricebook approach (causes combinatorial explosion — 3 truck + 3 service charges = 15 pricebooks; with 1 more type → 47)",
+      "Fee items are revenue-only; no cost/markup fields — flat amount only",
+      "Per-visit vs. per-job setting lives on the fee record itself, not on the property",
+      "Migration: existing item_type=fee records move to the new fee table (feature-flagged, gradual rollout)",
+      "Fees do NOT apply to maintenance jobs in Phase 1 (T&M jobs only initially)",
+    ],
+    constraints: [
+      "No markup or margin on fees — flat-amount only",
+      "No negative unit prices",
+      "No visit-template or job-template-level fee association in Phase 1",
+      "No fee config on mobile — fees are read-only for technicians",
+      "Feature gated behind LaunchDarkly, rolled out tenant-by-tenant due to migration risk",
+    ],
+    links: [
+      { label: "PRD - Truck Fee / Default Fee Enhancements", url: "https://buildops.atlassian.net/wiki/spaces/BPD/pages/4296900616" },
+      { label: "SERVICE-4366 (design ticket)", url: "https://buildops.atlassian.net/browse/SERVICE-4366" },
+      { label: "🎙 Customer Call 11/11/2025 (Fathom)", url: "https://fathom.video/share/z4VQBQgCiWvqBE9m9ytpUT7FjhTimZcv" },
+      { label: "🎙 Customer Call 12/15/2025 (Fathom)", url: "https://fathom.video/share/ZNkjPcMeAMNUQZsajRQy9dueAMgAGvdz" },
+      { label: "Prototype Branch: fee-settings", url: "https://github.com/BuildHero/buildhero-webapp/tree/fee-settings" },
+    ],
+    done: [
+      "Discovery calls with ServiceLogic (Jason Saunders), Tolin, Piedmont, Air Texas, IES complete",
+      "Two approaches formally evaluated (Fee Pricebook vs. Property-Level Dropdown)",
+      "Approach D (Fee Settings page + property dropdown) selected",
+      "Fee Settings list page prototype built (fee-settings branch, SERVICE-4366)",
+      "FeeDrawer add/edit component built",
+      "PropertyFeeSelector component built",
+      "DefaultFeesBanner for job report fee section built",
+      "useResolveFeeProps hook built",
+      "Fee Settings page wired into app routing + navigation",
+      "LD gate removed from prototype (4b4fc0)",
+    ],
+    todo: [
+      "Design Fee Settings page (list + add/edit drawer)",
+      "Design property-level fee selector UX",
+      "Design job report fee section with auto-applied fees visible + editable",
+      "Design bulk update propagation flow (apply to future vs. apply to all existing)",
+      "Validate designs with ServiceLogic (Jason Saunders)",
+      "Define migration UX — how do existing fee items appear during transition?",
+    ],
+    questions: [
+      "Per-visit vs. per-job setting — should this be configurable at property level or only at fee record level?",
+      "Rate change effective date — do customers need scheduled future rate updates (e.g., Jan 1)?",
+      "When a billing team reviews fees before sending an invoice — should there be a 'confirm fees' step?",
+      "Do discounts appear alongside fees on the job report? (Avalara vs. non-Avalara behavior differs)",
+    ],
+  },
+  {
+    id: "pricebook-separation",
+    icon: "✂️",
+    title: "Pricebook Separation (Split by Cost Type)",
+    status: "Dev",
+    hasDoc: true,
+    docLabel: "Domain Docs",
+    customer: "Service Logic",
+    due: "TBD",
+    team: [
+      { name: "Priyanka Satish", role: "PM" },
+    ],
+    currentFocus: "Split pricebook by cost type",
+    summary: "A single pricebook today bundles Labor + Materials + Equipment pricing together, causing combinatorial explosion. Service Logic example: 118 labor rate structures × 42 material markups = 4,956 pricebooks required. Solution: each pricebook has exactly one cost type.",
+    decisions: [
+      "Each new pricebook selects exactly 1 cost type (Material / Labor / Equipment) — cannot change after creation",
+      "Job creation: user selects up to 3 pricebooks (one per cost type)",
+      "Existing full pricebooks remain backward compatible during migration",
+      "Pricing resolution: Inventory Part → Material PB, Labor line → Labor PB, Equipment → Equipment PB",
+      "Invoice from job inherits all 3 pricebook IDs from the job",
+    ],
+    constraints: [
+      "Not splitting existing pricebooks in Phase 1",
+      "Not archiving partial pricebooks in Phase 1",
+      "Multi-select vendor types in all reporting surfaces out of scope",
+    ],
+    links: [
+      { label: "PRD - Splitting Pricebook Components", url: "https://buildops.atlassian.net/wiki/spaces/BPD/pages/4153737329" },
+      { label: "SERVICE-4215 (Initiative)", url: "https://buildops.atlassian.net/browse/SERVICE-4215" },
+      { label: "SERVICE-4286 (FE Permissions)", url: "https://buildops.atlassian.net/browse/SERVICE-4286" },
+      { label: "Feature Branch: elaine/pricebook-seperation", url: "https://github.com/BuildHero/buildhero-webapp/tree/elaine/pricebook-seperation" },
+    ],
+    done: [],
+    todo: [
+      "UX for cost type selection on pricebook creation",
+      "Update job creation to support 3 separate pricebook selectors",
+      "Pricing resolution logic per cost type on job report",
+      "Backward compat treatment for existing full pricebooks in the UI",
+    ],
+    questions: [
+      "What markup rate applies for Supplier & Subcontractor vendors — subcontractor markup, supplier markup, or configurable?",
+      "How should Supplier & Subcontractor vendors be categorized in Project Report Services?",
+    ],
+  },
+  {
+    id: "pricebook-bulk-edits",
+    icon: "✏️",
+    title: "Pricebook Bulk Edits",
+    status: "Discovery",
+    hasDoc: true,
+    docLabel: "Domain Docs",
+    customer: "SmartCare",
+    due: "TBD",
+    team: [],
+    currentFocus: "PRD drafted — awaiting design kickoff",
+    summary: "SmartCare manages 400+ pricebooks across 15 operating companies. A single contract amendment may affect 20–50 pricebooks. Two complementary entry points: proactive bulk edit from Pricebook List, and in-context propagation when editing a single pricebook.",
+    decisions: [
+      "Two entry points: Pricebook List bulk select (Option A) + in-context propagation after single-PB save (Option C)",
+      "Four edit surfaces: material markup tiers, labor rates, fixed price items, equipment",
+      "Bulk edits apply ONLY to explicitly selected pricebooks — no unintended updates",
+      "Confirmation step shows count + names of affected pricebooks + skip warnings",
+      "Permission-gated — not available to job reviewers or lower-privilege roles",
+    ],
+    constraints: [
+      "Not in scope: index cost, bulk pricebook creation/cloning, automated/scheduled updates",
+    ],
+    links: [
+      { label: "PRD: Pricebook Bulk Edits", url: "https://buildops.atlassian.net/wiki/spaces/BPD/pages/4344709161" },
+      { label: "Draft PRD - Bulk Upsert for Pricebook", url: "https://buildops.atlassian.net/wiki/spaces/BPD/pages/4023386122" },
+    ],
+    done: [],
+    todo: [
+      "Design Pricebook List multi-select + bulk action trigger",
+      "Design bulk edit panel (4 surfaces: material markup, labor rates, fixed price, equipment)",
+      "Design confirmation step with affected pricebook count + names",
+      "Design post-save summary (success / failure / skipped)",
+      "Design in-context propagation prompt (after single pricebook save)",
+    ],
+    questions: [],
+  },
+  {
+    id: "multiple-vendor-locations",
+    icon: "📍",
+    title: "Multiple Vendor Locations",
+    status: "Dev",
+    hasDoc: true,
+    docLabel: "Domain Docs",
+    customer: "General",
+    due: "TBD",
+    team: [],
+    currentFocus: "Vendor location management and PO association",
+    summary: "BuildOps supports multiple locations per vendor (IP-1002 — in production). Each vendor location has its own billing address, shipping address, and contact. Critical for Bulk PO — large vendors like Trane, Carrier, Ferguson have locations across the US, and the correct location determines who to contact and where the order ships from.",
+    decisions: [
+      "Each vendor location has: billing address, shipping address, contact, and a default flag",
+      "Vendor has a defaultLocationId — used when no specific location is selected",
+      "Bulk PO groups by vendorId + vendorLocationId + shippingDestination → one PO per unique combination",
+      "Phase 1 Bulk PO: user overrides vendor location in the confirmation dialog",
+      "Phase 2 (deferred): auto-suggest location whose state matches the property's state",
+    ],
+    constraints: [
+      "Phase 2 auto-suggestion (match vendor location state to property state) is deferred",
+    ],
+    links: [
+      { label: "IP-1002 Multiple Vendor Locations PRD", url: "https://buildops.atlassian.net/wiki/spaces/BPD/pages/3461316618" },
+    ],
+    done: [
+      "Multiple locations per vendor in production (IP-1002)",
+      "Each location has billing address, shipping address, contact",
+      "Vendor.defaultLocationId field implemented",
+    ],
+    todo: [
+      "Expose vendor location selector in Bulk PO confirmation dialog",
+      "Design vendor location management in unified Vendor Detail page",
+      "Phase 2: auto-suggest vendor location by matching property state",
+    ],
+    questions: [
+      "In the unified Vendor Detail page, how do we surface location management — tab or section?",
+      "When a PO is created manually, should the vendor location field be required or optional?",
+      "How does vendor location interact with the Intacct vendor sync — are locations synced too?",
+    ],
+  },
+];
+
+const STATUS_BADGE = {
+  "Design":    "badge-design",
+  "Dev":       "badge-dev",
+  "Discovery": "badge-discovery",
+  "QA":        "badge-qa",
+  "Done":      "badge-done",
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  STATE (persisted in localStorage)
+// ═══════════════════════════════════════════════════════════════
+function loadState() {
+  try { return JSON.parse(localStorage.getItem('fh_state') || '{}'); }
+  catch { return {}; }
+}
+
+function saveState(state) {
+  localStorage.setItem('fh_state', JSON.stringify(state));
+  document.getElementById('last-updated').textContent = new Date().toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric'
+  });
+  showToast();
+}
+
+let STATE = loadState();
+
+function getFeatureState(id) {
+  return STATE[id] || {};
+}
+
+function updateFeatureState(id, patch) {
+  STATE[id] = { ...getFeatureState(id), ...patch };
+  saveState(STATE);
+}
+
+function getChecked(featureId) {
+  return getFeatureState(featureId).checked || {};
+}
+
+function setChecked(featureId, index, value) {
+  const checked = { ...getChecked(featureId), [index]: value };
+  updateFeatureState(featureId, { checked });
+}
+
+function getCurrentStep(featureId, fallback) {
+  return getFeatureState(featureId).currentStep ?? fallback;
+}
+
+function setCurrentStep(featureId, value) {
+  updateFeatureState(featureId, { currentStep: value });
+}
+
+function getNotes(featureId) {
+  return getFeatureState(featureId).notes || '';
+}
+
+function setNotes(featureId, value) {
+  updateFeatureState(featureId, { notes: value });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════
+function initials(name) {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2);
+}
+
+function progressOf(feature) {
+  const custom = getFeatureState(feature.id).customTodo || [];
+  const total = feature.todo.length + custom.length;
+  if (!total) return 100;
+  const checked = getChecked(feature.id);
+  const done = [...feature.todo, ...custom].filter((_, i) => checked[i]).length;
+  return Math.round((done / total) * 100);
+}
+
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  VIEW SWITCHING
+// ═══════════════════════════════════════════════════════════════
+function showView(id, navEl) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const view = document.getElementById('view-' + id);
+  if (view) view.classList.add('active');
+  if (navEl) navEl.classList.add('active');
+}
+
+function showFeature(id) {
+  const navEl = document.querySelector(`[data-feature="${id}"]`);
+  showView(id, navEl);
+  renderScheduleCards(); // refresh progress
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDER SIDEBAR
+// ═══════════════════════════════════════════════════════════════
+function renderSidebar() {
+  const container = document.getElementById('nav-features');
+  container.innerHTML = FEATURES.map(f => `
+    <div class="nav-item" data-feature="${f.id}" onclick="showFeature('${f.id}')">
+      <span class="nav-icon">${f.icon}</span>
+      <span class="nav-label">${f.title}</span>
+      <span class="badge nav-badge ${STATUS_BADGE[getStatus(f)] || 'badge-done'}">${getStatus(f)}</span>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDER SCHEDULE CARDS
+// ═══════════════════════════════════════════════════════════════
+function renderScheduleCards() {
+  const grid = document.getElementById('schedule-grid');
+  grid.innerHTML = FEATURES.map(f => {
+    const status = getStatus(f);
+    const due = getDue(f);
+    const pct = progressOf(f);
+    const total = f.todo.length + (getFeatureState(f.id).customTodo || []).length;
+    const doneCount = Math.round(pct * total / 100);
+    return `
+    <div class="schedule-card" onclick="showFeature('${f.id}')">
+      <div class="sc-top">
+        <div class="sc-title">${f.icon} ${f.title}</div>
+        <span class="badge ${STATUS_BADGE[status] || 'badge-done'}">${status}</span>
+      </div>
+      <div class="sc-meta">
+        ${f.customer !== 'TBD' ? `<strong>${f.customer}</strong> · ` : ''}Due: ${due}
+      </div>
+      <div class="sc-focus">${getCurrentStep(f.id, f.currentFocus)}</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="sc-tasks">
+        <span>${doneCount} / ${total} tasks done</span>
+        <span>${pct}%</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDER FEATURE DETAIL
+// ═══════════════════════════════════════════════════════════════
+function renderFeatureViews() {
+  const container = document.getElementById('feature-views');
+  container.innerHTML = FEATURES.map(f => buildFeatureView(f)).join('');
+}
+
+function buildFeatureView(f) {
+  const currentStep = getCurrentStep(f.id, f.currentFocus);
+  const notes = getNotes(f.id);
+  const figmaLink = getFigmaLink(f.id);
+  const designNotes = getDesignNotes(f.id);
+  const status = getStatus(f);
+  const due = getDue(f);
+
+  const teamHtml = f.team.length
+    ? `<div class="team-row">${f.team.map(p => `
+        <div class="team-person">
+          <div class="avatar">${initials(p.name)}</div>
+          ${p.name} <span style="color:var(--text-dim)">· ${p.role}</span>
+        </div>`).join('')}</div>`
+    : `<p style="color:var(--text-dim);font-size:13px">Team TBD</p>`;
+
+  const linksHtml = f.links.length
+    ? `<div class="links-grid">${f.links.map(l => `
+        <a class="link-chip" href="${l.url}" target="_blank">
+          <span>↗</span>${l.label}
+        </a>`).join('')}</div>`
+    : `<p style="color:var(--text-dim);font-size:13px">No links added yet</p>`;
+
+  const decisionsHtml = f.decisions.length
+    ? `<ul class="decision-list">${f.decisions.map(d => `<li>${d}</li>`).join('')}</ul>`
+    : `<p style="color:var(--text-dim);font-size:13px">No decisions recorded yet</p>`;
+
+  const constraintsHtml = f.constraints.length
+    ? f.constraints.map(c => `<span class="constraint-tag">🚫 ${c}</span>`).join('')
+    : `<span style="color:var(--text-dim);font-size:13px">None noted</span>`;
+
+  return `
+  <div id="view-${f.id}" class="view">
+    <!-- HEADER -->
+    <div class="feature-header">
+      <div class="feature-title-block">
+        <h2>${f.icon} ${f.title}</h2>
+        <div class="feature-meta-row">
+          <select id="${f.id}_status_sel"
+            class="status-select ${STATUS_BADGE[status] || 'badge-done'}"
+            onchange="handleStatusChange('${f.id}', this.value)">
+            ${['Discovery','Design','Dev','QA','Done'].map(s =>
+              `<option value="${s}" ${status===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+          <span class="meta-sep">|</span>
+          <span>${f.customer}</span>
+          <span class="meta-sep">|</span>
+          <span>Due: <input class="due-input" value="${due}"
+            onchange="handleDueChange('${f.id}', this.value)"
+            onblur="handleDueChange('${f.id}', this.value)" /></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CURRENT FOCUS RIBBON -->
+    <div class="focus-ribbon">
+      <div class="focus-ribbon-icon">🎯</div>
+      <div class="focus-ribbon-text">
+        <strong>Current Focus</strong>
+        <span id="${f.id}_step_display">${currentStep}</span>
+      </div>
+      <button class="btn" onclick="toggleStepEdit('${f.id}')">Edit</button>
+    </div>
+    <div id="${f.id}_step_editor" style="display:none;margin-bottom:20px;">
+      <div class="current-step-wrapper">
+        <textarea class="editable-note" id="${f.id}_step_input"
+          placeholder="What are you working on right now?">${currentStep}</textarea>
+        <button class="btn btn-primary" onclick="saveStep('${f.id}')">Save</button>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('${f.id}', 'context', this)">Context</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'todo', this)">What's Left</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'done', this)">What's Done</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'questions', this)">Open Questions</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'notes', this)">My Notes</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'design', this)">Design</div>
+      ${f.hasDoc ? `<div class="tab" onclick="switchTab('${f.id}', 'docs', this)">${f.docLabel || 'Docs'}</div>` : ''}
+      ${f.hasDomainDoc ? `<div class="tab" onclick="switchTab('${f.id}', 'ddocs', this)">Domain Docs</div>` : ''}
+      <div class="tab" onclick="switchTab('${f.id}', 'calls', this)">Customer Calls</div>
+    </div>
+
+    <!-- CONTEXT TAB -->
+    <div id="${f.id}_tab_context" class="tab-panel active">
+      <div class="context-card">
+        <h3>📖 Summary</h3>
+        <p>${f.summary}</p>
+      </div>
+      <div class="context-card">
+        <h3>✅ Key Decisions</h3>
+        ${decisionsHtml}
+      </div>
+      <div class="context-card">
+        <h3>🚫 Constraints &amp; Non-goals</h3>
+        <div>${constraintsHtml}</div>
+      </div>
+      <div class="context-card">
+        <h3>👥 Team</h3>
+        ${teamHtml}
+      </div>
+      <div class="context-card">
+        <h3>🔗 Links</h3>
+        ${linksHtml}
+      </div>
+    </div>
+
+    <!-- TODO TAB -->
+    <div id="${f.id}_tab_todo" class="tab-panel">
+      <div class="context-card">
+        <h3>🔲 Design Tasks Remaining</h3>
+        <ul class="checklist" id="${f.id}_todo_list"></ul>
+        <div class="add-item-row">
+          <input class="add-item-input" id="${f.id}_add_todo" placeholder="Add a task…"
+            onkeydown="if(event.key==='Enter')addTodo('${f.id}')" />
+          <button class="btn btn-primary" onclick="addTodo('${f.id}')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DONE TAB -->
+    <div id="${f.id}_tab_done" class="tab-panel">
+      <div class="context-card">
+        <h3>✅ Completed</h3>
+        <ul class="done-list" id="${f.id}_done_list"></ul>
+        <div class="add-item-row">
+          <input class="add-item-input" id="${f.id}_add_done" placeholder="Add a completed item…"
+            onkeydown="if(event.key==='Enter')addDone('${f.id}')" />
+          <button class="btn btn-primary" onclick="addDone('${f.id}')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUESTIONS TAB -->
+    <div id="${f.id}_tab_questions" class="tab-panel">
+      <div class="context-card">
+        <h3>❓ Open Questions</h3>
+        <div id="${f.id}_q_list"></div>
+        <div class="add-item-row">
+          <input class="add-item-input" id="${f.id}_add_q" placeholder="Add a question…"
+            onkeydown="if(event.key==='Enter')addQuestion('${f.id}')" />
+          <button class="btn btn-primary" onclick="addQuestion('${f.id}')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES TAB -->
+    <div id="${f.id}_tab_notes" class="tab-panel">
+      <div class="context-card">
+        <h3>📝 My Notes</h3>
+        <textarea class="editable-note" id="${f.id}_notes"
+          placeholder="Write anything here — meeting takeaways, open threads, reminders..."
+          oninput="handleNotes('${f.id}', this.value)">${notes}</textarea>
+      </div>
+    </div>
+
+    <!-- DESIGN TAB -->
+    <div id="${f.id}_tab_design" class="tab-panel">
+      <div class="context-card">
+        <h3>🎨 Figma / Prototype</h3>
+        <input class="design-link-input" id="${f.id}_figma_link"
+          placeholder="Paste Figma or prototype URL..."
+          value="${figmaLink}"
+          onchange="saveFigmaLink('${f.id}', this.value)"
+          onblur="saveFigmaLink('${f.id}', this.value)" />
+        <a id="${f.id}_figma_open" class="link-chip design-open-btn"
+          href="${figmaLink}" target="_blank"
+          style="display:${figmaLink ? 'inline-flex' : 'none'}">↗ Open Design</a>
+      </div>
+      <div class="context-card">
+        <h3>🖼 Screenshots</h3>
+        <div id="${f.id}_design_imgs" class="design-img-grid"></div>
+        <div class="add-item-row">
+          <input class="add-item-input" id="${f.id}_add_img"
+            placeholder="Paste image URL to add screenshot…"
+            onkeydown="if(event.key==='Enter')addDesignImg('${f.id}')" />
+          <button class="btn btn-primary" onclick="addDesignImg('${f.id}')">Add</button>
+        </div>
+      </div>
+      <div class="context-card">
+        <h3>📝 Design Notes</h3>
+        <textarea class="editable-note" id="${f.id}_design_notes"
+          placeholder="Decisions, reviewer feedback, open design questions, what changed…"
+          oninput="saveDesignNotes('${f.id}', this.value)">${designNotes}</textarea>
+      </div>
+    </div>
+
+    <!-- DOCS TAB -->
+    ${f.hasDoc ? `
+    <div id="${f.id}_tab_docs" class="tab-panel">
+      <div id="${f.id}_docs_view"></div>
+    </div>` : ''}
+
+    <!-- DOMAIN DOCS TAB -->
+    ${f.hasDomainDoc ? `
+    <div id="${f.id}_tab_ddocs" class="tab-panel">
+      <div id="${f.id}_ddocs_view"></div>
+    </div>` : ''}
+
+    <!-- CUSTOMER CALLS TAB -->
+    <div id="${f.id}_tab_calls" class="tab-panel">
+      <div id="${f.id}_calls_list"></div>
+      <div style="margin-top:14px">
+        <button class="btn btn-primary" onclick="addCall('${f.id}')">+ Add Call</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INTERACTIVITY
+// ═══════════════════════════════════════════════════════════════
+function switchTab(featureId, tabName, el) {
+  const allTabs = el.closest('.tabs').querySelectorAll('.tab');
+  allTabs.forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+
+  const panels = ['context','todo','done','questions','notes','design','docs','ddocs','calls'];
+  panels.forEach(p => {
+    const panel = document.getElementById(`${featureId}_tab_${p}`);
+    if (panel) panel.classList.toggle('active', p === tabName);
+  });
+}
+
+function handleCheck(featureId, index, value) {
+  setChecked(featureId, index, value);
+  const label = document.querySelector(`label[for="${featureId}_todo_${index}"]`);
+  if (label) label.classList.toggle('done', value);
+  renderScheduleCards();
+}
+
+function handleNotes(featureId, value) {
+  setNotes(featureId, value);
+}
+
+function toggleStepEdit(featureId) {
+  const editor = document.getElementById(`${featureId}_step_editor`);
+  const isHidden = editor.style.display === 'none';
+  editor.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) document.getElementById(`${featureId}_step_input`).focus();
+}
+
+function saveStep(featureId) {
+  const val = document.getElementById(`${featureId}_step_input`).value.trim();
+  if (!val) return;
+  setCurrentStep(featureId, val);
+  document.getElementById(`${featureId}_step_display`).textContent = val;
+  document.getElementById(`${featureId}_step_editor`).style.display = 'none';
+  renderScheduleCards();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DYNAMIC STATE HELPERS
+// ═══════════════════════════════════════════════════════════════
+function getStatus(f) { return getFeatureState(f.id).status || f.status; }
+function getDue(f)    { return getFeatureState(f.id).due    || f.due;    }
+
+function handleStatusChange(featureId, val) {
+  updateFeatureState(featureId, { status: val });
+  const sel = document.getElementById(`${featureId}_status_sel`);
+  if (sel) sel.className = `status-select ${STATUS_BADGE[val] || 'badge-done'}`;
+  const navBadge = document.querySelector(`[data-feature="${featureId}"] .nav-badge`);
+  if (navBadge) { navBadge.className = `badge nav-badge ${STATUS_BADGE[val] || 'badge-done'}`; navBadge.textContent = val; }
+  renderScheduleCards();
+}
+
+function handleDueChange(featureId, val) {
+  updateFeatureState(featureId, { due: val || 'TBD' });
+  renderScheduleCards();
+}
+
+// ── TODO ──────────────────────────────────────────────────────
+function renderTodoList(featureId) {
+  const f = FEATURES.find(x => x.id === featureId);
+  const el = document.getElementById(`${featureId}_todo_list`);
+  if (!f || !el) return;
+  const checked = getChecked(featureId);
+  const custom = getFeatureState(featureId).customTodo || [];
+  const base = f.todo.map((item, i) => {
+    const done = !!checked[i];
+    return `<li class="check-item">
+      <input type="checkbox" id="${featureId}_td_${i}" ${done?'checked':''} onchange="handleCheck('${featureId}',${i},this.checked)"/>
+      <label class="check-label${done?' done':''}" for="${featureId}_td_${i}">${item}</label>
+    </li>`;
+  }).join('');
+  const offset = f.todo.length;
+  const extra = custom.map((item, i) => {
+    const idx = offset + i; const done = !!checked[idx];
+    return `<li class="check-item">
+      <input type="checkbox" id="${featureId}_td_${idx}" ${done?'checked':''} onchange="handleCheck('${featureId}',${idx},this.checked)"/>
+      <label class="check-label${done?' done':''}" for="${featureId}_td_${idx}">${item}</label>
+      <button class="remove-btn" onclick="removeCustomTodo('${featureId}',${i})">×</button>
+    </li>`;
+  }).join('');
+  el.innerHTML = (base + extra) || `<li style="padding:8px 0;color:var(--text-dim);font-size:13px">No tasks yet.</li>`;
+}
+
+function addTodo(featureId) {
+  const inp = document.getElementById(`${featureId}_add_todo`);
+  const text = inp.value.trim(); if (!text) return;
+  const items = [...(getFeatureState(featureId).customTodo || []), text];
+  updateFeatureState(featureId, { customTodo: items }); inp.value = '';
+  renderTodoList(featureId); renderScheduleCards();
+}
+
+function removeCustomTodo(featureId, i) {
+  const items = (getFeatureState(featureId).customTodo || []).filter((_,j) => j !== i);
+  updateFeatureState(featureId, { customTodo: items });
+  renderTodoList(featureId); renderScheduleCards();
+}
+
+// ── DONE ──────────────────────────────────────────────────────
+function renderDoneList(featureId) {
+  const f = FEATURES.find(x => x.id === featureId);
+  const el = document.getElementById(`${featureId}_done_list`);
+  if (!f || !el) return;
+  const custom = getFeatureState(featureId).customDone || [];
+  const base = f.done.map(d => `<li class="done-item"><span>${d}</span></li>`).join('');
+  const extra = custom.map((item, i) => `<li class="done-item" style="justify-content:space-between">
+    <span>${item}</span><button class="remove-btn" onclick="removeCustomDone('${featureId}',${i})">×</button>
+  </li>`).join('');
+  el.innerHTML = (base + extra) || `<li style="padding:8px 0;color:var(--text-dim);font-size:13px">Nothing completed yet.</li>`;
+}
+
+function addDone(featureId) {
+  const inp = document.getElementById(`${featureId}_add_done`);
+  const text = inp.value.trim(); if (!text) return;
+  const items = [...(getFeatureState(featureId).customDone || []), text];
+  updateFeatureState(featureId, { customDone: items }); inp.value = '';
+  renderDoneList(featureId);
+}
+
+function removeCustomDone(featureId, i) {
+  const items = (getFeatureState(featureId).customDone || []).filter((_,j) => j !== i);
+  updateFeatureState(featureId, { customDone: items });
+  renderDoneList(featureId);
+}
+
+// ── QUESTIONS ─────────────────────────────────────────────────
+function renderQuestionsList(featureId) {
+  const f = FEATURES.find(x => x.id === featureId);
+  const el = document.getElementById(`${featureId}_q_list`);
+  if (!f || !el) return;
+  const st = getFeatureState(featureId);
+  const resolvedBase = st.resolvedBase || {};
+  const resolvedCustom = st.resolvedCustom || {};
+  const custom = st.customQuestions || [];
+
+  const baseHtml = f.questions.map((q, i) => {
+    const res = !!resolvedBase[i];
+    return `<div class="question-card" style="${res?'opacity:.4':''}">
+      <p style="${res?'text-decoration:line-through':''}">${q}</p>
+      <div class="question-actions">
+        <button class="resolve-btn${res?' resolved':''}" onclick="${res?`unresolveQ('${featureId}','base',${i})`:`resolveQ('${featureId}','base',${i})`}">
+          ${res?'Reopen':'Mark resolved'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const customHtml = custom.map((q, i) => {
+    const res = !!resolvedCustom[i];
+    return `<div class="question-card" style="${res?'opacity:.4':''}">
+      <p style="${res?'text-decoration:line-through':''}">${q}</p>
+      <div class="question-actions">
+        <button class="resolve-btn${res?' resolved':''}" onclick="${res?`unresolveQ('${featureId}','custom',${i})`:`resolveQ('${featureId}','custom',${i})`}">
+          ${res?'Reopen':'Mark resolved'}
+        </button>
+        <button class="remove-btn" onclick="removeCustomQ('${featureId}',${i})">×</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = (baseHtml + customHtml) || `<div class="empty-state"><h3>No open questions</h3><p>Everything is resolved!</p></div>`;
+}
+
+function resolveQ(featureId, type, i) {
+  const key = type === 'base' ? 'resolvedBase' : 'resolvedCustom';
+  const r = { ...(getFeatureState(featureId)[key] || {}), [i]: true };
+  updateFeatureState(featureId, { [key]: r }); renderQuestionsList(featureId);
+}
+function unresolveQ(featureId, type, i) {
+  const key = type === 'base' ? 'resolvedBase' : 'resolvedCustom';
+  const r = { ...(getFeatureState(featureId)[key] || {}) }; delete r[i];
+  updateFeatureState(featureId, { [key]: r }); renderQuestionsList(featureId);
+}
+function addQuestion(featureId) {
+  const inp = document.getElementById(`${featureId}_add_q`);
+  const text = inp.value.trim(); if (!text) return;
+  const items = [...(getFeatureState(featureId).customQuestions || []), text];
+  updateFeatureState(featureId, { customQuestions: items }); inp.value = '';
+  renderQuestionsList(featureId);
+}
+function removeCustomQ(featureId, i) {
+  const items = (getFeatureState(featureId).customQuestions || []).filter((_,j) => j !== i);
+  updateFeatureState(featureId, { customQuestions: items }); renderQuestionsList(featureId);
+}
+
+function getFigmaLink(id) {
+  const s = loadState(); return (s[id] && s[id].figma) || '';
+}
+function saveFigmaLink(id, val) {
+  updateFeatureState(id, { figma: val });
+  const a = document.getElementById(id + '_figma_open');
+  if (a) { a.href = val; a.style.display = val ? 'inline-flex' : 'none'; }
+}
+function getDesignNotes(id) {
+  const s = loadState(); return (s[id] && s[id].dnotes) || '';
+}
+function saveDesignNotes(id, val) {
+  updateFeatureState(id, { dnotes: val });
+  showToast();
+}
+function getDesignImgs(id) {
+  const s = loadState(); return (s[id] && s[id].dimgs) || [];
+}
+function addDesignImg(id) {
+  const inp = document.getElementById(id + '_add_img');
+  const url = inp.value.trim(); if (!url) return;
+  const imgs = getDesignImgs(id);
+  imgs.push(url);
+  updateFeatureState(id, { dimgs: imgs });
+  inp.value = '';
+  renderDesignImgs(id);
+  showToast();
+}
+function removeDesignImg(id, i) {
+  const imgs = getDesignImgs(id);
+  imgs.splice(i, 1);
+  updateFeatureState(id, { dimgs: imgs });
+  renderDesignImgs(id);
+}
+function renderDesignImgs(id) {
+  const el = document.getElementById(id + '_design_imgs');
+  if (!el) return;
+  const imgs = getDesignImgs(id);
+  el.innerHTML = imgs.length ? imgs.map((url, i) => `
+    <div class="design-img-card">
+      <img src="${url}" onerror="this.style.display='none'" />
+      <div class="img-url">${url}</div>
+      <button class="img-remove" onclick="removeDesignImg('${id}',${i})">✕</button>
+    </div>`).join('') : '';
+}
+function renderAllDesignImgs() {
+  FEATURES.forEach(f => renderDesignImgs(f.id));
+}
+
+function renderAllSections() {
+  FEATURES.forEach(f => {
+    renderTodoList(f.id);
+    renderDoneList(f.id);
+    renderQuestionsList(f.id);
+    renderCallsList(f.id);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DOCS RENDERING
+// ═══════════════════════════════════════════════════════════════
+function renderDocs() {
+  FEATURES.filter(f => f.hasDoc).forEach(f => {
+    const container = document.getElementById(`${f.id}_docs_view`);
+    if (!container) return;
+
+    // Iframe doc (full standalone HTML file)
+    if (f.docSrc) {
+      container.innerHTML = `
+        <div class="doc-toolbar">
+          <div class="doc-toolbar-left">Design spec · <a href="${f.docSrc}" target="_blank" class="link-chip" style="display:inline-flex">↗ Open full screen</a></div>
+        </div>
+        <iframe src="${f.docSrc}" style="width:100%;height:80vh;border:1px solid var(--border);border-radius:var(--radius);background:#fff;" title="${f.title} spec"></iframe>`;
+      return;
+    }
+
+    // Markdown doc
+    const rawEl = document.getElementById(`doc-${f.id}`);
+    const savedDoc = getFeatureState(f.id).doc;
+    const raw = savedDoc || (rawEl ? rawEl.textContent.trim() : null);
+
+    if (raw) {
+      container.innerHTML = `
+        <div class="doc-toolbar">
+          <div class="doc-toolbar-left">${f.docLabel || 'Docs'} · paste new content below to update</div>
+          <button class="btn" onclick="toggleDocEdit('${f.id}')">Edit Doc</button>
+        </div>
+        <div id="${f.id}_doc_editor" style="display:none;margin-bottom:20px;">
+          <textarea class="doc-paste-area" id="${f.id}_doc_input" style="display:block"
+            placeholder="Paste raw markdown here...">${raw}</textarea>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary" onclick="saveDoc('${f.id}')">Save</button>
+            <button class="btn" onclick="toggleDocEdit('${f.id}')">Cancel</button>
+          </div>
+        </div>
+        <div class="context-card">
+          <div class="md-body" id="${f.id}_md_output">${marked.parse(raw)}</div>
+        </div>`;
+    } else {
+      container.innerHTML = `
+        <div class="doc-empty">
+          <h3>No domain doc yet</h3>
+          <p>Paste any markdown content from Glean below to add it here.</p>
+          <textarea class="doc-paste-area" id="${f.id}_doc_input" style="display:block;text-align:left"
+            placeholder="Paste raw markdown here..."></textarea>
+          <div style="margin-top:10px">
+            <button class="btn btn-primary" onclick="saveDoc('${f.id}')">Add Doc</button>
+          </div>
+        </div>`;
+    }
+  });
+}
+
+function renderDomainDocs() {
+  FEATURES.filter(f => f.hasDomainDoc).forEach(f => {
+    const container = document.getElementById(`${f.id}_ddocs_view`);
+    if (!container) return;
+    const rawEl = document.getElementById(`ddoc-${f.id}`);
+    const raw = getFeatureState(f.id).ddoc || (rawEl ? rawEl.textContent.trim() : null);
+    if (raw) {
+      container.innerHTML = `
+        <div class="context-card">
+          <div class="md-body">${marked.parse(raw)}</div>
+        </div>`;
+    } else {
+      container.innerHTML = `<div class="doc-empty"><h3>No domain doc yet</h3><p>Add a <code>ddoc-${f.id}</code> script element with markdown content.</p></div>`;
+    }
+  });
+}
+
+function toggleDocEdit(featureId) {
+  const editor = document.getElementById(`${featureId}_doc_editor`);
+  if (!editor) return;
+  editor.style.display = editor.style.display === 'none' ? 'block' : 'none';
+}
+
+function saveDoc(featureId) {
+  const input = document.getElementById(`${featureId}_doc_input`);
+  if (!input) return;
+  const raw = input.value.trim();
+  if (!raw) return;
+
+  // Persist to localStorage
+  updateFeatureState(featureId, { doc: raw });
+
+  // Re-render the markdown output
+  const output = document.getElementById(`${featureId}_md_output`);
+  if (output) {
+    output.innerHTML = marked.parse(raw);
+    toggleDocEdit(featureId);
+  } else {
+    // First time save — re-render whole docs view
+    const rawEl = document.getElementById(`doc-${featureId}`);
+    if (rawEl) rawEl.textContent = raw;
+    renderDocs();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CUSTOMER CALLS
+// ═══════════════════════════════════════════════════════════════
+function escHtml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function getCalls(featureId) {
+  return getFeatureState(featureId).calls || [];
+}
+
+function saveCalls(featureId, calls) {
+  updateFeatureState(featureId, { calls });
+}
+
+function addCall(featureId) {
+  const calls = getCalls(featureId);
+  saveCalls(featureId, [...calls, {
+    id: Date.now().toString(),
+    label: '',
+    date: '',
+    link: '',
+    transcript: '',
+    summary: '',
+  }]);
+  renderCallsList(featureId);
+}
+
+function removeCall(featureId, callId) {
+  saveCalls(featureId, getCalls(featureId).filter(c => c.id !== callId));
+  renderCallsList(featureId);
+}
+
+function updateCallField(featureId, callId, field, value) {
+  const calls = getCalls(featureId).map(c =>
+    c.id === callId ? { ...c, [field]: value } : c
+  );
+  saveCalls(featureId, calls);
+}
+
+function renderCallsList(featureId) {
+  const el = document.getElementById(`${featureId}_calls_list`);
+  if (!el) return;
+  const calls = getCalls(featureId);
+  if (!calls.length) {
+    el.innerHTML = `<div class="empty-state" style="padding:40px 20px">
+      <h3>No customer calls yet</h3>
+      <p>Click "+ Add Call" to track a call link, paste a transcript, and generate an AI summary.</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = calls.map(call => buildCallCard(featureId, call)).join('');
+}
+
+function buildCallCard(featureId, call) {
+  const hasLink = !!call.link.trim();
+  const hasSummary = !!(call.summary && call.summary.trim());
+  return `
+  <div class="call-card">
+    <div class="call-card-header">
+      <div class="call-card-title">
+        📞
+        <input
+          value="${escHtml(call.label)}"
+          placeholder="Call label (e.g. SmartCare Discovery)"
+          onblur="updateCallField('${featureId}','${call.id}','label',this.value)" />
+      </div>
+      <input class="call-date-input"
+        value="${escHtml(call.date)}"
+        placeholder="Date (e.g. Jan 23, 2026)"
+        onblur="updateCallField('${featureId}','${call.id}','date',this.value)" />
+      <button class="remove-btn" style="font-size:17px" title="Remove call"
+        onclick="removeCall('${featureId}','${call.id}')">×</button>
+    </div>
+
+    <div class="call-section-label">Call Recording Link</div>
+    <div class="call-link-row">
+      <input
+        value="${escHtml(call.link)}"
+        placeholder="Paste Gong, Fathom, or Zoom URL…"
+        onblur="updateCallField('${featureId}','${call.id}','link',this.value)" />
+      ${hasLink ? `<a class="link-chip" href="${escHtml(call.link)}" target="_blank" style="white-space:nowrap">↗ Open</a>` : ''}
+    </div>
+
+    <div class="call-divider"></div>
+
+    <div>
+      <div class="call-section-label">Transcript</div>
+      <textarea class="call-transcript"
+        placeholder="Paste the raw transcript here…"
+        onblur="updateCallField('${featureId}','${call.id}','transcript',this.value)">${escHtml(call.transcript)}</textarea>
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-actions">
+        <div class="call-section-label" style="margin-bottom:0">AI Summary</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <button class="generate-btn" id="gen_${call.id}"
+            onclick="copyPromptForAI('${featureId}','${call.id}')">
+            ✦ Copy prompt → Claude.ai
+          </button>
+          <span id="summary_btns_${call.id}"
+            style="display:${hasSummary ? 'flex' : 'none'};gap:6px;align-items:center">
+            <button class="btn" style="font-size:11px;padding:5px 10px"
+              onclick="copySummary('${featureId}','${call.id}')">Copy</button>
+            <button class="btn" style="font-size:11px;padding:5px 10px"
+              onclick="expandSummary('${featureId}','${call.id}')">⤢ Expand</button>
+            <button class="btn" style="font-size:11px;padding:5px 10px"
+              id="edit_summary_btn_${call.id}"
+              onclick="toggleSummaryEdit('${featureId}','${call.id}')">Edit</button>
+          </span>
+        </div>
+      </div>
+      <div id="summary_rendered_${call.id}" class="summary-rendered md-body"
+        style="display:${hasSummary ? 'block' : 'none'}">${hasSummary ? marked.parse(call.summary) : ''}</div>
+      <textarea class="call-summary" id="summary_ta_${call.id}"
+        placeholder="Paste a summary here, or use the button above to generate one via Claude.ai…"
+        style="display:${hasSummary ? 'none' : 'block'}"
+        onblur="saveSummaryFromBlur('${featureId}','${call.id}')">${escHtml(call.summary)}</textarea>
+    </div>
+  </div>`;
+}
+
+// ── SUMMARY VIEW / EDIT ────────────────────────────────────────
+const _summaryBlurLock = {};
+
+function saveSummaryFromBlur(featureId, callId) {
+  const ta = document.getElementById(`summary_ta_${callId}`);
+  if (!ta || ta.style.display === 'none') return;
+  const val = ta.value;
+  updateCallField(featureId, callId, 'summary', val);
+  if (!val.trim()) return;
+
+  // Switch to rendered view
+  const rendered = document.getElementById(`summary_rendered_${callId}`);
+  if (rendered) { rendered.innerHTML = marked.parse(val); rendered.style.display = 'block'; }
+  ta.style.display = 'none';
+
+  const btns = document.getElementById(`summary_btns_${callId}`);
+  if (btns) btns.style.display = 'flex';
+
+  const editBtn = document.getElementById(`edit_summary_btn_${callId}`);
+  if (editBtn) editBtn.textContent = 'Edit';
+
+  // Block the immediately-following button click from re-entering edit mode
+  _summaryBlurLock[callId] = true;
+  setTimeout(() => { _summaryBlurLock[callId] = false; }, 200);
+}
+
+function toggleSummaryEdit(featureId, callId) {
+  if (_summaryBlurLock[callId]) { _summaryBlurLock[callId] = false; return; }
+  const ta = document.getElementById(`summary_ta_${callId}`);
+  const rendered = document.getElementById(`summary_rendered_${callId}`);
+  const editBtn = document.getElementById(`edit_summary_btn_${callId}`);
+  if (!ta) return;
+
+  const isEditing = ta.style.display !== 'none';
+  if (isEditing) {
+    // Save and switch to rendered
+    const val = ta.value;
+    updateCallField(featureId, callId, 'summary', val);
+    if (rendered) { rendered.innerHTML = marked.parse(val); rendered.style.display = 'block'; }
+    ta.style.display = 'none';
+    if (editBtn) editBtn.textContent = 'Edit';
+  } else {
+    // Switch to edit mode
+    if (rendered) rendered.style.display = 'none';
+    ta.style.display = 'block';
+    ta.focus();
+    if (editBtn) editBtn.textContent = 'Done';
+  }
+}
+
+function copySummary(featureId, callId) {
+  const call = getCalls(featureId).find(c => c.id === callId);
+  if (!call) return;
+  navigator.clipboard.writeText(call.summary || '').then(() => showToast());
+}
+
+function expandSummary(featureId, callId) {
+  const call = getCalls(featureId).find(c => c.id === callId);
+  if (!call || !call.summary) return;
+  const modal = document.getElementById('summary-modal');
+  const content = document.getElementById('summary-modal-content');
+  const title = document.getElementById('summary-modal-title');
+  modal.dataset.summary = call.summary;
+  if (title) title.textContent = call.label ? `${call.label}${call.date ? '  ·  ' + call.date : ''}` : 'Call Summary';
+  if (content) content.innerHTML = marked.parse(call.summary);
+  modal.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSummaryModal() {
+  document.getElementById('summary-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function copySummaryFromModal() {
+  const modal = document.getElementById('summary-modal');
+  navigator.clipboard.writeText(modal.dataset.summary || '').then(() => showToast());
+}
+
+// ── AI SUMMARY VIA CLIPBOARD ───────────────────────────────────
+function copyPromptForAI(featureId, callId) {
+  const call = getCalls(featureId).find(c => c.id === callId);
+  if (!call) return;
+
+  if (!call.transcript.trim()) {
+    alert('Paste a transcript first, then click the button.');
+    return;
+  }
+
+  const f = FEATURES.find(x => x.id === featureId);
+
+  const prompt = `You are a product design assistant at BuildOps summarizing a customer discovery call for a Staff Product Designer.
+
+Feature being discussed: "${f ? f.title : featureId}"
+${f && f.summary ? `Feature context: ${f.summary}` : ''}
+
+Analyze the transcript below and return a structured summary with these sections:
+
+**Key Pain Points** — specific problems the customer described (include direct quotes where impactful)
+**Key Insights** — findings that inform design or product decisions
+**Validated / Challenged Assumptions** — what confirmed or changed existing thinking
+**Open Questions** — unresolved items that need follow-up
+**Action Items** — concrete next steps mentioned
+
+Be concise and direct. Use bullet points. Preserve impactful quotes verbatim.
+
+---
+TRANSCRIPT:
+${call.transcript}`;
+
+  navigator.clipboard.writeText(prompt).then(() => {
+    const btn = document.getElementById(`gen_${callId}`);
+    if (btn) {
+      btn.textContent = '✓ Copied! Paste into Claude.ai';
+      btn.style.background = 'var(--green-bg)';
+      btn.style.color = 'var(--green)';
+      btn.style.borderColor = 'var(--green)';
+      setTimeout(() => {
+        btn.textContent = '✦ Copy prompt → Claude.ai';
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 3000);
+    }
+    window.open('https://claude.ai', '_blank');
+  }).catch(() => {
+    alert('Could not copy to clipboard. Try selecting and copying the transcript manually.');
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+function init() {
+  renderSidebar();
+  renderFeatureViews();
+  renderScheduleCards();
+  renderAllSections();
+  renderAllDesignImgs();
+  renderDocs();
+  renderDomainDocs();
+
+  const lastUpdated = document.getElementById('last-updated');
+  const saved = localStorage.getItem('fh_state');
+  if (saved) {
+    lastUpdated.textContent = new Date().toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric'
+    });
+  } else {
+    lastUpdated.textContent = 'Mar 11, 2026';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
