@@ -3776,8 +3776,16 @@ function renderHandoff(featureId) {
 function buildScreenCard(featureId, screen) {
   const hasImage = !!screen.imageData;
   const pinCount = (screen.pins || []).length;
+  const pinsOverlay = (screen.pins || []).map((pin, pi) => `
+    <div style="position:absolute;left:${pin.x*100}%;top:${pin.y*100}%;transform:translate(-50%,-100%) rotate(-45deg);width:16px;height:16px;background:var(--accent);border:1.5px solid white;border-radius:50% 50% 50% 0;display:flex;align-items:center;justify-content:center;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.5)">
+      <span style="transform:rotate(45deg);font-size:8px;font-weight:700;color:white">${pi+1}</span>
+    </div>`).join('');
   const preview = hasImage
-    ? `<img src="${screen.imageData}" alt="${screen.label}" />${pinCount > 0 ? `<div class="screen-pin-count">${pinCount} pin${pinCount !== 1 ? 's' : ''}</div>` : ''}`
+    ? `<div style="position:relative;width:100%;height:100%">
+        <img src="${screen.imageData}" alt="${screen.label}" style="width:100%;height:100%;object-fit:cover;display:block" />
+        ${screen.drawingData ? `<img src="${screen.drawingData}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none" />` : ''}
+        ${pinsOverlay}
+      </div>`
     : `<div class="upload-placeholder"><div class="ph-icon">&#128444;</div><div>Click to attach design</div></div>`;
   return `
     <div class="screen-card">
