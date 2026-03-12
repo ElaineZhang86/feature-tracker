@@ -1761,7 +1761,7 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    margin-bottom: 12px;
+    margin-bottom: 14px;
     overflow: hidden;
   }
 
@@ -1769,23 +1769,9 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 14px 18px;
-    cursor: pointer;
-    user-select: none;
-    transition: background .15s;
+    padding: 13px 18px 12px;
+    border-bottom: 1px solid var(--border);
   }
-
-  .dk-entry-header:hover { background: var(--surface2); }
-
-  .dk-chevron {
-    color: var(--text-dim);
-    font-size: 11px;
-    transition: transform .2s;
-    flex-shrink: 0;
-    font-weight: 700;
-  }
-
-  .dk-chevron.open { transform: rotate(90deg); }
 
   .dk-entry-title-input {
     flex: 1;
@@ -1803,41 +1789,35 @@
 
   .dk-entry-title-input:focus { border-bottom-color: var(--accent); }
 
-  .dk-entry-body {
-    padding: 0 18px 16px;
-    border-top: 1px solid var(--border);
-    display: none;
+  .dk-entry-header-acts {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-shrink: 0;
   }
 
-  .dk-entry-body.open { display: block; }
+  .dk-entry-body {
+    padding: 18px 20px 16px;
+  }
 
   .dk-entry-content {
     width: 100%;
-    min-height: 120px;
+    min-height: 180px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 10px 12px;
+    padding: 12px 14px;
     color: var(--text);
     font-size: 13px;
     line-height: 1.65;
-    font-family: inherit;
+    font-family: 'SF Mono', 'Fira Mono', monospace;
     resize: vertical;
     outline: none;
     transition: border-color .15s;
-    margin-top: 12px;
   }
 
   .dk-entry-content:focus { border-color: var(--accent); }
   .dk-entry-content::placeholder { color: var(--text-dim); }
-
-  .dk-entry-rendered {
-    margin-top: 12px;
-    padding: 12px 16px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-  }
 
   .dk-entry-actions {
     display: flex;
@@ -2097,9 +2077,18 @@
   </nav>
   <div class="sidebar-footer">
     <span>Updated: <span id="last-updated">—</span></span>
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light / dark">
-      <span class="material-symbols-rounded" id="theme-icon">light_mode</span>
-    </button>
+    <div style="display:flex;gap:4px;align-items:center">
+      <button class="theme-toggle" onclick="exportData()" title="Export all data as JSON backup">
+        <span class="material-symbols-rounded">download</span>
+      </button>
+      <label class="theme-toggle" title="Import data from JSON backup" style="cursor:pointer;margin:0">
+        <span class="material-symbols-rounded">upload</span>
+        <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+      </label>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light / dark">
+        <span class="material-symbols-rounded" id="theme-icon">light_mode</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -4161,6 +4150,7 @@ function renderQuestionsList(featureId) {
         </div>
         <textarea class="q-answer-input" id="qa_input_${featureId}_${key}"
           placeholder="Type your answer… (markdown supported)"
+          onblur="saveAnswer('${featureId}','${key}',this.value)"
           autofocus>${escHtml(ans)}</textarea>
         <div class="q-answer-editor-acts">
           <button class="btn btn-primary" style="font-size:12px;padding:5px 12px"
@@ -5452,22 +5442,18 @@ function getDomainKnowledge(featureId) {
 }
 
 function addDomainKnowledge(featureId) {
-  const entries = getDomainKnowledge(featureId);
   const id = Date.now().toString();
+  const entries = getDomainKnowledge(featureId);
   updateFeatureState(featureId, { domainKnowledge: [...entries, { id, title: '', content: '' }] });
   renderDomainKnowledgeList(featureId);
-  // Auto-expand the new entry
   setTimeout(() => {
-    const body = document.getElementById(`dk_body_${featureId}_${id}`);
-    const chevron = document.getElementById(`dk_chevron_${featureId}_${id}`);
-    if (body) body.classList.add('open');
-    if (chevron) chevron.classList.add('open');
-    const titleInput = document.querySelector(`#dk_body_${featureId}_${id}`)?.closest('.dk-entry')?.querySelector('.dk-entry-title-input');
-    if (titleInput) titleInput.focus();
+    const ta = document.getElementById(`dk_ta_${featureId}_${id}`);
+    if (ta) ta.focus();
   }, 50);
 }
 
 function removeDomainKnowledge(featureId, id) {
+  if (!confirm('Delete this entry?')) return;
   const entries = getDomainKnowledge(featureId).filter(e => e.id !== id);
   updateFeatureState(featureId, { domainKnowledge: entries });
   renderDomainKnowledgeList(featureId);
@@ -5480,62 +5466,82 @@ function updateDKField(featureId, id, field, value) {
   updateFeatureState(featureId, { domainKnowledge: entries });
 }
 
-function toggleDKEntry(featureId, id) {
-  const body = document.getElementById(`dk_body_${featureId}_${id}`);
-  const chevron = document.getElementById(`dk_chevron_${featureId}_${id}`);
-  if (!body) return;
-  body.classList.toggle('open');
-  if (chevron) chevron.classList.toggle('open');
+function openDKEdit(featureId, id) {
+  const rendered = document.getElementById(`dk_rendered_${featureId}_${id}`);
+  const editor   = document.getElementById(`dk_editor_${featureId}_${id}`);
+  const editBtn  = document.getElementById(`dk_editbtn_${featureId}_${id}`);
+  const ta       = document.getElementById(`dk_ta_${featureId}_${id}`);
+  if (!editor) return;
+  if (rendered) rendered.style.display = 'none';
+  editor.style.display = 'block';
+  if (editBtn) editBtn.style.display = 'none';
+  if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
 }
 
-function toggleDKEdit(featureId, id) {
-  const ta = document.getElementById(`dk_ta_${featureId}_${id}`);
+function saveDKEdit(featureId, id) {
+  const ta       = document.getElementById(`dk_ta_${featureId}_${id}`);
   const rendered = document.getElementById(`dk_rendered_${featureId}_${id}`);
-  const editBtn = document.getElementById(`dk_editbtn_${featureId}_${id}`);
+  const editor   = document.getElementById(`dk_editor_${featureId}_${id}`);
+  const editBtn  = document.getElementById(`dk_editbtn_${featureId}_${id}`);
   if (!ta) return;
-  const isEditing = ta.style.display !== 'none';
-  if (isEditing) {
-    const val = ta.value;
-    updateDKField(featureId, id, 'content', val);
-    if (rendered) {
-      rendered.innerHTML = val ? marked.parse(val) : '<span style="color:var(--text-dim);font-size:13px">No content yet.</span>';
-      rendered.style.display = 'block';
-    }
-    ta.style.display = 'none';
-    if (editBtn) editBtn.textContent = 'Edit';
+  const val = ta.value;
+  updateDKField(featureId, id, 'content', val);
+  editor.style.display = 'none';
+  if (editBtn) editBtn.style.display = '';
+  if (val.trim()) {
+    rendered.innerHTML = marked.parse(val);
+    rendered.style.display = 'block';
   } else {
-    if (rendered) rendered.style.display = 'none';
-    ta.style.display = 'block';
-    ta.focus();
-    if (editBtn) editBtn.textContent = 'Done';
+    rendered.innerHTML = '<p style="color:var(--text-dim);font-size:13px">No content yet. Click Edit to add.</p>';
+    rendered.style.display = 'block';
   }
+}
+
+function cancelDKEdit(featureId, id) {
+  const entry    = getDomainKnowledge(featureId).find(e => e.id === id);
+  const ta       = document.getElementById(`dk_ta_${featureId}_${id}`);
+  const rendered = document.getElementById(`dk_rendered_${featureId}_${id}`);
+  const editor   = document.getElementById(`dk_editor_${featureId}_${id}`);
+  const editBtn  = document.getElementById(`dk_editbtn_${featureId}_${id}`);
+  if (!editor) return;
+  if (ta && entry) ta.value = entry.content || '';
+  editor.style.display = 'none';
+  if (editBtn) editBtn.style.display = '';
+  if (rendered) rendered.style.display = 'block';
 }
 
 function buildDKEntryCard(featureId, e) {
   const hasContent = !!(e.content && e.content.trim());
+  const renderedHtml = hasContent
+    ? marked.parse(e.content)
+    : '<p style="color:var(--text-dim);font-size:13px">No content yet. Click Edit to add.</p>';
   return `
-  <div class="dk-entry">
-    <div class="dk-entry-header" onclick="toggleDKEntry('${featureId}','${e.id}')">
-      <span class="dk-chevron" id="dk_chevron_${featureId}_${e.id}">▶</span>
+  <div class="dk-entry" id="dk_card_${featureId}_${e.id}">
+    <div class="dk-entry-header">
       <input class="dk-entry-title-input"
         value="${escHtml(e.title)}"
         placeholder="Entry title…"
-        onclick="event.stopPropagation()"
         onblur="updateDKField('${featureId}','${e.id}','title',this.value)" />
-      <button class="remove-btn" title="Delete entry"
-        onclick="event.stopPropagation();removeDomainKnowledge('${featureId}','${e.id}')"><span class="material-symbols-rounded">delete</span></button>
-    </div>
-    <div class="dk-entry-body" id="dk_body_${featureId}_${e.id}">
-      <div id="dk_rendered_${featureId}_${e.id}" class="md-body dk-entry-rendered" style="display:${hasContent ? 'block' : 'none'}">
-        ${hasContent ? marked.parse(e.content) : ''}
-      </div>
-      <textarea class="dk-entry-content" id="dk_ta_${featureId}_${e.id}"
-        placeholder="Add notes, domain context, or paste markdown…"
-        style="display:${hasContent ? 'none' : 'block'}"
-        onblur="updateDKField('${featureId}','${e.id}','content',this.value)">${escHtml(e.content)}</textarea>
-      <div class="dk-entry-actions">
+      <div class="dk-entry-header-acts">
         <button class="btn" id="dk_editbtn_${featureId}_${e.id}"
-          onclick="toggleDKEdit('${featureId}','${e.id}')">${hasContent ? 'Edit' : 'Done'}</button>
+          onclick="openDKEdit('${featureId}','${e.id}')">Edit</button>
+        <button class="remove-btn" title="Delete entry"
+          onclick="removeDomainKnowledge('${featureId}','${e.id}')">
+          <span class="material-symbols-rounded">delete</span>
+        </button>
+      </div>
+    </div>
+    <div class="dk-entry-body">
+      <div id="dk_rendered_${featureId}_${e.id}" class="md-body">
+        ${renderedHtml}
+      </div>
+      <div id="dk_editor_${featureId}_${e.id}" style="display:${hasContent ? 'none' : 'block'}">
+        <textarea class="dk-entry-content" id="dk_ta_${featureId}_${e.id}"
+          placeholder="Paste or type markdown content…">${escHtml(e.content)}</textarea>
+        <div class="dk-entry-actions">
+          <button class="btn btn-primary" onclick="saveDKEdit('${featureId}','${e.id}')">Save</button>
+          <button class="btn" onclick="cancelDKEdit('${featureId}','${e.id}')">${hasContent ? 'Cancel' : 'Discard'}</button>
+        </div>
       </div>
     </div>
   </div>`;
@@ -5550,7 +5556,7 @@ function renderDomainKnowledgeList(featureId) {
       <div class="context-card" style="text-align:center;padding:48px 20px">
         <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">menu_book</span>
         <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No domain knowledge yet.<br>Capture context, research, or background knowledge.</div>
-        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addDKEntry('${featureId}')">+ Add Entry</button>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addDomainKnowledge('${featureId}')">+ Add Entry</button>
       </div>`;
     return;
   }
@@ -5560,7 +5566,8 @@ function renderDomainKnowledgeList(featureId) {
         <div style="font-size:14px;font-weight:600;color:var(--text)">Domain Knowledge</div>
         <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Context, research, and background knowledge</div>
       </div>
-      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="addDKEntry('${featureId}')">
+      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0"
+        onclick="addDomainKnowledge('${featureId}')">
         <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Entry
       </button>
     </div>
@@ -6655,6 +6662,41 @@ function renderDesignSpecTab(id) {
         : `<div style="font-size:13px;color:var(--text-dim);padding:8px 0">No spec document yet.</div>`;
     }
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  EXPORT / IMPORT
+// ═══════════════════════════════════════════════════════════════
+function exportData() {
+  const raw = localStorage.getItem('fh_state') || '{}';
+  const blob = new Blob([raw], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const now = new Date();
+  const stamp = now.toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `feature-hub-backup-${stamp}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('Invalid format');
+      if (!confirm('This will replace all current Feature Hub data with the imported backup. Continue?')) return;
+      localStorage.setItem('fh_state', JSON.stringify(parsed));
+      location.reload();
+    } catch (err) {
+      alert('Import failed: ' + err.message + '\n\nMake sure you selected a valid Feature Hub backup file.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
 }
 
 // ═══════════════════════════════════════════════════════════════
