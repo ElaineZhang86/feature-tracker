@@ -1128,6 +1128,208 @@
   .generate-btn:hover:not(:disabled) { background: var(--accent); color: #fff; border-color: var(--accent); }
   .generate-btn:disabled { opacity: .45; cursor: not-allowed; }
 
+  /* ── DESIGN HANDOFF ──────────────────────────────────── */
+  .handoff-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .screen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .screen-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .screen-card-header {
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+  }
+  .screen-card-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .screen-card-status {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .screen-status-pending { background: var(--yellow-bg); color: var(--yellow); }
+  .screen-status-attached { background: var(--green-bg); color: var(--green); }
+  .screen-card-preview {
+    width: 100%;
+    height: 180px;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .screen-card-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+  .upload-placeholder .ph-icon { font-size: 28px; }
+  .screen-pin-count {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+  }
+  .screen-card-actions { padding: 8px 12px; display: flex; gap: 6px; align-items: center; }
+  .export-btn {
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .export-btn:hover { opacity: 0.85; }
+
+  /* ── ANNOTATOR MODAL ─────────────────────────────────── */
+  .annotator-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.93);
+    z-index: 2000;
+    flex-direction: column;
+  }
+  .annotator-overlay.open { display: flex; }
+  .annotator-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+  .annotator-title { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; min-width: 120px; }
+  .tool-btn {
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .tool-btn:hover, .tool-btn.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .annotator-body {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 20px;
+  }
+  .annotator-canvas-wrap {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    max-height: 100%;
+    user-select: none;
+  }
+  .annotator-img {
+    display: block;
+    max-width: calc(100vw - 80px);
+    max-height: calc(100vh - 130px);
+    object-fit: contain;
+    border-radius: 6px;
+  }
+  .annotator-draw-canvas {
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+  }
+  .annotator-pin-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .annotator-pin-layer.pin-mode { pointer-events: auto; cursor: crosshair; }
+  .pin-marker {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border-radius: 50% 50% 50% 0;
+    transform: translate(-50%, -100%) rotate(-45deg);
+    background: var(--accent);
+    border: 2px solid white;
+    cursor: pointer;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.5);
+  }
+  .pin-marker span { transform: rotate(45deg); font-size: 10px; font-weight: 700; color: white; line-height: 1; }
+  .pin-popup {
+    position: absolute;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px;
+    min-width: 220px;
+    z-index: 10;
+    box-shadow: 0 4px 24px rgba(0,0,0,.6);
+  }
+  .pin-popup textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 12px;
+    padding: 6px;
+    resize: vertical;
+    min-height: 60px;
+    font-family: inherit;
+    outline: none;
+  }
+  .pin-popup-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .pin-note-label { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; }
+
 </style>
 </head>
 <body>
@@ -1184,6 +1386,30 @@
       </div>
     </div>
     <div class="summary-modal-body md-body" id="summary-modal-content"></div>
+  </div>
+</div>
+
+<!-- ANNOTATOR OVERLAY -->
+<div id="annotator-overlay" class="annotator-overlay">
+  <div class="annotator-toolbar">
+    <div class="annotator-title" id="annotator-title"></div>
+    <button class="tool-btn active" data-tool="pin" onclick="setAnnotTool('pin')">Pin</button>
+    <button class="tool-btn" data-tool="draw" onclick="setAnnotTool('draw')">Draw</button>
+    <button class="tool-btn" onclick="clearAnnotDrawing()">Clear Drawing</button>
+    <button class="tool-btn" onclick="saveAnnotation()" style="color:var(--green);border-color:var(--green)">Save &amp; Close</button>
+    <button class="tool-btn" onclick="closeAnnotator()">Discard &amp; Close</button>
+  </div>
+  <div class="annotator-body">
+    <div class="annotator-canvas-wrap" id="annotator-wrap">
+      <img class="annotator-img" id="annotator-img" src="" alt="" />
+      <canvas class="annotator-draw-canvas" id="annotator-canvas"
+        onmousedown="annotMouseDown(event)"
+        onmousemove="annotMouseMove(event)"
+        onmouseup="annotMouseUp()"
+        onmouseleave="annotMouseUp()"></canvas>
+      <div class="annotator-pin-layer pin-mode" id="annotator-pin-layer"
+        onclick="annotPinClick(event)"></div>
+    </div>
   </div>
 </div>
 
@@ -2762,6 +2988,7 @@ function buildFeatureView(f) {
       ${f.hasDoc ? `<div class="tab" onclick="switchTab('${f.id}', 'docs', this)">${f.docLabel || 'Docs'}</div>` : ''}
       ${f.hasDomainDoc ? `<div class="tab" onclick="switchTab('${f.id}', 'ddocs', this)">Domain Docs</div>` : ''}
       <div class="tab" onclick="switchTab('${f.id}', 'calls', this)">Customer Calls</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'handoff', this); renderHandoff('${f.id}')">Design Handoff</div>
     </div>
 
     <!-- CONTEXT TAB -->
@@ -2884,6 +3111,11 @@ function buildFeatureView(f) {
     <div id="${f.id}_tab_calls" class="tab-panel">
       <div id="${f.id}_calls_list"></div>
     </div>
+
+    <!-- DESIGN HANDOFF TAB -->
+    <div id="${f.id}_tab_handoff" class="tab-panel">
+      <div id="${f.id}_handoff_body"></div>
+    </div>
   </div>`;
 }
 
@@ -2895,7 +3127,7 @@ function switchTab(featureId, tabName, el) {
   allTabs.forEach(t => t.classList.remove('active'));
   el.classList.add('active');
 
-  const panels = ['context','todo','done','questions','notes','design','docs','ddocs','calls'];
+  const panels = ['context','todo','done','questions','notes','design','docs','ddocs','calls','handoff'];
   panels.forEach(p => {
     const panel = document.getElementById(`${featureId}_tab_${p}`);
     if (panel) panel.classList.toggle('active', p === tabName);
@@ -3893,6 +4125,7 @@ function init() {
   renderAllDesignImgs();
   renderDocs();
   renderDomainDocs();
+  renderAllHandoffs();
 
   const lastUpdated = document.getElementById('last-updated');
   const saved = localStorage.getItem('fh_state');
