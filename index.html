@@ -3576,7 +3576,7 @@ function buildFeatureView(f) {
       ${f.hasDoc && f.docLabel !== 'Design Spec' ? `<div class="tab" onclick="switchTab('${f.id}', 'docs', this)">${f.docLabel === 'Feature Understanding' ? 'Feature Brief' : (f.docLabel || 'Docs')}</div>` : ''}
       <div class="tab" onclick="switchTab('${f.id}', 'questions', this)">Q&amp;A</div>
       <div class="tab" onclick="switchTab('${f.id}', 'spec', this)">Design Spec</div>
-      <div class="tab" onclick="switchTab('${f.id}', 'design', this)">Design Notes</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'design', this)">Design Files</div>
       <div class="tab" onclick="switchTab('${f.id}', 'notes', this)">Notes</div>
       <div class="tab" onclick="switchTab('${f.id}', 'todo', this)">Next Tasks</div>
       <div class="tab" onclick="switchTab('${f.id}', 'done', this)">Completed</div>
@@ -5267,7 +5267,7 @@ function renderNotesTab(id) {
   const panel = document.getElementById(id + '_notes_panel');
   if (!panel) return;
   const entries = getNoteEntries(id).slice().reverse();
-  const itemsHtml = entries.length ? entries.map(n => {
+  const itemsHtml = entries.map(n => {
     const ek = id + '::' + n.id;
     if (_noteEditMode[ek]) {
       return `<div class="note-entry note-editing">
@@ -5292,17 +5292,31 @@ function renderNotesTab(id) {
         </div>
       </div>
     </div>`;
-  }).join('') : `<div style="text-align:center;padding:32px 20px"><span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">sticky_note_2</span><div style="font-size:13px;color:var(--text-muted)">No notes yet.<br>Click <strong>Add Note</strong> to get started.</div></div>`;
+  }).join('');
 
-  panel.innerHTML = `<div class="context-card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <h3 style="margin-bottom:0"><span class="material-symbols-rounded ctx-icon">sticky_note_2</span> Notes</h3>
-      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px" onclick="addNoteEntry('${id}')">
+  if (!entries.length) {
+    panel.innerHTML = `
+      <div class="context-card" style="text-align:center;padding:48px 20px">
+        <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">sticky_note_2</span>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No notes yet.<br>Capture meeting takeaways, decisions, or reminders.</div>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addNoteEntry('${id}')">+ Add Note</button>
+      </div>`;
+    return;
+  }
+
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">Notes</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Meeting takeaways, decisions, and reminders</div>
+      </div>
+      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="addNoteEntry('${id}')">
         <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Note
       </button>
     </div>
-    <div>${itemsHtml}</div>
-  </div>`;
+    <div class="context-card">
+      <div>${itemsHtml}</div>
+    </div>`;
 }
 
 function formatNoteDate(ts) {
