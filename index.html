@@ -1566,6 +1566,83 @@
   .generate-btn:hover:not(:disabled) { background: var(--accent); color: #fff; border-color: var(--accent); }
   .generate-btn:disabled { opacity: .45; cursor: not-allowed; }
 
+  /* ── CONTEXT CALLS — FILTER + EXPANDABLE ──────── */
+  .call-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .filter-group { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .filter-label {
+    font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--text-dim); white-space: nowrap; margin-right: 2px;
+  }
+  .filter-pill {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--text-muted); cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .filter-pill:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+  .call-entry { margin-bottom: 10px; }
+  .call-entry-header {
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer; user-select: none;
+  }
+  .call-entry-header:hover .call-entry-label { color: var(--accent); }
+  .call-entry-chips { display: flex; gap: 5px; flex-shrink: 0; flex-wrap: wrap; }
+
+  .call-type-chip, .call-stage-chip {
+    font-size: 10px; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; padding: 2px 7px; border-radius: 20px; white-space: nowrap;
+  }
+  .call-type-chip.customer  { background: var(--blue-bg);   color: var(--blue);   }
+  .call-type-chip.internal  { background: var(--green-bg);  color: var(--green);  }
+  .call-stage-chip.discovery       { background: var(--blue-bg);   color: var(--blue);   }
+  .call-stage-chip.solution-review { background: var(--purple-bg); color: var(--purple); }
+  .call-stage-chip.brainstorming   { background: var(--yellow-bg); color: var(--yellow); }
+  .call-stage-chip.req-alignment   { background: var(--green-bg);  color: var(--green);  }
+  .call-stage-chip.feedback        { background: var(--red-bg);    color: var(--red);    }
+  .call-stage-chip.other           { background: var(--gray-bg);   color: var(--gray);   }
+
+  .call-entry-label {
+    flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    transition: color .15s;
+  }
+  .call-entry-name-input {
+    background: none; border: none; border-bottom: 1px dashed transparent;
+    color: var(--text); font-size: 13px; font-weight: 600; padding: 0;
+    outline: none; width: 100%; transition: border-color .15s;
+  }
+  .call-entry-name-input:hover  { border-bottom-color: var(--border); }
+  .call-entry-name-input:focus  { border-bottom-color: var(--accent); }
+  .call-entry-name-input::placeholder { color: var(--text-dim); font-weight: 400; }
+
+  .call-expand-icon {
+    font-size: 18px; color: var(--text-dim); transition: transform .2s;
+    display: flex; align-items: center; flex-shrink: 0;
+  }
+  .call-entry.expanded .call-expand-icon { transform: rotate(180deg); }
+
+  .call-entry-details {
+    margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+  }
+  .call-detail-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .call-detail-select {
+    flex: 1; min-width: 140px; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 6px 10px; font-size: 12px; color: var(--text); outline: none;
+    cursor: pointer; transition: border-color .15s;
+  }
+  .call-detail-select:focus { border-color: var(--accent); }
+
   /* ── DOMAIN KNOWLEDGE ───────────────────────────── */
   .dk-entry {
     background: var(--surface);
@@ -3571,7 +3648,7 @@ function buildFeatureView(f) {
     <div class="tabs">
       <div class="tab active" onclick="switchTab('${f.id}', 'context', this)">Context</div>
       <div class="tab" onclick="switchTab('${f.id}', 'dknowledge', this)">Domain Knowledge</div>
-      <div class="tab" onclick="switchTab('${f.id}', 'calls', this)">Customer Context</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'calls', this)">Context</div>
       ${f.hasDomainDoc ? `<div class="tab" onclick="switchTab('${f.id}', 'ddocs', this)">Feature Brief</div>` : ''}
       ${f.hasDoc && f.docLabel !== 'Design Spec' ? `<div class="tab" onclick="switchTab('${f.id}', 'docs', this)">${f.docLabel === 'Feature Understanding' ? 'Feature Brief' : (f.docLabel || 'Docs')}</div>` : ''}
       <div class="tab" onclick="switchTab('${f.id}', 'questions', this)">Q&amp;A</div>
@@ -4407,14 +4484,18 @@ function saveCalls(featureId, calls) {
 
 function addCall(featureId) {
   const calls = getCalls(featureId);
-  saveCalls(featureId, [...calls, {
+  const newCall = {
     id: Date.now().toString(),
     label: '',
     date: '',
+    callType: 'customer',
+    stage: 'discovery',
     link: '',
     transcript: '',
     summary: '',
-  }]);
+  };
+  saveCalls(featureId, [...calls, newCall]);
+  _callExpanded[featureId + '_' + newCall.id] = true;
   renderCallsList(featureId);
 }
 
@@ -4430,6 +4511,47 @@ function updateCallField(featureId, callId, field, value) {
   saveCalls(featureId, calls);
 }
 
+const _callExpanded = {};
+const _callFilters = {};
+
+function parseCallDateTs(dateStr) {
+  if (!dateStr) return 0;
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? 0 : d.getTime();
+}
+
+function toggleCallExpand(featureId, callId) {
+  const key = featureId + '_' + callId;
+  _callExpanded[key] = !_callExpanded[key];
+  renderCallsList(featureId);
+}
+
+function setCallFilter(featureId, key, value) {
+  if (!_callFilters[featureId]) _callFilters[featureId] = {};
+  _callFilters[featureId][key] = value;
+  renderCallsList(featureId);
+}
+
+function buildCallFilterBar(featureId, calls) {
+  const filters = _callFilters[featureId] || {};
+  const types = ['', 'customer', 'internal'];
+  const typeLabels = { '': 'All', customer: 'Customer', internal: 'Internal' };
+  const stages = ['', 'discovery', 'solution-review', 'brainstorming', 'req-alignment', 'feedback', 'other'];
+  const stageLabels = { '': 'All', 'discovery': 'Discovery', 'solution-review': 'Solution Review', 'brainstorming': 'Brainstorming', 'req-alignment': 'Req. Alignment', 'feedback': 'Feedback', 'other': 'Other' };
+
+  const typePills = types.map(t =>
+    `<button class="filter-pill${(filters.type || '') === t ? ' active' : ''}" onclick="setCallFilter('${featureId}','type','${t}')">${typeLabels[t]}</button>`
+  ).join('');
+  const stagePills = stages.map(s =>
+    `<button class="filter-pill${(filters.stage || '') === s ? ' active' : ''}" onclick="setCallFilter('${featureId}','stage','${s}')">${stageLabels[s]}</button>`
+  ).join('');
+
+  return `<div class="call-filter-bar">
+    <div class="filter-group"><span class="filter-label">Type</span>${typePills}</div>
+    <div class="filter-group"><span class="filter-label">Stage</span>${stagePills}</div>
+  </div>`;
+}
+
 function renderCallsList(featureId) {
   const el = document.getElementById(`${featureId}_calls_list`);
   if (!el) return;
@@ -4438,93 +4560,130 @@ function renderCallsList(featureId) {
     el.innerHTML = `
       <div class="context-card" style="text-align:center;padding:48px 20px">
         <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">call</span>
-        <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No customer calls yet.<br>Track recordings, paste transcripts, and generate AI summaries.</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No calls yet.<br>Track customer and internal calls to build context.</div>
         <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addCall('${featureId}')">+ Add Call</button>
       </div>`;
     return;
   }
+
+  const sorted = [...calls].sort((a, b) =>
+    (parseCallDateTs(b.date) - parseCallDateTs(a.date)) || (b.id > a.id ? 1 : -1)
+  );
+  const filters = _callFilters[featureId] || {};
+  const filtered = sorted.filter(c => {
+    if (filters.type && (c.callType || 'customer') !== filters.type) return false;
+    if (filters.stage && (c.stage || '') !== filters.stage) return false;
+    return true;
+  });
+
+  const listHtml = filtered.length
+    ? filtered.map(call => buildCallCard(featureId, call)).join('')
+    : `<div class="context-card" style="text-align:center;padding:32px 20px"><div style="font-size:13px;color:var(--text-muted)">No calls match the current filter.</div></div>`;
+
   el.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <div>
-        <div style="font-size:14px;font-weight:600;color:var(--text)">Customer Context</div>
-        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Call recordings, transcripts, and AI summaries</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">Context</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${calls.length} call${calls.length !== 1 ? 's' : ''} · customer &amp; internal · sorted by date</div>
       </div>
       <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="addCall('${featureId}')">
         <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Call
       </button>
     </div>
-    ${calls.map(call => buildCallCard(featureId, call)).join('')}`;
+    ${buildCallFilterBar(featureId, calls)}
+    ${listHtml}`;
 }
 
 function buildCallCard(featureId, call) {
+  const isExpanded = !!_callExpanded[featureId + '_' + call.id];
   const hasLink = !!call.link.trim();
   const hasSummary = !!(call.summary && call.summary.trim());
+  const callType = call.callType || 'customer';
+  const stage = call.stage || '';
+  const typeLabel = callType === 'internal' ? 'Internal' : 'Customer';
+  const stageLabels = { 'discovery': 'Discovery', 'solution-review': 'Solution Review', 'brainstorming': 'Brainstorming', 'req-alignment': 'Req. Alignment', 'feedback': 'Feedback', 'other': 'Other' };
+  const stageChip = stage ? `<span class="call-stage-chip ${stage}">${stageLabels[stage] || stage}</span>` : '';
+
+  const detailsHtml = isExpanded ? `
+    <div class="call-entry-details">
+      <div class="call-detail-row">
+        <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','callType',this.value);renderCallsList('${featureId}')">
+          <option value="customer" ${callType === 'customer' ? 'selected' : ''}>Customer Call</option>
+          <option value="internal" ${callType === 'internal' ? 'selected' : ''}>Internal Call</option>
+        </select>
+        <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','stage',this.value);renderCallsList('${featureId}')">
+          <option value="" ${!stage ? 'selected' : ''}>— Stage —</option>
+          <option value="discovery"       ${stage === 'discovery'       ? 'selected' : ''}>Discovery</option>
+          <option value="solution-review" ${stage === 'solution-review' ? 'selected' : ''}>Solution Review</option>
+          <option value="brainstorming"   ${stage === 'brainstorming'   ? 'selected' : ''}>Brainstorming</option>
+          <option value="req-alignment"   ${stage === 'req-alignment'   ? 'selected' : ''}>Req. Alignment</option>
+          <option value="feedback"        ${stage === 'feedback'        ? 'selected' : ''}>Feedback</option>
+          <option value="other"           ${stage === 'other'           ? 'selected' : ''}>Other</option>
+        </select>
+      </div>
+      <div class="call-section-label">Recording Link</div>
+      <div class="call-link-row">
+        <input value="${escHtml(call.link)}" placeholder="Paste Gong, Fathom, or Zoom URL…"
+          onblur="updateCallField('${featureId}','${call.id}','link',this.value)" />
+        ${hasLink ? `<a class="link-chip" href="${escHtml(call.link)}" target="_blank" style="white-space:nowrap">↗ Open</a>` : ''}
+      </div>
+      <div class="call-divider"></div>
+      <div class="call-section-label">Transcript</div>
+      <textarea class="call-transcript" placeholder="Paste the raw transcript here…"
+        onblur="updateCallField('${featureId}','${call.id}','transcript',this.value)">${escHtml(call.transcript)}</textarea>
+      <div class="summary-section">
+        <div class="summary-actions">
+          <div class="call-section-label" style="margin-bottom:0">AI Summary</div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <button class="generate-btn" id="gen_${call.id}" onclick="copyPromptForAI('${featureId}','${call.id}')">
+              <span class="material-symbols-rounded" style="font-size:13px">auto_awesome</span> Copy prompt → Claude.ai
+            </button>
+            <span id="summary_btns_${call.id}" style="display:${hasSummary ? 'flex' : 'none'};gap:6px;align-items:center">
+              <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
+                onclick="copySummary('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">content_copy</span> Copy</button>
+              <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
+                onclick="expandSummary('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">open_in_full</span> Expand</button>
+              <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
+                id="edit_summary_btn_${call.id}" onclick="toggleSummaryEdit('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">edit</span> Edit</button>
+            </span>
+          </div>
+        </div>
+        <div id="summary_rendered_${call.id}" class="summary-rendered md-body"
+          style="display:${hasSummary ? 'block' : 'none'}">${hasSummary ? marked.parse(call.summary) : ''}</div>
+        <textarea class="call-summary" id="summary_ta_${call.id}"
+          placeholder="Paste a summary here, or use the button above to generate one via Claude.ai…"
+          style="display:${hasSummary ? 'none' : 'block'}"
+          onblur="saveSummaryFromBlur('${featureId}','${call.id}')">${escHtml(call.summary)}</textarea>
+      </div>
+    </div>` : '';
+
   return `
-  <div class="call-card">
-    <div class="call-card-header">
-      <div class="call-card-title">
-        📞
-        <input
-          value="${escHtml(call.label)}"
-          placeholder="Call label (e.g. SmartCare Discovery)"
+  <div class="context-card call-entry${isExpanded ? ' expanded' : ''}">
+    <div class="call-entry-header" onclick="toggleCallExpand('${featureId}','${call.id}')">
+      <div class="call-entry-chips">
+        <span class="call-type-chip ${callType}">${typeLabel}</span>
+        ${stageChip}
+      </div>
+      <div class="call-entry-label">
+        <input class="call-entry-name-input" value="${escHtml(call.label)}" placeholder="Label this call…"
+          onclick="event.stopPropagation()"
           onblur="updateCallField('${featureId}','${call.id}','label',this.value)" />
       </div>
-      <input class="call-date-input"
-        value="${escHtml(call.date)}"
-        placeholder="Date (e.g. Jan 23, 2026)"
-        onblur="updateCallField('${featureId}','${call.id}','date',this.value)" />
-      <button class="remove-btn" title="Remove call"
-        onclick="removeCall('${featureId}','${call.id}')"><span class="material-symbols-rounded">delete</span></button>
-    </div>
-
-    <div class="call-section-label">Call Recording Link</div>
-    <div class="call-link-row">
-      <input
-        value="${escHtml(call.link)}"
-        placeholder="Paste Gong, Fathom, or Zoom URL…"
-        onblur="updateCallField('${featureId}','${call.id}','link',this.value)" />
-      ${hasLink ? `<a class="link-chip" href="${escHtml(call.link)}" target="_blank" style="white-space:nowrap">↗ Open</a>` : ''}
-    </div>
-
-    <div class="call-divider"></div>
-
-    <div>
-      <div class="call-section-label">Transcript</div>
-      <textarea class="call-transcript"
-        placeholder="Paste the raw transcript here…"
-        onblur="updateCallField('${featureId}','${call.id}','transcript',this.value)">${escHtml(call.transcript)}</textarea>
-    </div>
-
-    <div class="summary-section">
-      <div class="summary-actions">
-        <div class="call-section-label" style="margin-bottom:0">AI Summary</div>
-        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-          <button class="generate-btn" id="gen_${call.id}"
-            onclick="copyPromptForAI('${featureId}','${call.id}')">
-            <span class="material-symbols-rounded" style="font-size:13px">auto_awesome</span> Copy prompt → Claude.ai
-          </button>
-          <span id="summary_btns_${call.id}"
-            style="display:${hasSummary ? 'flex' : 'none'};gap:6px;align-items:center">
-            <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
-              onclick="copySummary('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">content_copy</span> Copy</button>
-            <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
-              onclick="expandSummary('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">open_in_full</span> Expand</button>
-            <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
-              id="edit_summary_btn_${call.id}"
-              onclick="toggleSummaryEdit('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">edit</span> Edit</button>
-          </span>
-        </div>
+      <div onclick="event.stopPropagation()">
+        <input class="call-date-input" value="${escHtml(call.date)}" placeholder="Date…"
+          onblur="updateCallField('${featureId}','${call.id}','date',this.value)" />
       </div>
-      <div id="summary_rendered_${call.id}" class="summary-rendered md-body"
-        style="display:${hasSummary ? 'block' : 'none'}">${hasSummary ? marked.parse(call.summary) : ''}</div>
-      <textarea class="call-summary" id="summary_ta_${call.id}"
-        placeholder="Paste a summary here, or use the button above to generate one via Claude.ai…"
-        style="display:${hasSummary ? 'none' : 'block'}"
-        onblur="saveSummaryFromBlur('${featureId}','${call.id}')">${escHtml(call.summary)}</textarea>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+        <span class="material-symbols-rounded call-expand-icon">expand_more</span>
+        <button class="remove-btn" title="Remove" onclick="event.stopPropagation();removeCall('${featureId}','${call.id}')">
+          <span class="material-symbols-rounded">delete</span>
+        </button>
+      </div>
     </div>
+    ${detailsHtml}
   </div>`;
-}
 
+}
 // ── SUMMARY VIEW / EDIT ────────────────────────────────────────
 const _summaryBlurLock = {};
 
