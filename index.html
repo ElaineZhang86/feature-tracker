@@ -3589,41 +3589,17 @@ function buildFeatureView(f) {
 
     <!-- TODO TAB -->
     <div id="${f.id}_tab_todo" class="tab-panel">
-      <div class="context-card">
-        <h3><span class="material-symbols-rounded ctx-icon">pending_actions</span> Design Tasks Remaining</h3>
-        <ul class="checklist" id="${f.id}_todo_list"></ul>
-        <div class="add-item-row">
-          <input class="add-item-input" id="${f.id}_add_todo" placeholder="Add a task…"
-            onkeydown="if(event.key==='Enter')addTodo('${f.id}')" />
-          <button class="btn btn-primary" onclick="addTodo('${f.id}')">Add</button>
-        </div>
-      </div>
+      <div id="${f.id}_todo_panel"></div>
     </div>
 
     <!-- DONE TAB -->
     <div id="${f.id}_tab_done" class="tab-panel">
-      <div class="context-card">
-        <h3><span class="material-symbols-rounded ctx-icon">check_circle</span> Completed</h3>
-        <ul class="done-list" id="${f.id}_done_list"></ul>
-        <div class="add-item-row">
-          <input class="add-item-input" id="${f.id}_add_done" placeholder="Add a completed item…"
-            onkeydown="if(event.key==='Enter')addDone('${f.id}')" />
-          <button class="btn btn-primary" onclick="addDone('${f.id}')">Add</button>
-        </div>
-      </div>
+      <div id="${f.id}_done_panel"></div>
     </div>
 
     <!-- QUESTIONS TAB -->
     <div id="${f.id}_tab_questions" class="tab-panel">
-      <div class="context-card">
-        <h3><span class="material-symbols-rounded ctx-icon">help</span> Q&amp;A</h3>
-        <div id="${f.id}_q_list"></div>
-        <div class="add-item-row">
-          <input class="add-item-input" id="${f.id}_add_q" placeholder="Add a question…"
-            onkeydown="if(event.key==='Enter')addQuestion('${f.id}')" />
-          <button class="btn btn-primary" onclick="addQuestion('${f.id}')">Add</button>
-        </div>
-      </div>
+      <div id="${f.id}_q_panel"></div>
     </div>
 
     <!-- NOTES TAB -->
@@ -3655,10 +3631,7 @@ function buildFeatureView(f) {
 
     <!-- DOMAIN KNOWLEDGE TAB -->
     <div id="${f.id}_tab_dknowledge" class="tab-panel">
-      <div id="${f.id}_dk_list"></div>
-      <div style="margin-top:14px">
-        <button class="btn btn-primary" onclick="addDomainKnowledge('${f.id}')">+ Add Entry</button>
-      </div>
+      <div id="${f.id}_dk_panel"></div>
     </div>
 
     <!-- CUSTOMER CALLS TAB -->
@@ -3731,10 +3704,11 @@ function handleDueChange(featureId, val) {
 }
 
 // ── TODO ──────────────────────────────────────────────────────
+const _todoFormActive = {};
 function renderTodoList(featureId) {
   const f = getAllFeatures().find(x => x.id === featureId);
-  const el = document.getElementById(`${featureId}_todo_list`);
-  if (!f || !el) return;
+  const panel = document.getElementById(`${featureId}_todo_panel`);
+  if (!f || !panel) return;
   const checked = getChecked(featureId);
   const custom = getFeatureState(featureId).customTodo || [];
   const base = f.todo.map((item, i) => {
@@ -3753,11 +3727,47 @@ function renderTodoList(featureId) {
       <button class="remove-btn" title="Remove" onclick="removeCustomTodo('${featureId}',${i})"><span class="material-symbols-rounded">delete</span></button>
     </li>`;
   }).join('');
-  el.innerHTML = (base + extra) || `<li style="list-style:none;display:block"><div class="empty-state"><h3>No tasks yet</h3><p>Add what still needs to be designed or decided.</p><button class="btn btn-primary" onclick="document.getElementById('${featureId}_add_todo').focus()">+ Add Task</button></div></li>`;
+  const items = base + extra;
+
+  if (!items && !_todoFormActive[featureId]) {
+    panel.innerHTML = `
+      <div class="context-card" style="text-align:center;padding:48px 20px">
+        <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">pending_actions</span>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No tasks yet.<br>Add what still needs to be designed or decided.</div>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addTodo('${featureId}')">+ Add Task</button>
+      </div>`;
+    return;
+  }
+
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">Next Tasks</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Design and decision tasks remaining</div>
+      </div>
+      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="document.getElementById('${featureId}_add_todo').focus()">
+        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Task
+      </button>
+    </div>
+    <div class="context-card">
+      <ul class="checklist" id="${featureId}_todo_list">${items}</ul>
+      <div class="add-item-row" style="margin-top:12px">
+        <input class="add-item-input" id="${featureId}_add_todo" placeholder="Add a task…"
+          onkeydown="if(event.key==='Enter')addTodo('${featureId}')" />
+        <button class="btn btn-primary" onclick="addTodo('${featureId}')">Add</button>
+      </div>
+    </div>`;
 }
 
 function addTodo(featureId) {
-  const inp = document.getElementById(`${featureId}_add_todo`);
+  let inp = document.getElementById(`${featureId}_add_todo`);
+  if (!inp) {
+    _todoFormActive[featureId] = true;
+    renderTodoList(featureId);
+    inp = document.getElementById(`${featureId}_add_todo`);
+    if (inp) inp.focus();
+    return;
+  }
   const text = inp.value.trim(); if (!text) return;
   const items = [...(getFeatureState(featureId).customTodo || []), text];
   updateFeatureState(featureId, { customTodo: items }); inp.value = '';
@@ -3771,20 +3781,57 @@ function removeCustomTodo(featureId, i) {
 }
 
 // ── DONE ──────────────────────────────────────────────────────
+const _doneFormActive = {};
 function renderDoneList(featureId) {
   const f = getAllFeatures().find(x => x.id === featureId);
-  const el = document.getElementById(`${featureId}_done_list`);
-  if (!f || !el) return;
+  const panel = document.getElementById(`${featureId}_done_panel`);
+  if (!f || !panel) return;
   const custom = getFeatureState(featureId).customDone || [];
   const base = f.done.map(d => `<li class="done-item"><span>${d}</span></li>`).join('');
   const extra = custom.map((item, i) => `<li class="done-item" style="justify-content:space-between">
     <span>${item}</span><button class="remove-btn" title="Remove" onclick="removeCustomDone('${featureId}',${i})"><span class="material-symbols-rounded">delete</span></button>
   </li>`).join('');
-  el.innerHTML = (base + extra) || `<li style="list-style:none;display:block"><div class="empty-state"><h3>Nothing completed yet</h3><p>Add items you've already finished to track progress.</p><button class="btn btn-primary" onclick="document.getElementById('${featureId}_add_done').focus()">+ Add Item</button></div></li>`;
+  const items = base + extra;
+
+  if (!items && !_doneFormActive[featureId]) {
+    panel.innerHTML = `
+      <div class="context-card" style="text-align:center;padding:48px 20px">
+        <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">check_circle</span>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Nothing completed yet.<br>Add items you've already finished to track progress.</div>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addDone('${featureId}')">+ Add Item</button>
+      </div>`;
+    return;
+  }
+
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">Completed</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Work already finished</div>
+      </div>
+      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="document.getElementById('${featureId}_add_done').focus()">
+        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Item
+      </button>
+    </div>
+    <div class="context-card">
+      <ul class="done-list" id="${featureId}_done_list">${items}</ul>
+      <div class="add-item-row" style="margin-top:12px">
+        <input class="add-item-input" id="${featureId}_add_done" placeholder="Add a completed item…"
+          onkeydown="if(event.key==='Enter')addDone('${featureId}')" />
+        <button class="btn btn-primary" onclick="addDone('${featureId}')">Add</button>
+      </div>
+    </div>`;
 }
 
 function addDone(featureId) {
-  const inp = document.getElementById(`${featureId}_add_done`);
+  let inp = document.getElementById(`${featureId}_add_done`);
+  if (!inp) {
+    _doneFormActive[featureId] = true;
+    renderDoneList(featureId);
+    inp = document.getElementById(`${featureId}_add_done`);
+    if (inp) inp.focus();
+    return;
+  }
   const text = inp.value.trim(); if (!text) return;
   const items = [...(getFeatureState(featureId).customDone || []), text];
   updateFeatureState(featureId, { customDone: items }); inp.value = '';
@@ -3803,10 +3850,11 @@ function autoResizeQText(el) {
   el.style.height = el.scrollHeight + 'px';
 }
 
+const _qFormActive = {};
 function renderQuestionsList(featureId) {
   const f = getAllFeatures().find(x => x.id === featureId);
-  const el = document.getElementById(`${featureId}_q_list`);
-  if (!f || !el) return;
+  const panel = document.getElementById(`${featureId}_q_panel`);
+  if (!f || !panel) return;
   const st = getFeatureState(featureId);
   const resolvedBase = st.resolvedBase || {};
   const resolvedCustom = st.resolvedCustom || {};
@@ -3955,8 +4003,37 @@ function renderQuestionsList(featureId) {
     </button>
     <div id="${featureId}_deleted_q_list" style="display:none">${deletedHtml}</div>` : '';
 
-  el.innerHTML = ((baseHtml + customHtml) || `<div class="empty-state"><h3>No questions yet</h3><p>Add anything that still needs an answer below.</p><button class="btn btn-primary" onclick="document.getElementById('${featureId}_add_q').focus()">+ Add Question</button></div>`) + deletedSection;
-  setTimeout(() => el.querySelectorAll('.q-text').forEach(autoResizeQText), 0);
+  const content = baseHtml + customHtml;
+
+  if (!content && !_qFormActive[featureId]) {
+    panel.innerHTML = `
+      <div class="context-card" style="text-align:center;padding:48px 20px">
+        <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">help</span>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No questions yet.<br>Add anything that still needs an answer.</div>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addQuestion('${featureId}')">+ Add Question</button>
+      </div>
+      ${deletedSection}`;
+    setTimeout(() => panel.querySelectorAll('.q-text').forEach(autoResizeQText), 0);
+    return;
+  }
+
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">Q&amp;A</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Open questions and answers</div>
+      </div>
+      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="addQuestion('${featureId}')">
+        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Question
+      </button>
+    </div>
+    <div id="${featureId}_q_list">${content}${deletedSection}</div>
+    <div class="add-item-row" style="margin-top:12px">
+      <input class="add-item-input" id="${featureId}_add_q" placeholder="Add a question…"
+        onkeydown="if(event.key==='Enter')addQuestion('${featureId}')" />
+      <button class="btn btn-primary" onclick="addQuestion('${featureId}')">Add</button>
+    </div>`;
+  setTimeout(() => panel.querySelectorAll('.q-text').forEach(autoResizeQText), 0);
 }
 
 function deleteBaseQ(featureId, i) {
@@ -4046,7 +4123,14 @@ function unresolveQ(featureId, type, i) {
   updateFeatureState(featureId, { [key]: r }); renderQuestionsList(featureId);
 }
 function addQuestion(featureId) {
-  const inp = document.getElementById(`${featureId}_add_q`);
+  let inp = document.getElementById(`${featureId}_add_q`);
+  if (!inp) {
+    _qFormActive[featureId] = true;
+    renderQuestionsList(featureId);
+    inp = document.getElementById(`${featureId}_add_q`);
+    if (inp) inp.focus();
+    return;
+  }
   const text = inp.value.trim(); if (!text) return;
   const items = [...(getFeatureState(featureId).customQuestions || []), text];
   updateFeatureState(featureId, { customQuestions: items }); inp.value = '';
@@ -4351,11 +4435,25 @@ function renderCallsList(featureId) {
   if (!el) return;
   const calls = getCalls(featureId);
   if (!calls.length) {
-    el.innerHTML = `<div class="empty-state"><h3>No customer calls yet</h3><p>Track call recordings, paste transcripts, and generate AI summaries.</p><button class="btn btn-primary" onclick="addCall('${featureId}')">+ Add Call</button></div>`;
+    el.innerHTML = `
+      <div class="context-card" style="text-align:center;padding:48px 20px">
+        <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">call</span>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No customer calls yet.<br>Track recordings, paste transcripts, and generate AI summaries.</div>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addCall('${featureId}')">+ Add Call</button>
+      </div>`;
     return;
   }
-  el.innerHTML = calls.map(call => buildCallCard(featureId, call)).join('') +
-    `<div style="margin-top:14px"><button class="btn btn-primary" onclick="addCall('${featureId}')">+ Add Call</button></div>`;
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">Customer Context</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Call recordings, transcripts, and AI summaries</div>
+      </div>
+      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="addCall('${featureId}')">
+        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Call
+      </button>
+    </div>
+    ${calls.map(call => buildCallCard(featureId, call)).join('')}`;
 }
 
 function buildCallCard(featureId, call) {
@@ -4655,14 +4753,29 @@ function buildDKEntryCard(featureId, e) {
 }
 
 function renderDomainKnowledgeList(featureId) {
-  const el = document.getElementById(`${featureId}_dk_list`);
-  if (!el) return;
+  const panel = document.getElementById(`${featureId}_dk_panel`);
+  if (!panel) return;
   const entries = getDomainKnowledge(featureId);
   if (!entries.length) {
-    el.innerHTML = `<div class="empty-state"><h3>No domain knowledge entries yet</h3><p>Capture domain context, research, or background knowledge.</p><button class="btn btn-primary" onclick="addDKEntry('${featureId}')">+ Add Entry</button></div>`;
+    panel.innerHTML = `
+      <div class="context-card" style="text-align:center;padding:48px 20px">
+        <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">menu_book</span>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No domain knowledge yet.<br>Capture context, research, or background knowledge.</div>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addDKEntry('${featureId}')">+ Add Entry</button>
+      </div>`;
     return;
   }
-  el.innerHTML = entries.map(e => buildDKEntryCard(featureId, e)).join('');
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">Domain Knowledge</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Context, research, and background knowledge</div>
+      </div>
+      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="addDKEntry('${featureId}')">
+        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Entry
+      </button>
+    </div>
+    ${entries.map(e => buildDKEntryCard(featureId, e)).join('')}`;
 }
 
 function renderAllDomainKnowledge() {
@@ -5179,7 +5292,7 @@ function renderNotesTab(id) {
         </div>
       </div>
     </div>`;
-  }).join('') : `<div class="design-section-empty">No notes yet — click <strong>Add Note</strong> to get started.</div>`;
+  }).join('') : `<div style="text-align:center;padding:32px 20px"><span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">sticky_note_2</span><div style="font-size:13px;color:var(--text-muted)">No notes yet.<br>Click <strong>Add Note</strong> to get started.</div></div>`;
 
   panel.innerHTML = `<div class="context-card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
