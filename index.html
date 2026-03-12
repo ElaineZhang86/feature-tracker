@@ -1699,6 +1699,30 @@
   .call-detail-input:focus { border-color: var(--accent); }
   .call-detail-input::placeholder { color: var(--text-dim); }
 
+  /* ── CALLS: new header layout ───────────────────── */
+  .call-entry-info { flex: 1; min-width: 0; }
+  .call-entry-meta {
+    display: flex; align-items: center; gap: 5px; margin-bottom: 3px; flex-wrap: wrap;
+  }
+  .call-entry-customer-label {
+    font-size: 11px; color: var(--text-muted); font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;
+  }
+  .call-entry-name {
+    font-size: 13px; font-weight: 600; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .15s;
+  }
+  .call-entry-name.empty { color: var(--text-dim); font-weight: 400; }
+  .call-entry-header:hover .call-entry-name { color: var(--accent); }
+
+  /* ── CALLS: resource links ──────────────────────── */
+  .call-resource-row {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+  }
+  .call-resource-row .call-detail-input { font-size: 12px; }
+  .call-resource-label-input { flex: 0 0 130px; min-width: 0; }
+  .call-resource-url-input { flex: 1; min-width: 0; font-family: 'SF Mono', monospace !important; }
+
   /* ── DOMAIN KNOWLEDGE ───────────────────────────── */
   .dk-entry {
     background: var(--surface);
@@ -2118,6 +2142,46 @@
     <div class="add-feature-footer">
       <button class="btn" onclick="closeAddFeatureModal()">Cancel</button>
       <button id="af-submit-btn" class="btn btn-primary" onclick="submitNewFeature()">Add Feature</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW CALL MODAL -->
+<div id="new-call-modal" style="display:none" class="add-feature-overlay" onclick="if(event.target===this)closeNewCallModal()">
+  <div class="add-feature-box" style="width:min(440px,94vw)">
+    <div class="add-feature-head">
+      <strong id="nc-modal-title">New Call</strong>
+      <button class="q-icon-btn" onclick="closeNewCallModal()" title="Close">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+    <div class="add-feature-body" style="display:flex;flex-direction:column;gap:14px;padding:20px 22px">
+      <div>
+        <label class="af-label">Call Name</label>
+        <input id="nc-name" class="add-feature-input" placeholder="e.g. SmartCare Discovery — Pricing"
+          onkeydown="if(event.key==='Enter')confirmNewCall()" />
+      </div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1">
+          <label class="af-label">Call Type</label>
+          <select id="nc-type" class="add-feature-input" style="cursor:pointer">
+            <option value="customer">Customer Call</option>
+            <option value="internal">Internal Call</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label class="af-label">Status</label>
+          <select id="nc-status" class="add-feature-input" style="cursor:pointer">
+            <option value="scheduled">📅 Scheduled</option>
+            <option value="completed">✅ Completed</option>
+            <option value="action-items-pending">⚡ Action Items Pending</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="add-feature-footer" style="justify-content:flex-end;gap:8px">
+      <button class="btn" onclick="closeNewCallModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmNewCall()">Create Call</button>
     </div>
   </div>
 </div>
@@ -4614,20 +4678,48 @@ function toggleAddCallMenu(featureId) {
 
 function addCallOfType(featureId, type) {
   _addCallOpen[featureId] = false;
-  _callTypeTab[featureId] = type;
-  const calls = getCalls(featureId);
+  openNewCallModal(featureId, type);
+}
+
+const _newCallModal = { featureId: null };
+
+function openNewCallModal(featureId, type) {
+  _newCallModal.featureId = featureId;
+  document.getElementById('nc-name').value = '';
+  document.getElementById('nc-type').value = type || 'customer';
+  document.getElementById('nc-status').value = 'scheduled';
+  document.getElementById('new-call-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('nc-name').focus(), 50);
+  // Re-render to close the dropdown menu
+  renderCallsList(featureId);
+}
+
+function closeNewCallModal() {
+  document.getElementById('new-call-modal').style.display = 'none';
+  _newCallModal.featureId = null;
+}
+
+function confirmNewCall() {
+  const featureId = _newCallModal.featureId;
+  if (!featureId) return;
+  const callName = document.getElementById('nc-name').value.trim();
+  const callType = document.getElementById('nc-type').value;
+  const status = document.getElementById('nc-status').value;
   const newCall = {
     id: Date.now().toString(),
-    callType: type,
+    callName, callType, status,
     customer: '', relatedCustomer: '', callCategory: '', date: '',
-    attendees: '', departments: '', notesLink: '', status: 'scheduled',
+    attendees: '', departments: '', notesLink: '', links: [],
     transcript: '', summary: '',
     prepResearchQs: '', prepWhoTalking: '', prepCompanySegment: '', prepTenure: '',
     prepUsageIndicators: '', prepTypesOfWork: '', prepWarmUpQs: '', prepTopicQs: '', prepListenFor: '',
     label: '', link: '', stage: '',
   };
-  saveCalls(featureId, [...calls, newCall]);
+  saveCalls(featureId, [...getCalls(featureId), newCall]);
   _callExpanded[featureId + '_' + newCall.id] = true;
+  _callTypeTab[featureId] = callType;
+  document.getElementById('new-call-modal').style.display = 'none';
+  _newCallModal.featureId = null;
   renderCallsList(featureId);
 }
 
@@ -4664,6 +4756,31 @@ function addCall(featureId) {
 function removeCall(featureId, callId) {
   saveCalls(featureId, getCalls(featureId).filter(c => c.id !== callId));
   renderCallsList(featureId);
+}
+
+function addCallLink(featureId, callId) {
+  const calls = getCalls(featureId).map(c =>
+    c.id === callId ? { ...c, links: [...(c.links || []), { label: '', url: '' }] } : c
+  );
+  saveCalls(featureId, calls);
+  renderCallsList(featureId);
+}
+
+function removeCallLink(featureId, callId, idx) {
+  const calls = getCalls(featureId).map(c =>
+    c.id === callId ? { ...c, links: (c.links || []).filter((_, i) => i !== idx) } : c
+  );
+  saveCalls(featureId, calls);
+  renderCallsList(featureId);
+}
+
+function updateCallLink(featureId, callId, idx, field, value) {
+  const calls = getCalls(featureId).map(c => {
+    if (c.id !== callId) return c;
+    const links = (c.links || []).map((l, i) => i === idx ? { ...l, [field]: value } : l);
+    return { ...c, links };
+  });
+  saveCalls(featureId, calls);
 }
 
 function renderCallsList(featureId) {
@@ -4748,6 +4865,11 @@ function buildCallCard(featureId, call) {
   const status = call.status || 'scheduled';
   const statusLabels = { scheduled: 'Scheduled', completed: 'Completed', 'action-items-pending': 'Action Items' };
   const callCategory = call.callCategory || call.stage || '';
+  // callName is the primary title; fall back to legacy customer/label for old records
+  const callName = call.callName || call.customer || call.label || '';
+  // customer is the associated company/contact (separate from call name)
+  const customer = call.customer || call.label || '';
+  const dateDisplay = call.date ? fmtDate(toIsoDate(call.date)) : '';
 
   const customerCatLabels = {
     discovery: 'Discovery', validation: 'Validation', 'solution-review': 'Solution Review',
@@ -4760,22 +4882,40 @@ function buildCallCard(featureId, call) {
   };
   const catLabels = callType === 'internal' ? internalCatLabels : customerCatLabels;
   const catLabel = catLabels[callCategory] || callCategory || '';
-  const catChip = catLabel ? `<span class="call-cat-chip">${catLabel}</span>` : '';
 
-  const displayName = callType === 'customer'
-    ? (call.customer || call.label || '')
-    : (call.relatedCustomer ? `re: ${call.relatedCustomer}` : (call.customer || call.label || ''));
-  const dateDisplay = call.date ? fmtDate(toIsoDate(call.date)) : '';
+  // Build resources rows
+  const links = call.links || [];
+  const resourcesHtml = `
+    <div class="call-divider"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="call-section-label" style="margin-bottom:0">Resources</div>
+      <button class="btn" style="font-size:11px;padding:3px 10px;display:inline-flex;align-items:center;gap:4px"
+        onclick="addCallLink('${featureId}','${call.id}')">
+        <span class="material-symbols-rounded" style="font-size:13px">add</span> Add link
+      </button>
+    </div>
+    ${links.length === 0 ? `<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px">No resources yet — add slides, docs, or other links.</div>` : ''}
+    ${links.map((lnk, idx) => `
+    <div class="call-resource-row">
+      <input class="call-detail-input call-resource-label-input" placeholder="Label (optional)…" value="${escHtml(lnk.label || '')}"
+        onblur="updateCallLink('${featureId}','${call.id}',${idx},'label',this.value)" />
+      <input class="call-detail-input call-resource-url-input" placeholder="https://…" value="${escHtml(lnk.url || '')}"
+        onblur="updateCallLink('${featureId}','${call.id}',${idx},'url',this.value)" />
+      ${lnk.url ? `<a class="link-chip" href="${escHtml(lnk.url)}" target="_blank" title="Open" style="white-space:nowrap;flex-shrink:0">↗</a>` : ''}
+      <button class="remove-btn" title="Remove" style="flex-shrink:0" onclick="removeCallLink('${featureId}','${call.id}',${idx})">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>`).join('')}`;
 
   const detailsHtml = isExpanded ? `
     <div class="call-entry-details">
       <div class="call-detail-row">
-        ${callType === 'customer'
-          ? `<input class="call-detail-input" placeholder="Customer name…" value="${escHtml(call.customer || call.label || '')}"
-               onblur="updateCallField('${featureId}','${call.id}','customer',this.value);updateCallField('${featureId}','${call.id}','label',this.value)" />`
-          : `<input class="call-detail-input" placeholder="Related customer (optional)…" value="${escHtml(call.relatedCustomer || '')}"
-               onblur="updateCallField('${featureId}','${call.id}','relatedCustomer',this.value)" />`
-        }
+        <input class="call-detail-input" placeholder="Call name…" value="${escHtml(call.callName || '')}"
+          onblur="updateCallField('${featureId}','${call.id}','callName',this.value);renderCallsList('${featureId}')" style="flex:2" />
+      </div>
+      <div class="call-detail-row">
+        <input class="call-detail-input" placeholder="Customer / company (optional)…" value="${escHtml(call.customer || call.label || '')}"
+          onblur="updateCallField('${featureId}','${call.id}','customer',this.value);updateCallField('${featureId}','${call.id}','label',this.value);renderCallsList('${featureId}')" />
         <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','status',this.value);renderCallsList('${featureId}')">
           <option value="scheduled"            ${status === 'scheduled'            ? 'selected' : ''}>📅 Scheduled</option>
           <option value="completed"            ${status === 'completed'            ? 'selected' : ''}>✅ Completed</option>
@@ -4783,13 +4923,12 @@ function buildCallCard(featureId, call) {
         </select>
       </div>
       <div class="call-detail-row">
-        ${callType === 'internal'
-          ? `<input class="call-detail-input" placeholder="Departments (e.g. Product, Design, CS)…" value="${escHtml(call.departments || '')}"
-               onblur="updateCallField('${featureId}','${call.id}','departments',this.value)" />`
-          : ''
-        }
+        <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','callType',this.value);renderCallsList('${featureId}')">
+          <option value="customer" ${callType === 'customer' ? 'selected' : ''}>Customer Call</option>
+          <option value="internal" ${callType === 'internal' ? 'selected' : ''}>Internal Call</option>
+        </select>
         <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','callCategory',this.value);renderCallsList('${featureId}')">
-          <option value="">— Call Type —</option>
+          <option value="">— Call Category —</option>
           ${callType === 'customer' ? `
           <option value="discovery"         ${callCategory === 'discovery'         ? 'selected' : ''}>Discovery</option>
           <option value="validation"        ${callCategory === 'validation'        ? 'selected' : ''}>Validation</option>
@@ -4813,13 +4952,17 @@ function buildCallCard(featureId, call) {
       <div class="call-detail-row">
         <input class="call-detail-input" placeholder="Attendees (e.g. Jeremy, Tamara, Sarah)…" value="${escHtml(call.attendees || '')}"
           onblur="updateCallField('${featureId}','${call.id}','attendees',this.value)" />
+        ${callType === 'internal' ? `
+        <input class="call-detail-input" placeholder="Departments (e.g. Product, Design, CS)…" value="${escHtml(call.departments || '')}"
+          onblur="updateCallField('${featureId}','${call.id}','departments',this.value)" />` : ''}
       </div>
-      <div class="call-section-label">Notes / Link</div>
+      <div class="call-section-label">Notes / Recording Link</div>
       <div class="call-link-row">
         <input value="${escHtml(notesLink)}" placeholder="Gong, Fathom, Zoom, Confluence, or Loom URL…"
           onblur="updateCallField('${featureId}','${call.id}','notesLink',this.value);updateCallField('${featureId}','${call.id}','link',this.value)" />
         ${hasLink ? `<a class="link-chip" href="${escHtml(notesLink)}" target="_blank" style="white-space:nowrap">↗ Open</a>` : ''}
       </div>
+      ${resourcesHtml}
       ${callType === 'customer' ? `
       <div class="call-divider"></div>
       <div style="display:flex;align-items:center;justify-content:space-between">
@@ -4866,10 +5009,16 @@ function buildCallCard(featureId, call) {
   return `
   <div class="context-card call-entry${isExpanded ? ' expanded' : ''}">
     <div class="call-entry-header" onclick="toggleCallExpand('${featureId}','${call.id}')">
-      <div class="call-entry-customer${displayName ? '' : ' empty'}">${escHtml(displayName) || '—'}</div>
-      ${catChip}
+      <div class="call-entry-info">
+        <div class="call-entry-meta">
+          <span class="call-type-chip ${callType}">${callType === 'customer' ? 'Customer' : 'Internal'}</span>
+          <span class="call-status-chip ${status}">${statusLabels[status] || status}</span>
+          ${catLabel ? `<span class="call-cat-chip">${escHtml(catLabel)}</span>` : ''}
+          ${customer ? `<span class="call-entry-customer-label">${escHtml(customer)}</span>` : ''}
+        </div>
+        <div class="call-entry-name${callName ? '' : ' empty'}">${escHtml(callName) || 'Untitled call'}</div>
+      </div>
       <div class="call-entry-date">${escHtml(dateDisplay)}</div>
-      <span class="call-status-chip ${status}">${statusLabels[status] || status}</span>
       <div style="display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="event.stopPropagation()">
         <span class="material-symbols-rounded call-expand-icon" onclick="event.stopPropagation();toggleCallExpand('${featureId}','${call.id}')">expand_more</span>
         <button class="remove-btn" title="Remove" onclick="removeCall('${featureId}','${call.id}')">
