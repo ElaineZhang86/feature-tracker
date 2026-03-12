@@ -1144,7 +1144,7 @@
     border-radius: var(--radius-sm);
     padding: 2px 6px;
     outline: none;
-    width: 120px;
+    width: 150px;
     font-family: inherit;
     transition: border-color .15s;
   }
@@ -1406,7 +1406,7 @@
     outline: none;
     font-family: inherit;
     transition: border-color .15s;
-    width: 130px;
+    width: 150px;
     flex-shrink: 0;
   }
   .call-date-input:focus { border-color: var(--accent); }
@@ -1567,63 +1567,110 @@
   .generate-btn:disabled { opacity: .45; cursor: not-allowed; }
 
   /* ── CONTEXT CALLS — FILTER + EXPANDABLE ──────── */
-  .call-filter-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
-    padding: 10px 14px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-  }
-  .filter-group { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-  .filter-label {
-    font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
-    color: var(--text-dim); white-space: nowrap; margin-right: 2px;
-  }
-  .filter-pill {
-    font-size: 11px; padding: 3px 10px; border-radius: 20px;
-    border: 1px solid var(--border); background: transparent;
-    color: var(--text-muted); cursor: pointer; transition: all .15s; white-space: nowrap;
-  }
-  .filter-pill:hover { border-color: var(--accent); color: var(--accent); }
-  .filter-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  /* ── CALL PREP MODAL ───────────────────────────── */
+  .prep-section { padding: 20px 22px; border-bottom: 1px solid var(--border); }
+  .prep-section:last-child { border-bottom: none; }
+  .prep-section-head { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .prep-section-title { font-size: 13px; font-weight: 700; color: var(--text); }
+  .prep-section-desc { font-size: 12px; color: var(--text-muted); margin: 0 0 12px; line-height: 1.55; }
+  .prep-textarea { min-height: 88px; resize: vertical; line-height: 1.6; font-size: 13px !important; }
+  .prep-bg-table { display: flex; flex-direction: column; gap: 10px; }
+  .prep-bg-row { display: grid; grid-template-columns: 180px 1fr; gap: 12px; align-items: start; }
+  .prep-bg-label { font-size: 12px; font-weight: 600; color: var(--text); display: flex; flex-direction: column; gap: 3px; padding-top: 9px; }
+  .prep-bg-hint { font-size: 11px; font-weight: 400; color: var(--text-dim); line-height: 1.4; }
+  @media (max-width: 520px) { .prep-bg-row { grid-template-columns: 1fr; } .prep-bg-label { padding-top: 0; } }
 
-  .call-entry { margin-bottom: 10px; }
+  /* ── CALLS: filter tabs ─────────────────────────── */
+  .call-tabs {
+    display: flex; gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .call-tab {
+    font-size: 12px; font-weight: 600; padding: 7px 16px 9px;
+    border: none; border-bottom: 2px solid transparent; margin-bottom: -1px;
+    background: transparent; color: var(--text-muted);
+    cursor: pointer; transition: all .15s; white-space: nowrap;
+    font-family: inherit;
+  }
+  .call-tab:hover { color: var(--text); }
+  .call-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .call-tab-count {
+    font-size: 10px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 1px 5px; margin-left: 4px; color: var(--text-dim);
+    font-weight: 600; vertical-align: middle;
+  }
+  .call-tab.active .call-tab-count { background: var(--blue-bg); color: var(--blue); border-color: transparent; }
+
+  .add-call-menu {
+    position: absolute; top: calc(100% + 6px); right: 0; z-index: 200;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    min-width: 160px; overflow: hidden;
+  }
+  .add-call-menu-item {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 10px 14px; border: none; background: transparent;
+    font-size: 13px; font-weight: 500; color: var(--text); cursor: pointer;
+    transition: background .12s; font-family: inherit; text-align: left;
+  }
+  .add-call-menu-item:hover { background: var(--surface2); }
+  .add-call-menu-item + .add-call-menu-item { border-top: 1px solid var(--border); }
+
+  /* ── CALLS: group headers ───────────────────────── */
+  .call-group-section { margin-bottom: 20px; }
+  .call-group-header {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 8px;
+  }
+  .call-group-header::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* ── CALLS: row chips ───────────────────────────── */
+  .call-type-chip {
+    font-size: 10px; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; padding: 2px 7px; border-radius: 20px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .call-type-chip.customer { background: var(--blue-bg);  color: var(--blue);  }
+  .call-type-chip.internal { background: var(--green-bg); color: var(--green); }
+
+  .call-cat-chip {
+    font-size: 10px; font-weight: 600; padding: 2px 8px;
+    border-radius: 20px; background: var(--surface2);
+    border: 1px solid var(--border); color: var(--text-muted);
+    white-space: nowrap; flex-shrink: 0;
+  }
+
+  .call-status-chip {
+    font-size: 10px; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; padding: 2px 7px; border-radius: 20px;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .call-status-chip.scheduled         { background: var(--blue-bg);   color: var(--blue);   }
+  .call-status-chip.completed         { background: var(--green-bg);  color: var(--green);  }
+  .call-status-chip.action-items-pending { background: var(--yellow-bg); color: var(--yellow); }
+
+  /* ── CALLS: entry rows ──────────────────────────── */
+  .call-entry { margin-bottom: 8px; }
   .call-entry-header {
     display: flex; align-items: center; gap: 10px;
-    cursor: pointer; user-select: none;
+    cursor: pointer; user-select: none; padding: 2px 0;
   }
-  .call-entry-header:hover .call-entry-label { color: var(--accent); }
-  .call-entry-chips { display: flex; gap: 5px; flex-shrink: 0; flex-wrap: wrap; }
+  .call-entry-header:hover .call-entry-customer { color: var(--accent); }
 
-  .call-type-chip, .call-stage-chip {
-    font-size: 10px; font-weight: 700; letter-spacing: .04em;
-    text-transform: uppercase; padding: 2px 7px; border-radius: 20px; white-space: nowrap;
+  .call-entry-customer {
+    flex: 1; min-width: 0; font-size: 13px; font-weight: 600;
+    color: var(--text); white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; transition: color .15s;
   }
-  .call-type-chip.customer  { background: var(--blue-bg);   color: var(--blue);   }
-  .call-type-chip.internal  { background: var(--green-bg);  color: var(--green);  }
-  .call-stage-chip.discovery       { background: var(--blue-bg);   color: var(--blue);   }
-  .call-stage-chip.solution-review { background: var(--purple-bg); color: var(--purple); }
-  .call-stage-chip.brainstorming   { background: var(--yellow-bg); color: var(--yellow); }
-  .call-stage-chip.req-alignment   { background: var(--green-bg);  color: var(--green);  }
-  .call-stage-chip.feedback        { background: var(--red-bg);    color: var(--red);    }
-  .call-stage-chip.other           { background: var(--gray-bg);   color: var(--gray);   }
+  .call-entry-customer.empty { color: var(--text-dim); font-weight: 400; }
 
-  .call-entry-label {
-    flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    transition: color .15s;
+  .call-entry-date {
+    font-size: 11px; color: var(--text-muted); flex-shrink: 0; min-width: 60px; text-align: right;
   }
-  .call-entry-name-input {
-    background: none; border: none; border-bottom: 1px dashed transparent;
-    color: var(--text); font-size: 13px; font-weight: 600; padding: 0;
-    outline: none; width: 100%; transition: border-color .15s;
-  }
-  .call-entry-name-input:hover  { border-bottom-color: var(--border); }
-  .call-entry-name-input:focus  { border-bottom-color: var(--accent); }
-  .call-entry-name-input::placeholder { color: var(--text-dim); font-weight: 400; }
 
   .call-expand-icon {
     font-size: 18px; color: var(--text-dim); transition: transform .2s;
@@ -1631,17 +1678,26 @@
   }
   .call-entry.expanded .call-expand-icon { transform: rotate(180deg); }
 
+  /* ── CALLS: expanded detail ─────────────────────── */
   .call-entry-details {
     margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
   }
-  .call-detail-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .call-detail-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
   .call-detail-select {
     flex: 1; min-width: 140px; background: var(--surface2);
     border: 1px solid var(--border); border-radius: var(--radius-sm);
     padding: 6px 10px; font-size: 12px; color: var(--text); outline: none;
-    cursor: pointer; transition: border-color .15s;
+    cursor: pointer; transition: border-color .15s; font-family: inherit;
   }
   .call-detail-select:focus { border-color: var(--accent); }
+  .call-detail-input {
+    flex: 1; min-width: 140px; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 6px 10px; font-size: 12px; color: var(--text); outline: none;
+    transition: border-color .15s; font-family: inherit;
+  }
+  .call-detail-input:focus { border-color: var(--accent); }
+  .call-detail-input::placeholder { color: var(--text-dim); }
 
   /* ── DOMAIN KNOWLEDGE ───────────────────────────── */
   .dk-entry {
@@ -2050,7 +2106,7 @@
       </div>
       <div class="add-feature-field">
         <label class="add-feature-label" for="af-due">Due Date</label>
-        <input id="af-due" class="add-feature-input" placeholder="e.g. Apr 30, 2026 or TBD" />
+        <input id="af-due" type="date" class="add-feature-input" />
       </div>
       <div class="add-feature-field">
         <label class="add-feature-label" for="af-summary">Summary (optional)</label>
@@ -2062,6 +2118,28 @@
     <div class="add-feature-footer">
       <button class="btn" onclick="closeAddFeatureModal()">Cancel</button>
       <button id="af-submit-btn" class="btn btn-primary" onclick="submitNewFeature()">Add Feature</button>
+    </div>
+  </div>
+</div>
+
+<!-- CALL PREP MODAL -->
+<div id="call-prep-modal" style="display:none" class="add-feature-overlay" onclick="if(event.target===this)closeCallPrepModal()">
+  <div class="add-feature-box" style="width:min(680px,94vw)">
+    <div class="add-feature-head">
+      <div>
+        <strong id="prep-modal-title">Discovery Call Prep</strong>
+        <div id="prep-modal-subtitle" style="font-size:12px;color:var(--text-dim);margin-top:3px"></div>
+      </div>
+      <button class="q-icon-btn" onclick="closeCallPrepModal()" title="Close">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+    <div class="add-feature-body" id="prep-modal-body" style="padding:0;overflow-y:auto"></div>
+    <div class="add-feature-footer" style="justify-content:space-between">
+      <button class="generate-btn" id="prep-modal-copy-btn" onclick="copyCallPrepPrompt(_callPrepModal.featureId,_callPrepModal.callId)">
+        <span class="material-symbols-rounded" style="font-size:13px">auto_awesome</span> Copy prep prompt → Claude.ai
+      </button>
+      <button class="btn" onclick="closeCallPrepModal()">Done</button>
     </div>
   </div>
 </div>
@@ -3500,6 +3578,34 @@ function setNotes(featureId, value) {
 // ═══════════════════════════════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════════════════════════════
+const _MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// "2026-01-15" → "Jan 15, 2026"
+function fmtDate(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d) return iso;
+  return `${_MONTHS[m - 1]} ${d}, ${y}`;
+}
+
+// "Jan 15, 2026" or "2026-01-15" → "2026-01-15"
+function toIsoDate(s) {
+  if (!s) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m = s.match(/([A-Za-z]+)\s+(\d+),\s*(\d{4})/);
+  if (!m) return '';
+  const mon = _MONTHS.findIndex(x => x.toLowerCase() === m[1].toLowerCase().slice(0, 3));
+  if (mon < 0) return '';
+  return `${m[3]}-${String(mon + 1).padStart(2,'0')}-${String(m[2]).padStart(2,'0')}`;
+}
+
+// Returns a numeric timestamp for sorting (0 if unparseable)
+function parseCallDateTs(s) {
+  const iso = toIsoDate(s);
+  if (!iso) return 0;
+  return new Date(iso).getTime() || 0;
+}
+
 function initials(name) {
   return name.split(' ').map(w => w[0]).join('').slice(0, 2);
 }
@@ -3612,9 +3718,8 @@ function buildFeatureView(f) {
           <span class="meta-sep">|</span>
           <span class="meta-customer">${f.customer}</span>
           <span class="meta-sep">|</span>
-          <span>Due: <input class="due-input" value="${due}"
-            onchange="handleDueChange('${f.id}', this.value)"
-            onblur="handleDueChange('${f.id}', this.value)" /></span>
+          <span>Due: <input class="due-input" type="date" value="${toIsoDate(due)}"
+            onchange="handleDueChange('${f.id}', this.value)" /></span>
         </div>
       </div>
       ${f.isCustom ? `<div style="display:flex;gap:6px;flex-shrink:0">
@@ -3648,7 +3753,7 @@ function buildFeatureView(f) {
     <div class="tabs">
       <div class="tab active" onclick="switchTab('${f.id}', 'context', this)">Context</div>
       <div class="tab" onclick="switchTab('${f.id}', 'dknowledge', this)">Domain Knowledge</div>
-      <div class="tab" onclick="switchTab('${f.id}', 'calls', this)">Context</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'calls', this)">Calls</div>
       ${f.hasDomainDoc ? `<div class="tab" onclick="switchTab('${f.id}', 'ddocs', this)">Feature Brief</div>` : ''}
       ${f.hasDoc && f.docLabel !== 'Design Spec' ? `<div class="tab" onclick="switchTab('${f.id}', 'docs', this)">${f.docLabel === 'Feature Understanding' ? 'Feature Brief' : (f.docLabel || 'Docs')}</div>` : ''}
       <div class="tab" onclick="switchTab('${f.id}', 'questions', this)">Q&amp;A</div>
@@ -3776,7 +3881,7 @@ function handleStatusChange(featureId, val) {
 }
 
 function handleDueChange(featureId, val) {
-  updateFeatureState(featureId, { due: val || 'TBD' });
+  updateFeatureState(featureId, { due: val ? fmtDate(val) : 'TBD' });
   renderScheduleCards();
 }
 
@@ -4482,17 +4587,74 @@ function saveCalls(featureId, calls) {
   updateFeatureState(featureId, { calls });
 }
 
-function addCall(featureId) {
+function updateCallField(featureId, callId, field, value) {
+  const calls = getCalls(featureId).map(c =>
+    c.id === callId ? { ...c, [field]: value } : c
+  );
+  saveCalls(featureId, calls);
+}
+
+function handleCallDateChange(featureId, callId, val) {
+  updateCallField(featureId, callId, 'date', val ? fmtDate(val) : '');
+}
+
+const _callExpanded = {};
+const _callTypeTab = {};
+const _addCallOpen = {};
+
+function setCallTypeTab(featureId, type) {
+  _callTypeTab[featureId] = type;
+  renderCallsList(featureId);
+}
+
+function toggleAddCallMenu(featureId) {
+  _addCallOpen[featureId] = !_addCallOpen[featureId];
+  renderCallsList(featureId);
+}
+
+function addCallOfType(featureId, type) {
+  _addCallOpen[featureId] = false;
+  _callTypeTab[featureId] = type;
   const calls = getCalls(featureId);
   const newCall = {
     id: Date.now().toString(),
-    label: '',
+    callType: type,
+    customer: '', relatedCustomer: '', callCategory: '', date: '',
+    attendees: '', departments: '', notesLink: '', status: 'scheduled',
+    transcript: '', summary: '',
+    prepResearchQs: '', prepWhoTalking: '', prepCompanySegment: '', prepTenure: '',
+    prepUsageIndicators: '', prepTypesOfWork: '', prepWarmUpQs: '', prepTopicQs: '', prepListenFor: '',
+    label: '', link: '', stage: '',
+  };
+  saveCalls(featureId, [...calls, newCall]);
+  _callExpanded[featureId + '_' + newCall.id] = true;
+  renderCallsList(featureId);
+}
+
+function toggleCallExpand(featureId, callId) {
+  const key = featureId + '_' + callId;
+  _callExpanded[key] = !_callExpanded[key];
+  renderCallsList(featureId);
+}
+
+function addCall(featureId) {
+  const callType = _callTypeTab[featureId] || 'customer'; // fallback
+  const calls = getCalls(featureId);
+  const newCall = {
+    id: Date.now().toString(),
+    callType,
+    customer: '',
+    relatedCustomer: '',
+    callCategory: '',
     date: '',
-    callType: 'customer',
-    stage: 'discovery',
-    link: '',
+    attendees: '',
+    departments: '',
+    notesLink: '',
+    status: 'scheduled',
     transcript: '',
     summary: '',
+    // legacy compat
+    label: '', link: '', stage: '',
   };
   saveCalls(featureId, [...calls, newCall]);
   _callExpanded[featureId + '_' + newCall.id] = true;
@@ -4504,133 +4666,177 @@ function removeCall(featureId, callId) {
   renderCallsList(featureId);
 }
 
-function updateCallField(featureId, callId, field, value) {
-  const calls = getCalls(featureId).map(c =>
-    c.id === callId ? { ...c, [field]: value } : c
-  );
-  saveCalls(featureId, calls);
-}
-
-const _callExpanded = {};
-const _callFilters = {};
-
-function parseCallDateTs(dateStr) {
-  if (!dateStr) return 0;
-  const d = new Date(dateStr);
-  return isNaN(d.getTime()) ? 0 : d.getTime();
-}
-
-function toggleCallExpand(featureId, callId) {
-  const key = featureId + '_' + callId;
-  _callExpanded[key] = !_callExpanded[key];
-  renderCallsList(featureId);
-}
-
-function setCallFilter(featureId, key, value) {
-  if (!_callFilters[featureId]) _callFilters[featureId] = {};
-  _callFilters[featureId][key] = value;
-  renderCallsList(featureId);
-}
-
-function buildCallFilterBar(featureId, calls) {
-  const filters = _callFilters[featureId] || {};
-  const types = ['', 'customer', 'internal'];
-  const typeLabels = { '': 'All', customer: 'Customer', internal: 'Internal' };
-  const stages = ['', 'discovery', 'solution-review', 'brainstorming', 'req-alignment', 'feedback', 'other'];
-  const stageLabels = { '': 'All', 'discovery': 'Discovery', 'solution-review': 'Solution Review', 'brainstorming': 'Brainstorming', 'req-alignment': 'Req. Alignment', 'feedback': 'Feedback', 'other': 'Other' };
-
-  const typePills = types.map(t =>
-    `<button class="filter-pill${(filters.type || '') === t ? ' active' : ''}" onclick="setCallFilter('${featureId}','type','${t}')">${typeLabels[t]}</button>`
-  ).join('');
-  const stagePills = stages.map(s =>
-    `<button class="filter-pill${(filters.stage || '') === s ? ' active' : ''}" onclick="setCallFilter('${featureId}','stage','${s}')">${stageLabels[s]}</button>`
-  ).join('');
-
-  return `<div class="call-filter-bar">
-    <div class="filter-group"><span class="filter-label">Type</span>${typePills}</div>
-    <div class="filter-group"><span class="filter-label">Stage</span>${stagePills}</div>
-  </div>`;
-}
-
 function renderCallsList(featureId) {
   const el = document.getElementById(`${featureId}_calls_list`);
   if (!el) return;
   const calls = getCalls(featureId);
+  const menuOpen = !!_addCallOpen[featureId];
+  const addCallMenuHtml = `
+    <div style="position:relative;display:inline-block">
+      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 14px"
+        onclick="event.stopPropagation();toggleAddCallMenu('${featureId}')">
+        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Call
+        <span class="material-symbols-rounded" style="font-size:14px;margin-left:2px;transition:transform .15s;${menuOpen ? 'transform:rotate(180deg)' : ''}">expand_more</span>
+      </button>
+      ${menuOpen ? `
+      <div class="add-call-menu">
+        <button class="add-call-menu-item" onclick="event.stopPropagation();addCallOfType('${featureId}','customer')">
+          <span class="material-symbols-rounded" style="font-size:15px;color:var(--blue)">person</span>
+          Customer Call
+        </button>
+        <button class="add-call-menu-item" onclick="event.stopPropagation();addCallOfType('${featureId}','internal')">
+          <span class="material-symbols-rounded" style="font-size:15px;color:var(--green)">group</span>
+          Internal Call
+        </button>
+      </div>` : ''}
+    </div>`;
+
   if (!calls.length) {
     el.innerHTML = `
       <div class="context-card" style="text-align:center;padding:48px 20px">
         <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">call</span>
-        <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No calls yet.<br>Track customer and internal calls to build context.</div>
-        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addCall('${featureId}')">+ Add Call</button>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No calls logged yet.<br>Track customer and internal calls here.</div>
+        ${addCallMenuHtml}
       </div>`;
     return;
   }
 
+  const activeTab = _callTypeTab[featureId] || 'all';
   const sorted = [...calls].sort((a, b) =>
     (parseCallDateTs(b.date) - parseCallDateTs(a.date)) || (b.id > a.id ? 1 : -1)
   );
-  const filters = _callFilters[featureId] || {};
-  const filtered = sorted.filter(c => {
-    if (filters.type && (c.callType || 'customer') !== filters.type) return false;
-    if (filters.stage && (c.stage || '') !== filters.stage) return false;
-    return true;
-  });
+  const customerCalls = sorted.filter(c => (c.callType || 'customer') === 'customer');
+  const internalCalls = sorted.filter(c => (c.callType || 'customer') === 'internal');
+  const filtered = activeTab === 'customer' ? customerCalls
+                 : activeTab === 'internal' ? internalCalls
+                 : sorted;
 
-  const listHtml = filtered.length
-    ? filtered.map(call => buildCallCard(featureId, call)).join('')
-    : `<div class="context-card" style="text-align:center;padding:32px 20px"><div style="font-size:13px;color:var(--text-muted)">No calls match the current filter.</div></div>`;
+  const buildGroup = (groupCalls, type) => {
+    if (!groupCalls.length) return '';
+    const label = type === 'customer' ? 'Customer Calls' : 'Internal Calls';
+    return `<div class="call-group-section">
+      <div class="call-group-header">${label} <span style="font-size:11px;font-weight:400;opacity:.7">${groupCalls.length}</span></div>
+      ${groupCalls.map(c => buildCallCard(featureId, c)).join('')}
+    </div>`;
+  };
+
+  const listHtml = activeTab === 'all'
+    ? buildGroup(customerCalls, 'customer') + buildGroup(internalCalls, 'internal')
+    : (filtered.length
+        ? filtered.map(c => buildCallCard(featureId, c)).join('')
+        : `<div style="text-align:center;padding:32px 20px;color:var(--text-dim);font-size:13px">No ${activeTab} calls yet.</div>`);
 
   el.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div>
-        <div style="font-size:14px;font-weight:600;color:var(--text)">Context</div>
-        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${calls.length} call${calls.length !== 1 ? 's' : ''} · customer &amp; internal · sorted by date</div>
-      </div>
-      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="addCall('${featureId}')">
-        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Call
-      </button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px">
+      <div style="font-size:14px;font-weight:600;color:var(--text)">Calls</div>
+      ${addCallMenuHtml}
     </div>
-    ${buildCallFilterBar(featureId, calls)}
+    <div class="call-tabs">
+      <button class="call-tab${activeTab === 'all' ? ' active' : ''}" onclick="setCallTypeTab('${featureId}','all')">All <span class="call-tab-count">${calls.length}</span></button>
+      <button class="call-tab${activeTab === 'customer' ? ' active' : ''}" onclick="setCallTypeTab('${featureId}','customer')">Customer <span class="call-tab-count">${customerCalls.length}</span></button>
+      <button class="call-tab${activeTab === 'internal' ? ' active' : ''}" onclick="setCallTypeTab('${featureId}','internal')">Internal <span class="call-tab-count">${internalCalls.length}</span></button>
+    </div>
     ${listHtml}`;
 }
 
 function buildCallCard(featureId, call) {
   const isExpanded = !!_callExpanded[featureId + '_' + call.id];
-  const hasLink = !!call.link.trim();
-  const hasSummary = !!(call.summary && call.summary.trim());
   const callType = call.callType || 'customer';
-  const stage = call.stage || '';
-  const typeLabel = callType === 'internal' ? 'Internal' : 'Customer';
-  const stageLabels = { 'discovery': 'Discovery', 'solution-review': 'Solution Review', 'brainstorming': 'Brainstorming', 'req-alignment': 'Req. Alignment', 'feedback': 'Feedback', 'other': 'Other' };
-  const stageChip = stage ? `<span class="call-stage-chip ${stage}">${stageLabels[stage] || stage}</span>` : '';
+  const hasSummary = !!(call.summary && call.summary.trim());
+  const notesLink = call.notesLink || call.link || '';
+  const hasLink = !!notesLink.trim();
+  const status = call.status || 'scheduled';
+  const statusLabels = { scheduled: 'Scheduled', completed: 'Completed', 'action-items-pending': 'Action Items' };
+  const callCategory = call.callCategory || call.stage || '';
+
+  const customerCatLabels = {
+    discovery: 'Discovery', validation: 'Validation', 'solution-review': 'Solution Review',
+    'usability-testing': 'Usability Testing', 'feedback-checkin': 'Feedback / Check-in',
+    'req-alignment': 'Req. Alignment', 'executive-qbr': 'Executive / QBR'
+  };
+  const internalCatLabels = {
+    alignment: 'Alignment', 'design-review': 'Design Review', grooming: 'Grooming',
+    handoff: 'Handoff', brainstorm: 'Brainstorm', 'stakeholder-update': 'Stakeholder Update'
+  };
+  const catLabels = callType === 'internal' ? internalCatLabels : customerCatLabels;
+  const catLabel = catLabels[callCategory] || callCategory || '';
+  const catChip = catLabel ? `<span class="call-cat-chip">${catLabel}</span>` : '';
+
+  const displayName = callType === 'customer'
+    ? (call.customer || call.label || '')
+    : (call.relatedCustomer ? `re: ${call.relatedCustomer}` : (call.customer || call.label || ''));
+  const dateDisplay = call.date ? fmtDate(toIsoDate(call.date)) : '';
 
   const detailsHtml = isExpanded ? `
     <div class="call-entry-details">
       <div class="call-detail-row">
-        <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','callType',this.value);renderCallsList('${featureId}')">
-          <option value="customer" ${callType === 'customer' ? 'selected' : ''}>Customer Call</option>
-          <option value="internal" ${callType === 'internal' ? 'selected' : ''}>Internal Call</option>
-        </select>
-        <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','stage',this.value);renderCallsList('${featureId}')">
-          <option value="" ${!stage ? 'selected' : ''}>— Stage —</option>
-          <option value="discovery"       ${stage === 'discovery'       ? 'selected' : ''}>Discovery</option>
-          <option value="solution-review" ${stage === 'solution-review' ? 'selected' : ''}>Solution Review</option>
-          <option value="brainstorming"   ${stage === 'brainstorming'   ? 'selected' : ''}>Brainstorming</option>
-          <option value="req-alignment"   ${stage === 'req-alignment'   ? 'selected' : ''}>Req. Alignment</option>
-          <option value="feedback"        ${stage === 'feedback'        ? 'selected' : ''}>Feedback</option>
-          <option value="other"           ${stage === 'other'           ? 'selected' : ''}>Other</option>
+        ${callType === 'customer'
+          ? `<input class="call-detail-input" placeholder="Customer name…" value="${escHtml(call.customer || call.label || '')}"
+               onblur="updateCallField('${featureId}','${call.id}','customer',this.value);updateCallField('${featureId}','${call.id}','label',this.value)" />`
+          : `<input class="call-detail-input" placeholder="Related customer (optional)…" value="${escHtml(call.relatedCustomer || '')}"
+               onblur="updateCallField('${featureId}','${call.id}','relatedCustomer',this.value)" />`
+        }
+        <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','status',this.value);renderCallsList('${featureId}')">
+          <option value="scheduled"            ${status === 'scheduled'            ? 'selected' : ''}>📅 Scheduled</option>
+          <option value="completed"            ${status === 'completed'            ? 'selected' : ''}>✅ Completed</option>
+          <option value="action-items-pending" ${status === 'action-items-pending' ? 'selected' : ''}>⚡ Action Items Pending</option>
         </select>
       </div>
-      <div class="call-section-label">Recording Link</div>
+      <div class="call-detail-row">
+        ${callType === 'internal'
+          ? `<input class="call-detail-input" placeholder="Departments (e.g. Product, Design, CS)…" value="${escHtml(call.departments || '')}"
+               onblur="updateCallField('${featureId}','${call.id}','departments',this.value)" />`
+          : ''
+        }
+        <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','callCategory',this.value);renderCallsList('${featureId}')">
+          <option value="">— Call Type —</option>
+          ${callType === 'customer' ? `
+          <option value="discovery"         ${callCategory === 'discovery'         ? 'selected' : ''}>Discovery</option>
+          <option value="validation"        ${callCategory === 'validation'        ? 'selected' : ''}>Validation</option>
+          <option value="solution-review"   ${callCategory === 'solution-review'   ? 'selected' : ''}>Solution Review</option>
+          <option value="usability-testing" ${callCategory === 'usability-testing' ? 'selected' : ''}>Usability Testing</option>
+          <option value="feedback-checkin"  ${callCategory === 'feedback-checkin'  ? 'selected' : ''}>Feedback / Check-in</option>
+          <option value="req-alignment"     ${callCategory === 'req-alignment'     ? 'selected' : ''}>Requirement Alignment</option>
+          <option value="executive-qbr"     ${callCategory === 'executive-qbr'     ? 'selected' : ''}>Executive / QBR</option>
+          ` : `
+          <option value="alignment"          ${callCategory === 'alignment'          ? 'selected' : ''}>Alignment</option>
+          <option value="design-review"      ${callCategory === 'design-review'      ? 'selected' : ''}>Design Review</option>
+          <option value="grooming"           ${callCategory === 'grooming'           ? 'selected' : ''}>Grooming</option>
+          <option value="handoff"            ${callCategory === 'handoff'            ? 'selected' : ''}>Handoff</option>
+          <option value="brainstorm"         ${callCategory === 'brainstorm'         ? 'selected' : ''}>Brainstorm</option>
+          <option value="stakeholder-update" ${callCategory === 'stakeholder-update' ? 'selected' : ''}>Stakeholder Update</option>
+          `}
+        </select>
+        <input class="call-detail-input" type="date" value="${toIsoDate(call.date)}"
+          onchange="handleCallDateChange('${featureId}','${call.id}',this.value)" style="max-width:160px" />
+      </div>
+      <div class="call-detail-row">
+        <input class="call-detail-input" placeholder="Attendees (e.g. Jeremy, Tamara, Sarah)…" value="${escHtml(call.attendees || '')}"
+          onblur="updateCallField('${featureId}','${call.id}','attendees',this.value)" />
+      </div>
+      <div class="call-section-label">Notes / Link</div>
       <div class="call-link-row">
-        <input value="${escHtml(call.link)}" placeholder="Paste Gong, Fathom, or Zoom URL…"
-          onblur="updateCallField('${featureId}','${call.id}','link',this.value)" />
-        ${hasLink ? `<a class="link-chip" href="${escHtml(call.link)}" target="_blank" style="white-space:nowrap">↗ Open</a>` : ''}
+        <input value="${escHtml(notesLink)}" placeholder="Gong, Fathom, Zoom, Confluence, or Loom URL…"
+          onblur="updateCallField('${featureId}','${call.id}','notesLink',this.value);updateCallField('${featureId}','${call.id}','link',this.value)" />
+        ${hasLink ? `<a class="link-chip" href="${escHtml(notesLink)}" target="_blank" style="white-space:nowrap">↗ Open</a>` : ''}
       </div>
+      ${callType === 'customer' ? `
+      <div class="call-divider"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="call-section-label" style="margin-bottom:0;display:flex;align-items:center;gap:6px">
+          <span class="material-symbols-rounded" style="font-size:14px;color:var(--accent)">description</span>
+          Call Prep
+        </div>
+        <button class="generate-btn" onclick="openCallPrepModal('${featureId}','${call.id}')">
+          <span class="material-symbols-rounded" style="font-size:13px">edit_note</span>
+          ${(call.prepResearchQs || call.prepWhoTalking || call.prepTopicQs) ? 'Edit Prep Doc' : 'Create Prep Doc'}
+        </button>
+      </div>
+      ` : ''}
       <div class="call-divider"></div>
       <div class="call-section-label">Transcript</div>
       <textarea class="call-transcript" placeholder="Paste the raw transcript here…"
-        onblur="updateCallField('${featureId}','${call.id}','transcript',this.value)">${escHtml(call.transcript)}</textarea>
+        onblur="updateCallField('${featureId}','${call.id}','transcript',this.value)">${escHtml(call.transcript || '')}</textarea>
       <div class="summary-section">
         <div class="summary-actions">
           <div class="call-section-label" style="margin-bottom:0">AI Summary</div>
@@ -4653,37 +4859,185 @@ function buildCallCard(featureId, call) {
         <textarea class="call-summary" id="summary_ta_${call.id}"
           placeholder="Paste a summary here, or use the button above to generate one via Claude.ai…"
           style="display:${hasSummary ? 'none' : 'block'}"
-          onblur="saveSummaryFromBlur('${featureId}','${call.id}')">${escHtml(call.summary)}</textarea>
+          onblur="saveSummaryFromBlur('${featureId}','${call.id}')">${escHtml(call.summary || '')}</textarea>
       </div>
     </div>` : '';
 
   return `
   <div class="context-card call-entry${isExpanded ? ' expanded' : ''}">
     <div class="call-entry-header" onclick="toggleCallExpand('${featureId}','${call.id}')">
-      <div class="call-entry-chips">
-        <span class="call-type-chip ${callType}">${typeLabel}</span>
-        ${stageChip}
-      </div>
-      <div class="call-entry-label">
-        <input class="call-entry-name-input" value="${escHtml(call.label)}" placeholder="Label this call…"
-          onclick="event.stopPropagation()"
-          onblur="updateCallField('${featureId}','${call.id}','label',this.value)" />
-      </div>
-      <div onclick="event.stopPropagation()">
-        <input class="call-date-input" value="${escHtml(call.date)}" placeholder="Date…"
-          onblur="updateCallField('${featureId}','${call.id}','date',this.value)" />
-      </div>
-      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-        <span class="material-symbols-rounded call-expand-icon">expand_more</span>
-        <button class="remove-btn" title="Remove" onclick="event.stopPropagation();removeCall('${featureId}','${call.id}')">
+      <div class="call-entry-customer${displayName ? '' : ' empty'}">${escHtml(displayName) || '—'}</div>
+      ${catChip}
+      <div class="call-entry-date">${escHtml(dateDisplay)}</div>
+      <span class="call-status-chip ${status}">${statusLabels[status] || status}</span>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0" onclick="event.stopPropagation()">
+        <span class="material-symbols-rounded call-expand-icon" onclick="event.stopPropagation();toggleCallExpand('${featureId}','${call.id}')">expand_more</span>
+        <button class="remove-btn" title="Remove" onclick="removeCall('${featureId}','${call.id}')">
           <span class="material-symbols-rounded">delete</span>
         </button>
       </div>
     </div>
     ${detailsHtml}
   </div>`;
-
 }
+
+const _callPrepModal = { featureId: null, callId: null };
+
+function openCallPrepModal(featureId, callId) {
+  _callPrepModal.featureId = featureId;
+  _callPrepModal.callId = callId;
+  const call = getCalls(featureId).find(c => c.id === callId);
+  if (!call) return;
+  const subtitle = [call.customer || call.label, call.callCategory].filter(Boolean).join(' · ');
+  document.getElementById('prep-modal-subtitle').textContent = subtitle || 'Customer Call';
+  document.getElementById('prep-modal-body').innerHTML = buildPrepModalBody(call);
+  document.getElementById('call-prep-modal').style.display = 'flex';
+}
+
+function closeCallPrepModal() {
+  document.getElementById('call-prep-modal').style.display = 'none';
+  // refresh the card so "Edit Prep Doc" label updates
+  const { featureId } = _callPrepModal;
+  _callPrepModal.featureId = null;
+  _callPrepModal.callId = null;
+  if (featureId) renderCallsList(featureId);
+}
+
+function savePrepField(field, value) {
+  const { featureId, callId } = _callPrepModal;
+  if (!featureId || !callId) return;
+  updateCallField(featureId, callId, field, value);
+}
+
+function buildPrepModalBody(call) {
+  const e = s => escHtml(s || '');
+  return `
+  <div class="prep-section">
+    <div class="prep-section-head">
+      <span class="material-symbols-rounded" style="font-size:16px;color:var(--accent)">quiz</span>
+      <span class="prep-section-title">Research Questions</span>
+    </div>
+    <p class="prep-section-desc">High-level knowledge gaps this call should help answer — not the literal interview questions.</p>
+    <textarea class="add-feature-input prep-textarea" placeholder="e.g.&#10;• How do customers currently handle X?&#10;• What is the biggest pain point in Y workflow?&#10;• Do they even need feature Z?"
+      onblur="savePrepField('prepResearchQs',this.value)">${e(call.prepResearchQs)}</textarea>
+  </div>
+
+  <div class="prep-section">
+    <div class="prep-section-head">
+      <span class="material-symbols-rounded" style="font-size:16px;color:var(--accent)">person_search</span>
+      <span class="prep-section-title">Interviewee Background</span>
+    </div>
+    <p class="prep-section-desc">Review their account and past Gong calls before you hop on. Make their time count.</p>
+    <div class="prep-bg-table">
+      <div class="prep-bg-row">
+        <div class="prep-bg-label">Who am I talking to?<span class="prep-bg-hint">Names and roles</span></div>
+        <input class="add-feature-input" style="font-size:13px" placeholder="e.g. Jason Saunders, VP Business Transformation"
+          value="${e(call.prepWhoTalking)}" onblur="savePrepField('prepWhoTalking',this.value)" />
+      </div>
+      <div class="prep-bg-row">
+        <div class="prep-bg-label">Company & segment<span class="prep-bg-hint">Type of work, enterprise / mid-market / etc.</span></div>
+        <input class="add-feature-input" style="font-size:13px" placeholder="e.g. Commercial HVAC contractor, mid-market"
+          value="${e(call.prepCompanySegment)}" onblur="savePrepField('prepCompanySegment',this.value)" />
+      </div>
+      <div class="prep-bg-row">
+        <div class="prep-bg-label">Customer tenure<span class="prep-bg-hint">How long a customer, implementation stage</span></div>
+        <input class="add-feature-input" style="font-size:13px" placeholder="e.g. Customer since 2022, fully live"
+          value="${e(call.prepTenure)}" onblur="savePrepField('prepTenure',this.value)" />
+      </div>
+      <div class="prep-bg-row">
+        <div class="prep-bg-label">Usage indicators<span class="prep-bg-hint">Health metrics in relevant product areas (last 90 days)</span></div>
+        <input class="add-feature-input" style="font-size:13px" placeholder="e.g. 120 WOs/mo, 3 SAs, no quotes in 90 days"
+          value="${e(call.prepUsageIndicators)}" onblur="savePrepField('prepUsageIndicators',this.value)" />
+      </div>
+      <div class="prep-bg-row">
+        <div class="prep-bg-label">Types of work<span class="prep-bg-hint">Quote size, agreement types, integrations</span></div>
+        <input class="add-feature-input" style="font-size:13px" placeholder="e.g. Mostly residential, uses Intacct, avg quote $8k"
+          value="${e(call.prepTypesOfWork)}" onblur="savePrepField('prepTypesOfWork',this.value)" />
+      </div>
+    </div>
+  </div>
+
+  <div class="prep-section">
+    <div class="prep-section-head">
+      <span class="material-symbols-rounded" style="font-size:16px;color:var(--accent)">wb_sunny</span>
+      <span class="prep-section-title">Warm-up Questions</span>
+    </div>
+    <p class="prep-section-desc">Help them get comfortable and establish context. One question per line, add a → Dig follow-up if helpful.</p>
+    <textarea class="add-feature-input prep-textarea" placeholder="e.g.&#10;• Can you tell me a bit about yourself and your role?&#10;• What are your top goals and priorities right now?&#10;• What decisions do you make most frequently?&#10;• What has been challenging lately in your role?"
+      onblur="savePrepField('prepWarmUpQs',this.value)">${e(call.prepWarmUpQs)}</textarea>
+  </div>
+
+  <div class="prep-section">
+    <div class="prep-section-head">
+      <span class="material-symbols-rounded" style="font-size:16px;color:var(--accent)">chat_bubble</span>
+      <span class="prep-section-title">Topic Questions</span>
+    </div>
+    <p class="prep-section-desc">Open-ended, past-behavior focused. Ask "how do you handle X today?" not "would you use X?". Add → Dig follow-ups.</p>
+    <textarea class="add-feature-input prep-textarea" style="min-height:120px" placeholder="e.g.&#10;• Walk me through the last time you had to [X]. What happened?&#10;  → Dig: What made that difficult?&#10;• How do you currently handle [situation]?&#10;  → Dig: Can you give me a specific example?"
+      onblur="savePrepField('prepTopicQs',this.value)">${e(call.prepTopicQs)}</textarea>
+  </div>
+
+  <div class="prep-section">
+    <div class="prep-section-head">
+      <span class="material-symbols-rounded" style="font-size:16px;color:var(--accent)">hearing</span>
+      <span class="prep-section-title">Look For / Listen For</span>
+    </div>
+    <p class="prep-section-desc">Signals, patterns, and moments to pay attention to during the call.</p>
+    <textarea class="add-feature-input prep-textarea" placeholder="e.g.&#10;• Signs of workarounds or manual processes&#10;• Frustration when describing current workflow&#10;• Mentions of other tools they use or wish they had"
+      onblur="savePrepField('prepListenFor',this.value)">${e(call.prepListenFor)}</textarea>
+  </div>`;
+}
+
+function copyCallPrepPrompt(featureId, callId) {
+  const call = getCalls(featureId).find(c => c.id === callId);
+  if (!call) return;
+  const fill = (val, placeholder) => (val && val.trim()) ? val.trim() : placeholder;
+  const lines = [
+    "I'm a Product Designer at BuildOps preparing for a customer discovery call. Help me build a complete discovery call plan.",
+    "",
+    "## Call Details",
+    "- **Customer:** " + fill(call.customer || call.label, '[customer name]'),
+    "- **Interviewee:** " + fill(call.prepWhoTalking, '[name & role]'),
+    "- **Topic:** " + fill(call.callCategory, '[feature area]'),
+    "- **Duration:** " + fill(call.prepDuration || '', '[e.g. 45 min]'),
+    "",
+    "## Research Questions",
+    fill(call.prepResearchQs, '[What are the key knowledge gaps?]'),
+    "",
+    "## Interviewee Background",
+    "- **Company & segment:** " + fill(call.prepCompanySegment, '[type of work, enterprise/mid-market]'),
+    "- **Customer tenure:** " + fill(call.prepTenure, '[how long a customer, implementation stage]'),
+    "- **Usage indicators:** " + fill(call.prepUsageIndicators, '[health metrics in relevant product areas]'),
+    "- **Types of work:** " + fill(call.prepTypesOfWork, '[quote size, agreement types, integrations]'),
+    "",
+    "## Warm-up Questions",
+    fill(call.prepWarmUpQs, '[3-4 questions to help them get comfortable]'),
+    "",
+    "## Topic Questions",
+    fill(call.prepTopicQs, '[6-10 open-ended, past-behavior focused questions]'),
+    "",
+    "## Look For / Listen For",
+    fill(call.prepListenFor, '[signals and patterns to watch for]'),
+    "",
+    "---",
+    "Please generate:",
+    "1. A refined interview guide with intro script, warm-up, topic questions (with Dig follow-ups), and closing",
+    "2. Potential biases or leading assumptions to watch for",
+    "3. One wildcard question that might unlock a surprising insight",
+    "",
+    "Guidelines: past-behavior focused, open-ended, no leading questions, warm conversational tone."
+  ];
+  const prompt = lines.join("\n");
+  navigator.clipboard.writeText(prompt).then(() => {
+    const btn = document.getElementById('prep-modal-copy-btn');
+    if (btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<span class="material-symbols-rounded" style="font-size:13px">check</span> Copied!';
+      setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    }
+  });
+}
+
 // ── SUMMARY VIEW / EDIT ────────────────────────────────────────
 const _summaryBlurLock = {};
 
@@ -5256,7 +5610,7 @@ function openEditFeatureModal(featureId) {
   document.getElementById('af-title').value = f.title || '';
   document.getElementById('af-title').classList.remove('error');
   document.getElementById('af-customer').value = f.customer === 'TBD' ? '' : (f.customer || '');
-  document.getElementById('af-due').value = f.due === 'TBD' ? '' : (f.due || '');
+  document.getElementById('af-due').value = (f.due && f.due !== 'TBD') ? toIsoDate(f.due) : '';
   document.getElementById('af-summary').value = f.summary || '';
   document.getElementById('af-status').value = f.status || 'Discovery';
   _afSelectedIcon = f.icon || 'star';
@@ -5299,7 +5653,8 @@ function submitNewFeature() {
   const newIcon     = _afSelectedIcon;
   const newStatus   = document.getElementById('af-status').value;
   const newCustomer = document.getElementById('af-customer').value.trim() || 'TBD';
-  const newDue      = document.getElementById('af-due').value.trim() || 'TBD';
+  const _afDueVal   = document.getElementById('af-due').value;
+  const newDue      = _afDueVal ? fmtDate(_afDueVal) : 'TBD';
   const newSummary  = document.getElementById('af-summary').value.trim();
 
   if (_afEditingId) {
@@ -5323,7 +5678,7 @@ function submitNewFeature() {
     const metaCustomer = document.querySelector(`#view-${_afEditingId} .meta-customer`);
     if (metaCustomer) metaCustomer.textContent = newCustomer;
     const dueInput = document.querySelector(`#view-${_afEditingId} .due-input`);
-    if (dueInput) dueInput.value = newDue;
+    if (dueInput) dueInput.value = toIsoDate(newDue);
     // Re-render context tab so summary reflects the change
     renderContextTab(_afEditingId);
 
@@ -6069,6 +6424,18 @@ function init() {
 }
 
 init();
+
+// Close add-call dropdown when clicking outside
+document.addEventListener('click', () => {
+  let changed = false;
+  Object.keys(_addCallOpen).forEach(k => { if (_addCallOpen[k]) { _addCallOpen[k] = false; changed = true; } });
+  if (changed) {
+    document.querySelectorAll('[id$="_calls_list"]').forEach(el => {
+      const featureId = el.id.replace('_calls_list', '');
+      renderCallsList(featureId);
+    });
+  }
+});
 </script>
 </body>
 </html>
