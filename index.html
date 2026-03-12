@@ -1715,6 +1715,20 @@
   .call-entry-name.empty { color: var(--text-dim); font-weight: 400; }
   .call-entry-header:hover .call-entry-name { color: var(--accent); }
 
+  /* ── CALLS: inner section tabs ─────────────────── */
+  .call-inner-tabs {
+    display: flex; gap: 0; border-bottom: 1px solid var(--border);
+    margin: 14px 0 18px;
+  }
+  .call-inner-tab {
+    font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    padding: 6px 14px 8px; border: none; border-bottom: 2px solid transparent;
+    margin-bottom: -1px; background: transparent; color: var(--text-muted);
+    cursor: pointer; transition: all .15s; white-space: nowrap; font-family: inherit;
+  }
+  .call-inner-tab:hover { color: var(--text); }
+  .call-inner-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
   /* ── CALLS: resource links ──────────────────────── */
   .call-resource-row {
     display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
@@ -4665,6 +4679,12 @@ function handleCallDateChange(featureId, callId, val) {
 const _callExpanded = {};
 const _callTypeTab = {};
 const _addCallOpen = {};
+const _callTab = {}; // 'info' | 'prep' | 'post' per call
+
+function setCallTab(featureId, callId, tab) {
+  _callTab[featureId + '_' + callId] = tab;
+  renderCallsList(featureId);
+}
 
 function setCallTypeTab(featureId, type) {
   _callTypeTab[featureId] = type;
@@ -4856,6 +4876,88 @@ function renderCallsList(featureId) {
     ${listHtml}`;
 }
 
+function buildPrepTabContent(featureId, call) {
+  const e = s => escHtml(s || '');
+  const fid = featureId;
+  const cid = call.id;
+  return `
+  <div class="prep-section">
+    <div class="prep-section-head">
+      <span class="material-symbols-rounded" style="font-size:15px;color:var(--accent)">quiz</span>
+      <span class="prep-section-title">Research Questions</span>
+    </div>
+    <p class="prep-section-desc">High-level knowledge gaps this call should help answer — not the literal interview questions.</p>
+    <textarea class="add-feature-input prep-textarea" placeholder="e.g.&#10;• How do customers currently handle X?&#10;• What is the biggest pain point in Y workflow?&#10;• Do they even need feature Z?"
+      onblur="updateCallField('${fid}','${cid}','prepResearchQs',this.value)">${e(call.prepResearchQs)}</textarea>
+  </div>
+  <div class="prep-section">
+    <div class="prep-section-head">
+      <span class="material-symbols-rounded" style="font-size:15px;color:var(--accent)">person_search</span>
+      <span class="prep-section-title">Interviewee Background</span>
+    </div>
+    <p class="prep-section-desc">Review their account and past Gong calls before you hop on.</p>
+    <div class="prep-bg-table">
+      <div class="prep-bg-row">
+        <div class="prep-bg-label">Who am I talking to?<span class="prep-bg-hint">Names and roles</span></div>
+        <input class="add-feature-input" style="font-size:13px" placeholder="e.g. Jason Saunders, VP Business Transformation"
+          value="${e(call.prepWhoTalking)}" onblur="updateCallField('${fid}','${cid}','prepWhoTalking',this.value)" />
+      </div>
+      <div class="prep-bg-row">
+        <div class="prep-bg-label">Company &amp; segment<span class="prep-bg-hint">Type of work, enterprise / mid-market</span></div>
+        <input class="add-feature-input" style="font-size:13px" placeholder="e.g. Commercial HVAC contractor, mid-market"
+          value="${e(call.prepCompanySegment)}" onblur="updateCallField('${fid}','${cid}','prepCompanySegment',this.value)" />
+      </div>
+      <div class="prep-bg-row">
+        <div class="prep-bg-label">Customer tenure<span class="prep-bg-hint">How long a customer, implementation stage</span></div>
+        <input class="add-feature-input" style="font-size:13px" placeholder="e.g. Customer since 2022, fully live"
+          value="${e(call.prepTenure)}" onblur="updateCallField('${fid}','${cid}','prepTenure',this.value)" />
+      </div>
+      <div class="prep-bg-row">
+        <div class="prep-bg-label">Usage indicators<span class="prep-bg-hint">Health metrics in relevant product areas (last 90 days)</span></div>
+        <input class="add-feature-input" style="font-size:13px" placeholder="e.g. 120 WOs/mo, 3 SAs, no quotes in 90 days"
+          value="${e(call.prepUsageIndicators)}" onblur="updateCallField('${fid}','${cid}','prepUsageIndicators',this.value)" />
+      </div>
+      <div class="prep-bg-row">
+        <div class="prep-bg-label">Types of work<span class="prep-bg-hint">Quote size, agreement types, integrations</span></div>
+        <input class="add-feature-input" style="font-size:13px" placeholder="e.g. Mostly residential, uses Intacct, avg quote $8k"
+          value="${e(call.prepTypesOfWork)}" onblur="updateCallField('${fid}','${cid}','prepTypesOfWork',this.value)" />
+      </div>
+    </div>
+  </div>
+  <div class="prep-section">
+    <div class="prep-section-head">
+      <span class="material-symbols-rounded" style="font-size:15px;color:var(--accent)">wb_sunny</span>
+      <span class="prep-section-title">Warm-up Questions</span>
+    </div>
+    <p class="prep-section-desc">Help them get comfortable and establish context. Add a → Dig follow-up if helpful.</p>
+    <textarea class="add-feature-input prep-textarea" placeholder="e.g.&#10;• Can you tell me a bit about yourself and your role?&#10;• What are your top goals and priorities right now?"
+      onblur="updateCallField('${fid}','${cid}','prepWarmUpQs',this.value)">${e(call.prepWarmUpQs)}</textarea>
+  </div>
+  <div class="prep-section">
+    <div class="prep-section-head">
+      <span class="material-symbols-rounded" style="font-size:15px;color:var(--accent)">chat_bubble</span>
+      <span class="prep-section-title">Topic Questions</span>
+    </div>
+    <p class="prep-section-desc">Open-ended, past-behavior focused. Ask "how do you handle X today?" not "would you use X?". Add → Dig follow-ups.</p>
+    <textarea class="add-feature-input prep-textarea" style="min-height:120px" placeholder="e.g.&#10;• Walk me through the last time you had to [X]. What happened?&#10;  → Dig: What made that difficult?"
+      onblur="updateCallField('${fid}','${cid}','prepTopicQs',this.value)">${e(call.prepTopicQs)}</textarea>
+  </div>
+  <div class="prep-section">
+    <div class="prep-section-head">
+      <span class="material-symbols-rounded" style="font-size:15px;color:var(--accent)">hearing</span>
+      <span class="prep-section-title">Look For / Listen For</span>
+    </div>
+    <p class="prep-section-desc">Signals, patterns, and moments to pay attention to during the call.</p>
+    <textarea class="add-feature-input prep-textarea" placeholder="e.g.&#10;• Signs of workarounds or manual processes&#10;• Frustration when describing current workflow"
+      onblur="updateCallField('${fid}','${cid}','prepListenFor',this.value)">${e(call.prepListenFor)}</textarea>
+  </div>
+  <div style="padding:14px 22px 18px;border-top:1px solid var(--border)">
+    <button class="generate-btn" onclick="copyCallPrepPrompt('${fid}','${cid}',this)">
+      <span class="material-symbols-rounded" style="font-size:13px">auto_awesome</span> Copy prep prompt → Claude.ai
+    </button>
+  </div>`;
+}
+
 function buildCallCard(featureId, call) {
   const isExpanded = !!_callExpanded[featureId + '_' + call.id];
   const callType = call.callType || 'customer';
@@ -4865,11 +4967,10 @@ function buildCallCard(featureId, call) {
   const status = call.status || 'scheduled';
   const statusLabels = { scheduled: 'Scheduled', completed: 'Completed', 'action-items-pending': 'Action Items' };
   const callCategory = call.callCategory || call.stage || '';
-  // callName is the primary title; fall back to legacy customer/label for old records
   const callName = call.callName || call.customer || call.label || '';
-  // customer is the associated company/contact (separate from call name)
   const customer = call.customer || call.label || '';
   const dateDisplay = call.date ? fmtDate(toIsoDate(call.date)) : '';
+  const activeTab = _callTab[featureId + '_' + call.id] || 'info';
 
   const customerCatLabels = {
     discovery: 'Discovery', validation: 'Validation', 'solution-review': 'Solution Review',
@@ -4883,10 +4984,9 @@ function buildCallCard(featureId, call) {
   const catLabels = callType === 'internal' ? internalCatLabels : customerCatLabels;
   const catLabel = catLabels[callCategory] || callCategory || '';
 
-  // Build resources rows
+  // ── Resources (used in General Info tab) ──
   const links = call.links || [];
   const resourcesHtml = `
-    <div class="call-divider"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <div class="call-section-label" style="margin-bottom:0">Resources</div>
       <button class="btn" style="font-size:11px;padding:3px 10px;display:inline-flex;align-items:center;gap:4px"
@@ -4901,109 +5001,118 @@ function buildCallCard(featureId, call) {
         onblur="updateCallLink('${featureId}','${call.id}',${idx},'label',this.value)" />
       <input class="call-detail-input call-resource-url-input" placeholder="https://…" value="${escHtml(lnk.url || '')}"
         onblur="updateCallLink('${featureId}','${call.id}',${idx},'url',this.value)" />
-      ${lnk.url ? `<a class="link-chip" href="${escHtml(lnk.url)}" target="_blank" title="Open" style="white-space:nowrap;flex-shrink:0">↗</a>` : ''}
+      ${lnk.url ? `<a class="link-chip" href="${escHtml(lnk.url)}" target="_blank" style="white-space:nowrap;flex-shrink:0">↗</a>` : ''}
       <button class="remove-btn" title="Remove" style="flex-shrink:0" onclick="removeCallLink('${featureId}','${call.id}',${idx})">
         <span class="material-symbols-rounded">close</span>
       </button>
     </div>`).join('')}`;
 
+  // ── Tab bar ──
+  const tabBar = `
+    <div class="call-inner-tabs" onclick="event.stopPropagation()">
+      <button class="call-inner-tab${activeTab === 'info' ? ' active' : ''}"
+        onclick="setCallTab('${featureId}','${call.id}','info')">General Info</button>
+      <button class="call-inner-tab${activeTab === 'prep' ? ' active' : ''}"
+        onclick="setCallTab('${featureId}','${call.id}','prep')">Call Prep</button>
+      <button class="call-inner-tab${activeTab === 'post' ? ' active' : ''}"
+        onclick="setCallTab('${featureId}','${call.id}','post')">Post Meeting</button>
+    </div>`;
+
+  // ── General Info tab ──
+  const infoPanel = activeTab !== 'info' ? '' : `
+    <div class="call-detail-row">
+      <input class="call-detail-input" placeholder="Call name…" value="${escHtml(call.callName || '')}"
+        onblur="updateCallField('${featureId}','${call.id}','callName',this.value);renderCallsList('${featureId}')" style="flex:2" />
+    </div>
+    <div class="call-detail-row">
+      <input class="call-detail-input" placeholder="Customer / company (optional)…" value="${escHtml(call.customer || call.label || '')}"
+        onblur="updateCallField('${featureId}','${call.id}','customer',this.value);updateCallField('${featureId}','${call.id}','label',this.value);renderCallsList('${featureId}')" />
+      <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','status',this.value);renderCallsList('${featureId}')">
+        <option value="scheduled"            ${status === 'scheduled'            ? 'selected' : ''}>📅 Scheduled</option>
+        <option value="completed"            ${status === 'completed'            ? 'selected' : ''}>✅ Completed</option>
+        <option value="action-items-pending" ${status === 'action-items-pending' ? 'selected' : ''}>⚡ Action Items Pending</option>
+      </select>
+    </div>
+    <div class="call-detail-row">
+      <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','callType',this.value);renderCallsList('${featureId}')">
+        <option value="customer" ${callType === 'customer' ? 'selected' : ''}>Customer Call</option>
+        <option value="internal" ${callType === 'internal' ? 'selected' : ''}>Internal Call</option>
+      </select>
+      <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','callCategory',this.value);renderCallsList('${featureId}')">
+        <option value="">— Call Category —</option>
+        ${callType === 'customer' ? `
+        <option value="discovery"         ${callCategory === 'discovery'         ? 'selected' : ''}>Discovery</option>
+        <option value="validation"        ${callCategory === 'validation'        ? 'selected' : ''}>Validation</option>
+        <option value="solution-review"   ${callCategory === 'solution-review'   ? 'selected' : ''}>Solution Review</option>
+        <option value="usability-testing" ${callCategory === 'usability-testing' ? 'selected' : ''}>Usability Testing</option>
+        <option value="feedback-checkin"  ${callCategory === 'feedback-checkin'  ? 'selected' : ''}>Feedback / Check-in</option>
+        <option value="req-alignment"     ${callCategory === 'req-alignment'     ? 'selected' : ''}>Requirement Alignment</option>
+        <option value="executive-qbr"     ${callCategory === 'executive-qbr'     ? 'selected' : ''}>Executive / QBR</option>
+        ` : `
+        <option value="alignment"          ${callCategory === 'alignment'          ? 'selected' : ''}>Alignment</option>
+        <option value="design-review"      ${callCategory === 'design-review'      ? 'selected' : ''}>Design Review</option>
+        <option value="grooming"           ${callCategory === 'grooming'           ? 'selected' : ''}>Grooming</option>
+        <option value="handoff"            ${callCategory === 'handoff'            ? 'selected' : ''}>Handoff</option>
+        <option value="brainstorm"         ${callCategory === 'brainstorm'         ? 'selected' : ''}>Brainstorm</option>
+        <option value="stakeholder-update" ${callCategory === 'stakeholder-update' ? 'selected' : ''}>Stakeholder Update</option>
+        `}
+      </select>
+      <input class="call-detail-input" type="date" value="${toIsoDate(call.date)}"
+        onchange="handleCallDateChange('${featureId}','${call.id}',this.value)" style="max-width:160px" />
+    </div>
+    <div class="call-detail-row">
+      <input class="call-detail-input" placeholder="Attendees (e.g. Jeremy, Tamara, Sarah)…" value="${escHtml(call.attendees || '')}"
+        onblur="updateCallField('${featureId}','${call.id}','attendees',this.value)" />
+      ${callType === 'internal' ? `
+      <input class="call-detail-input" placeholder="Departments (e.g. Product, Design, CS)…" value="${escHtml(call.departments || '')}"
+        onblur="updateCallField('${featureId}','${call.id}','departments',this.value)" />` : ''}
+    </div>
+    <div class="call-section-label">Notes / Recording Link</div>
+    <div class="call-link-row">
+      <input value="${escHtml(notesLink)}" placeholder="Gong, Fathom, Zoom, Confluence, or Loom URL…"
+        onblur="updateCallField('${featureId}','${call.id}','notesLink',this.value);updateCallField('${featureId}','${call.id}','link',this.value)" />
+      ${hasLink ? `<a class="link-chip" href="${escHtml(notesLink)}" target="_blank" style="white-space:nowrap">↗ Open</a>` : ''}
+    </div>
+    <div class="call-divider"></div>
+    ${resourcesHtml}`;
+
+  // ── Call Prep tab ──
+  const prepPanel = activeTab !== 'prep' ? '' : buildPrepTabContent(featureId, call);
+
+  // ── Post Meeting tab ──
+  const postPanel = activeTab !== 'post' ? '' : `
+    <div class="call-section-label">Transcript</div>
+    <textarea class="call-transcript" placeholder="Paste the raw transcript here…"
+      onblur="updateCallField('${featureId}','${call.id}','transcript',this.value)">${escHtml(call.transcript || '')}</textarea>
+    <div class="summary-section">
+      <div class="summary-actions">
+        <div class="call-section-label" style="margin-bottom:0">AI Summary</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <button class="generate-btn" id="gen_${call.id}" onclick="copyPromptForAI('${featureId}','${call.id}')">
+            <span class="material-symbols-rounded" style="font-size:13px">auto_awesome</span> Copy prompt → Claude.ai
+          </button>
+          <span id="summary_btns_${call.id}" style="display:${hasSummary ? 'flex' : 'none'};gap:6px;align-items:center">
+            <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
+              onclick="copySummary('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">content_copy</span> Copy</button>
+            <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
+              onclick="expandSummary('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">open_in_full</span> Expand</button>
+            <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
+              id="edit_summary_btn_${call.id}" onclick="toggleSummaryEdit('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">edit</span> Edit</button>
+          </span>
+        </div>
+      </div>
+      <div id="summary_rendered_${call.id}" class="summary-rendered md-body"
+        style="display:${hasSummary ? 'block' : 'none'}">${hasSummary ? marked.parse(call.summary) : ''}</div>
+      <textarea class="call-summary" id="summary_ta_${call.id}"
+        placeholder="Paste a summary here, or use the button above to generate one via Claude.ai…"
+        style="display:${hasSummary ? 'none' : 'block'}"
+        onblur="saveSummaryFromBlur('${featureId}','${call.id}')">${escHtml(call.summary || '')}</textarea>
+    </div>`;
+
   const detailsHtml = isExpanded ? `
     <div class="call-entry-details">
-      <div class="call-detail-row">
-        <input class="call-detail-input" placeholder="Call name…" value="${escHtml(call.callName || '')}"
-          onblur="updateCallField('${featureId}','${call.id}','callName',this.value);renderCallsList('${featureId}')" style="flex:2" />
-      </div>
-      <div class="call-detail-row">
-        <input class="call-detail-input" placeholder="Customer / company (optional)…" value="${escHtml(call.customer || call.label || '')}"
-          onblur="updateCallField('${featureId}','${call.id}','customer',this.value);updateCallField('${featureId}','${call.id}','label',this.value);renderCallsList('${featureId}')" />
-        <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','status',this.value);renderCallsList('${featureId}')">
-          <option value="scheduled"            ${status === 'scheduled'            ? 'selected' : ''}>📅 Scheduled</option>
-          <option value="completed"            ${status === 'completed'            ? 'selected' : ''}>✅ Completed</option>
-          <option value="action-items-pending" ${status === 'action-items-pending' ? 'selected' : ''}>⚡ Action Items Pending</option>
-        </select>
-      </div>
-      <div class="call-detail-row">
-        <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','callType',this.value);renderCallsList('${featureId}')">
-          <option value="customer" ${callType === 'customer' ? 'selected' : ''}>Customer Call</option>
-          <option value="internal" ${callType === 'internal' ? 'selected' : ''}>Internal Call</option>
-        </select>
-        <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','callCategory',this.value);renderCallsList('${featureId}')">
-          <option value="">— Call Category —</option>
-          ${callType === 'customer' ? `
-          <option value="discovery"         ${callCategory === 'discovery'         ? 'selected' : ''}>Discovery</option>
-          <option value="validation"        ${callCategory === 'validation'        ? 'selected' : ''}>Validation</option>
-          <option value="solution-review"   ${callCategory === 'solution-review'   ? 'selected' : ''}>Solution Review</option>
-          <option value="usability-testing" ${callCategory === 'usability-testing' ? 'selected' : ''}>Usability Testing</option>
-          <option value="feedback-checkin"  ${callCategory === 'feedback-checkin'  ? 'selected' : ''}>Feedback / Check-in</option>
-          <option value="req-alignment"     ${callCategory === 'req-alignment'     ? 'selected' : ''}>Requirement Alignment</option>
-          <option value="executive-qbr"     ${callCategory === 'executive-qbr'     ? 'selected' : ''}>Executive / QBR</option>
-          ` : `
-          <option value="alignment"          ${callCategory === 'alignment'          ? 'selected' : ''}>Alignment</option>
-          <option value="design-review"      ${callCategory === 'design-review'      ? 'selected' : ''}>Design Review</option>
-          <option value="grooming"           ${callCategory === 'grooming'           ? 'selected' : ''}>Grooming</option>
-          <option value="handoff"            ${callCategory === 'handoff'            ? 'selected' : ''}>Handoff</option>
-          <option value="brainstorm"         ${callCategory === 'brainstorm'         ? 'selected' : ''}>Brainstorm</option>
-          <option value="stakeholder-update" ${callCategory === 'stakeholder-update' ? 'selected' : ''}>Stakeholder Update</option>
-          `}
-        </select>
-        <input class="call-detail-input" type="date" value="${toIsoDate(call.date)}"
-          onchange="handleCallDateChange('${featureId}','${call.id}',this.value)" style="max-width:160px" />
-      </div>
-      <div class="call-detail-row">
-        <input class="call-detail-input" placeholder="Attendees (e.g. Jeremy, Tamara, Sarah)…" value="${escHtml(call.attendees || '')}"
-          onblur="updateCallField('${featureId}','${call.id}','attendees',this.value)" />
-        ${callType === 'internal' ? `
-        <input class="call-detail-input" placeholder="Departments (e.g. Product, Design, CS)…" value="${escHtml(call.departments || '')}"
-          onblur="updateCallField('${featureId}','${call.id}','departments',this.value)" />` : ''}
-      </div>
-      <div class="call-section-label">Notes / Recording Link</div>
-      <div class="call-link-row">
-        <input value="${escHtml(notesLink)}" placeholder="Gong, Fathom, Zoom, Confluence, or Loom URL…"
-          onblur="updateCallField('${featureId}','${call.id}','notesLink',this.value);updateCallField('${featureId}','${call.id}','link',this.value)" />
-        ${hasLink ? `<a class="link-chip" href="${escHtml(notesLink)}" target="_blank" style="white-space:nowrap">↗ Open</a>` : ''}
-      </div>
-      ${resourcesHtml}
-      ${callType === 'customer' ? `
-      <div class="call-divider"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div class="call-section-label" style="margin-bottom:0;display:flex;align-items:center;gap:6px">
-          <span class="material-symbols-rounded" style="font-size:14px;color:var(--accent)">description</span>
-          Call Prep
-        </div>
-        <button class="generate-btn" onclick="openCallPrepModal('${featureId}','${call.id}')">
-          <span class="material-symbols-rounded" style="font-size:13px">edit_note</span>
-          ${(call.prepResearchQs || call.prepWhoTalking || call.prepTopicQs) ? 'Edit Prep Doc' : 'Create Prep Doc'}
-        </button>
-      </div>
-      ` : ''}
-      <div class="call-divider"></div>
-      <div class="call-section-label">Transcript</div>
-      <textarea class="call-transcript" placeholder="Paste the raw transcript here…"
-        onblur="updateCallField('${featureId}','${call.id}','transcript',this.value)">${escHtml(call.transcript || '')}</textarea>
-      <div class="summary-section">
-        <div class="summary-actions">
-          <div class="call-section-label" style="margin-bottom:0">AI Summary</div>
-          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-            <button class="generate-btn" id="gen_${call.id}" onclick="copyPromptForAI('${featureId}','${call.id}')">
-              <span class="material-symbols-rounded" style="font-size:13px">auto_awesome</span> Copy prompt → Claude.ai
-            </button>
-            <span id="summary_btns_${call.id}" style="display:${hasSummary ? 'flex' : 'none'};gap:6px;align-items:center">
-              <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
-                onclick="copySummary('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">content_copy</span> Copy</button>
-              <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
-                onclick="expandSummary('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">open_in_full</span> Expand</button>
-              <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
-                id="edit_summary_btn_${call.id}" onclick="toggleSummaryEdit('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">edit</span> Edit</button>
-            </span>
-          </div>
-        </div>
-        <div id="summary_rendered_${call.id}" class="summary-rendered md-body"
-          style="display:${hasSummary ? 'block' : 'none'}">${hasSummary ? marked.parse(call.summary) : ''}</div>
-        <textarea class="call-summary" id="summary_ta_${call.id}"
-          placeholder="Paste a summary here, or use the button above to generate one via Claude.ai…"
-          style="display:${hasSummary ? 'none' : 'block'}"
-          onblur="saveSummaryFromBlur('${featureId}','${call.id}')">${escHtml(call.summary || '')}</textarea>
-      </div>
+      ${tabBar}
+      ${infoPanel}${prepPanel}${postPanel}
     </div>` : '';
 
   return `
@@ -5137,7 +5246,7 @@ function buildPrepModalBody(call) {
   </div>`;
 }
 
-function copyCallPrepPrompt(featureId, callId) {
+function copyCallPrepPrompt(featureId, callId, btnEl) {
   const call = getCalls(featureId).find(c => c.id === callId);
   if (!call) return;
   const fill = (val, placeholder) => (val && val.trim()) ? val.trim() : placeholder;
@@ -5148,7 +5257,6 @@ function copyCallPrepPrompt(featureId, callId) {
     "- **Customer:** " + fill(call.customer || call.label, '[customer name]'),
     "- **Interviewee:** " + fill(call.prepWhoTalking, '[name & role]'),
     "- **Topic:** " + fill(call.callCategory, '[feature area]'),
-    "- **Duration:** " + fill(call.prepDuration || '', '[e.g. 45 min]'),
     "",
     "## Research Questions",
     fill(call.prepResearchQs, '[What are the key knowledge gaps?]'),
@@ -5177,8 +5285,8 @@ function copyCallPrepPrompt(featureId, callId) {
     "Guidelines: past-behavior focused, open-ended, no leading questions, warm conversational tone."
   ];
   const prompt = lines.join("\n");
+  const btn = btnEl || document.getElementById('prep-modal-copy-btn');
   navigator.clipboard.writeText(prompt).then(() => {
-    const btn = document.getElementById('prep-modal-copy-btn');
     if (btn) {
       const orig = btn.innerHTML;
       btn.innerHTML = '<span class="material-symbols-rounded" style="font-size:13px">check</span> Copied!';
