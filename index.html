@@ -5,31 +5,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Feature Context Hub — Ying Zhang</title>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20,400,0,0&display=block" />
 <style>
   :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #21253a;
-    --border: #2a2f45;
-    --accent: #6c7bff;
-    --accent-dim: #3d4680;
-    --text: #e2e4f0;
-    --text-muted: #8b90a8;
-    --text-dim: #5a5f7a;
-    --green: #3ecf8e;
-    --green-bg: #0d2e1f;
-    --yellow: #f5a623;
-    --yellow-bg: #2e2210;
-    --blue: #4facfe;
-    --blue-bg: #0d1f2e;
-    --purple: #b794f4;
-    --purple-bg: #1e1030;
-    --red: #fc8181;
-    --red-bg: #2d1010;
-    --gray: #8b90a8;
-    --gray-bg: #1e2030;
+    --bg: #0c0e17;
+    --surface: #141722;
+    --surface2: #1b1f30;
+    --border: #252b3e;
+    --accent: #6b7cff;
+    --accent-dim: #252d5a;
+    --ribbon-bg: #131840;
+    --text: #e4e7f4;
+    --text-muted: #8890b0;
+    --text-dim: #4e566e;
+    --green: #34d399;
+    --green-bg: #0a2318;
+    --yellow: #fbbf24;
+    --yellow-bg: #271c08;
+    --blue: #60a5fa;
+    --blue-bg: #0c1e36;
+    --purple: #c084fc;
+    --purple-bg: #1a0f2e;
+    --red: #f87171;
+    --red-bg: #2c0f0f;
+    --gray: #6b7280;
+    --gray-bg: #18202e;
     --radius: 10px;
     --radius-sm: 6px;
+    --shadow: 0 4px 20px rgba(0,0,0,.45);
+  }
+
+  [data-theme="light"] {
+    --bg: #f0f2f9;
+    --surface: #ffffff;
+    --surface2: #f4f6fd;
+    --border: #dde2ef;
+    --accent: #4f5ef0;
+    --accent-dim: #eaebff;
+    --ribbon-bg: #dde0ff;
+    --text: #1a1c2e;
+    --text-muted: #5c6280;
+    --text-dim: #9aa0be;
+    --green: #16a34a;
+    --green-bg: #dcfce7;
+    --yellow: #d97706;
+    --yellow-bg: #fef3c7;
+    --blue: #2563eb;
+    --blue-bg: #dbeafe;
+    --purple: #7c3aed;
+    --purple-bg: #ede9fe;
+    --red: #dc2626;
+    --red-bg: #fee2e2;
+    --gray: #6b7280;
+    --gray-bg: #f3f4f6;
+    --shadow: 0 2px 12px rgba(0,0,0,.09);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -86,6 +115,9 @@
     text-transform: uppercase;
     color: var(--text-dim);
     padding: 8px 8px 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .nav-item {
@@ -126,11 +158,110 @@
   }
 
   .sidebar-footer {
-    padding: 12px 16px;
+    padding: 10px 14px;
     border-top: 1px solid var(--border);
     font-size: 11px;
     color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
+
+  .theme-toggle {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all .15s;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── MATERIAL SYMBOLS ─────────────────────────── */
+  .material-symbols-rounded {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    line-height: 1;
+    font-style: normal;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .nav-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    width: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+  }
+
+  .nav-item.active .nav-icon,
+  .nav-item:hover .nav-icon { color: var(--accent); }
+
+  .ctx-icon {
+    font-size: 17px;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .sc-icon {
+    font-size: 17px;
+    vertical-align: middle;
+    margin-right: 4px;
+    opacity: .75;
+  }
+
+  /* ── ANSWER ICON BUTTONS ─────────────────────── */
+  .q-answer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .q-answer-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .q-answer-acts { display: flex; gap: 3px; }
+
+  .q-icon-btn {
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all .15s;
+    padding: 0;
+  }
+
+  .q-icon-btn .material-symbols-rounded { font-size: 14px; }
+  .q-icon-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--surface2); }
+  .q-icon-btn.del:hover { border-color: var(--red); color: var(--red); }
 
   /* ── MAIN ─────────────────────────────────────── */
   #main {
@@ -517,22 +648,219 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-left: 3px solid var(--yellow);
-    border-radius: var(--radius-sm);
-    padding: 12px 16px;
-    margin-bottom: 8px;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    transition: border-left-color .2s;
   }
 
-  .question-card p {
+  .question-card.q-resolved { border-left-color: var(--gray); }
+
+  .q-text {
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text);
     font-size: 13px;
     line-height: 1.6;
-    color: var(--text);
+    font-family: inherit;
+    resize: none;
+    outline: none;
+    padding: 2px 4px;
+    margin: -2px -4px;
+    transition: background .15s, border-color .15s, padding .15s;
+    overflow: hidden;
+    min-height: 22px;
   }
 
-  .question-card .q-meta {
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-top: 6px;
+  .q-text:focus {
+    background: var(--surface2);
+    border-color: var(--accent);
+    padding: 6px 8px;
+    margin: 0;
   }
+
+  .q-resolved .q-text { opacity: .45; text-decoration: line-through; pointer-events: none; }
+
+  .q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .q-acts {
+    display: flex;
+    gap: 3px;
+    flex-shrink: 0;
+    padding-top: 1px;
+  }
+
+  .q-icon-btn.resolved { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+  .q-icon-btn.resolved:hover { border-color: var(--green); color: var(--green); }
+  .q-icon-btn.attach-active { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+
+  .q-attach-row {
+    display: none;
+    gap: 8px;
+    margin-top: 10px;
+    align-items: center;
+  }
+
+  .q-attach-row.open { display: flex; }
+
+  .q-attach-row input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    color: var(--text);
+    font-size: 12px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .15s;
+  }
+
+  .q-attach-row input:focus { border-color: var(--accent); }
+  .q-attach-row input::placeholder { color: var(--text-dim); }
+
+  .q-paste-hint {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .q-paste-hint .material-symbols-rounded { font-size: 12px; }
+
+  .q-attachments {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .q-attach-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-decoration: none;
+    max-width: 320px;
+    background: var(--blue-bg);
+    border: 1px solid rgba(79,172,254,.2);
+    color: var(--blue);
+    transition: border-color .15s;
+  }
+
+  .q-attach-chip:hover { border-color: var(--blue); }
+  .q-attach-chip .chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .q-attach-chip .chip-remove {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0 0 0 6px;
+    opacity: .5;
+    line-height: 1;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+  .q-attach-chip .chip-remove .material-symbols-rounded { font-size: 13px; }
+  .q-attach-chip .chip-remove:hover { opacity: 1; }
+
+  .q-attach-img-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    background: rgba(0,0,0,.65);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .q-attach-img-remove .material-symbols-rounded { font-size: 14px; }
+  .q-attach-img-wrap:hover .q-attach-img-remove { opacity: 1; }
+
+  /* ── DELETED QUESTIONS ───────────────────────── */
+  .deleted-q-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+    padding: 7px 12px;
+    cursor: pointer;
+    width: 100%;
+    transition: all .15s;
+    margin-top: 8px;
+  }
+
+  .deleted-q-toggle:hover { border-color: var(--text-dim); color: var(--text-muted); }
+  .deleted-q-toggle .material-symbols-rounded { font-size: 15px; }
+
+  .deleted-q-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-top: 6px;
+    opacity: .6;
+  }
+
+  .deleted-q-item:hover { opacity: 1; }
+
+  .deleted-q-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    flex: 1;
+    line-height: 1.5;
+    text-decoration: line-through;
+  }
+
+  .restore-btn {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .restore-btn .material-symbols-rounded { font-size: 13px; }
+  .restore-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .q-attach-img-wrap { position: relative; display: inline-block; margin-top: 4px; }
+  .q-attach-img { max-width: 100%; max-height: 180px; border-radius: var(--radius-sm); border: 1px solid var(--border); display: block; cursor: pointer; }
 
   /* Status badges */
   .badge {
@@ -586,7 +914,7 @@
 
   /* Focus ribbon */
   .focus-ribbon {
-    background: linear-gradient(135deg, var(--accent-dim), #1a1540);
+    background: linear-gradient(135deg, var(--accent-dim), var(--ribbon-bg));
     border: 1px solid var(--accent-dim);
     border-radius: var(--radius);
     padding: 14px 18px;
@@ -849,17 +1177,22 @@
 
   /* ── REMOVE BUTTON ───────────────────────────── */
   .remove-btn {
+    width: 26px;
+    height: 26px;
     background: none;
-    border: none;
+    border: 1px solid transparent;
     color: var(--text-dim);
     cursor: pointer;
-    font-size: 15px;
-    line-height: 1;
-    padding: 0 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
     flex-shrink: 0;
-    transition: color .15s;
+    padding: 0;
+    transition: all .15s;
   }
-  .remove-btn:hover { color: var(--red); }
+  .remove-btn .material-symbols-rounded { font-size: 15px; }
+  .remove-btn:hover { color: var(--red); border-color: var(--red); background: var(--red-bg); }
 
   /* ── RESOLVE BUTTON ──────────────────────────── */
   .resolve-btn {
@@ -888,9 +1221,114 @@
   .design-img-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 12px; }
   .design-img-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; position: relative; background: var(--surface-raised); }
   .design-img-card img { width: 100%; display: block; max-height: 160px; object-fit: cover; }
-  .design-img-card .img-remove { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,.55); color: #fff; border: none; border-radius: 4px; padding: 2px 7px; font-size: 11px; cursor: pointer; }
+  .design-img-card .img-remove {
+    position: absolute; top: 6px; right: 6px;
+    width: 24px; height: 24px;
+    background: rgba(0,0,0,.65); color: #fff;
+    border: none; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0; opacity: 0; transition: opacity .15s;
+  }
+  .design-img-card:hover .img-remove { opacity: 1; }
   .design-img-card .img-url { font-size: 11px; color: var(--text-dim); padding: 4px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .design-open-btn { margin-top: 8px; display: inline-flex; align-items: center; gap: 4px; }
+
+  /* ── NOTES TAB ───────────────────────────────── */
+  .note-entry {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .note-entry:last-child { margin-bottom: 0; }
+  .note-entry:not(.note-editing):hover { border-color: var(--accent-dim); }
+  .note-entry-body { font-size: 13px; line-height: 1.7; color: var(--text); word-break: break-word; }
+  .note-entry-body p { margin: 0 0 6px; }
+  .note-entry-body p:last-child { margin-bottom: 0; }
+  .note-entry-body ul, .note-entry-body ol { margin: 0 0 6px 18px; }
+  .note-entry-body code { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 1px 5px; font-size: 11px; }
+  .note-entry-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .note-ts { font-size: 11px; color: var(--text-dim); }
+
+  /* ── DESIGN TAB (REDESIGNED) ─────────────────── */
+  .design-section-empty { font-size: 13px; color: var(--text-dim); padding: 10px 0; }
+  .design-link-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+  }
+  .design-link-row + .design-link-row { border-top: 1px solid var(--border); }
+  .design-link-label { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 3px; }
+  .design-link-editing { flex-direction: column; }
+  .input-error { font-size: 11px; color: var(--red); padding: 2px 0; }
+  .screenshot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .screenshot-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    position: relative;
+    background: var(--surface2);
+  }
+  .screenshot-card img { width: 100%; display: block; max-height: 140px; object-fit: cover; cursor: pointer; }
+  .screenshot-label { font-size: 11px; color: var(--text-dim); padding: 4px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .screenshot-remove {
+    position: absolute; top: 5px; right: 5px;
+    width: 24px; height: 24px;
+    background: rgba(0,0,0,.65); color: #fff;
+    border: none; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0; opacity: 0; transition: opacity .15s;
+  }
+  .screenshot-card:hover .screenshot-remove { opacity: 1; }
+  .screenshot-remove .material-symbols-rounded { font-size: 14px; }
+  .screenshot-paste-zone {
+    width: 100%;
+    min-height: 44px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface2);
+    color: var(--text-dim);
+    font-size: 12px;
+    font-family: inherit;
+    padding: 10px 12px;
+    resize: none;
+    outline: none;
+    transition: border-color .15s;
+    box-sizing: border-box;
+    cursor: text;
+    display: block;
+  }
+  .screenshot-paste-zone:focus { border-color: var(--accent); border-style: solid; color: var(--text); }
+  .screenshot-paste-zone::placeholder { color: var(--text-dim); }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spec-loading { padding: 20px; text-align: center; color: var(--text-dim); font-size: 13px; }
+  .spec-loading .material-symbols-rounded { font-size: 24px; display: block; margin-bottom: 6px; animation: spin .9s linear infinite; }
+
+  /* ── DESIGN SPEC TAB ─────────────────────────── */
+  .spec-embed-wrap {
+    width: 100%;
+    height: 580px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin-top: 10px;
+  }
+  .spec-embed-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
 
   /* Toast */
   #toast {
@@ -1128,207 +1566,319 @@
   .generate-btn:hover:not(:disabled) { background: var(--accent); color: #fff; border-color: var(--accent); }
   .generate-btn:disabled { opacity: .45; cursor: not-allowed; }
 
-  /* ── DESIGN HANDOFF ──────────────────────────────────── */
-  .handoff-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
-  .screen-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-  .screen-card {
-    background: var(--surface2);
+  /* ── DOMAIN KNOWLEDGE ───────────────────────────── */
+  .dk-entry {
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
+    margin-bottom: 12px;
     overflow: hidden;
   }
-  .screen-card-header {
-    padding: 10px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border);
-    gap: 8px;
-  }
-  .screen-card-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text);
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .screen-card-status {
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-weight: 600;
-    flex-shrink: 0;
-  }
-  .screen-status-pending { background: var(--yellow-bg); color: var(--yellow); }
-  .screen-status-attached { background: var(--green-bg); color: var(--green); }
-  .screen-card-preview {
-    width: 100%;
-    height: 180px;
-    background: var(--bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-  }
-  .screen-card-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .upload-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-muted);
-    font-size: 12px;
-  }
-  .upload-placeholder .ph-icon { font-size: 28px; }
-  .screen-pin-count {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: var(--accent);
-    color: white;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 20px;
-  }
-  .screen-card-actions { padding: 8px 12px; display: flex; gap: 6px; align-items: center; }
-  .export-btn {
-    background: linear-gradient(135deg, var(--accent), #8b5cf6);
-    color: white;
-    border: none;
-    padding: 8px 18px;
-    border-radius: var(--radius-sm);
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .export-btn:hover { opacity: 0.85; }
 
-  /* ── ANNOTATOR MODAL ─────────────────────────────────── */
-  .annotator-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.93);
-    z-index: 2000;
-    flex-direction: column;
-  }
-  .annotator-overlay.open { display: flex; }
-  .annotator-toolbar {
+  .dk-entry-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-    flex-wrap: wrap;
-  }
-  .annotator-title { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; min-width: 120px; }
-  .tool-btn {
-    padding: 6px 14px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text-muted);
-    font-size: 12px;
+    gap: 10px;
+    padding: 14px 18px;
     cursor: pointer;
-    transition: all .15s;
-  }
-  .tool-btn:hover, .tool-btn.active {
-    background: var(--accent-dim);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  .annotator-body {
-    flex: 1;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    padding: 20px;
-  }
-  .annotator-canvas-wrap {
-    position: relative;
-    display: inline-block;
-    max-width: 100%;
-    max-height: 100%;
     user-select: none;
+    transition: background .15s;
   }
-  .annotator-img {
-    display: block;
-    max-width: calc(100vw - 80px);
-    max-height: calc(100vh - 130px);
-    object-fit: contain;
-    border-radius: 6px;
+
+  .dk-entry-header:hover { background: var(--surface2); }
+
+  .dk-chevron {
+    color: var(--text-dim);
+    font-size: 11px;
+    transition: transform .2s;
+    flex-shrink: 0;
+    font-weight: 700;
   }
-  .annotator-draw-canvas {
-    position: absolute;
-    inset: 0;
-    border-radius: 6px;
-  }
-  .annotator-pin-layer {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-  .annotator-pin-layer.pin-mode { pointer-events: auto; cursor: crosshair; }
-  .pin-marker {
-    position: absolute;
-    width: 26px;
-    height: 26px;
-    border-radius: 50% 50% 50% 0;
-    transform: translate(-50%, -100%) rotate(-45deg);
-    background: var(--accent);
-    border: 2px solid white;
-    cursor: pointer;
-    pointer-events: auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,.5);
-  }
-  .pin-marker span { transform: rotate(45deg); font-size: 10px; font-weight: 700; color: white; line-height: 1; }
-  .pin-popup {
-    position: absolute;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 10px;
-    min-width: 220px;
-    z-index: 10;
-    box-shadow: 0 4px 24px rgba(0,0,0,.6);
-  }
-  .pin-popup textarea {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+
+  .dk-chevron.open { transform: rotate(90deg); }
+
+  .dk-entry-title-input {
+    flex: 1;
+    background: none;
+    border: none;
+    border-bottom: 1px dashed transparent;
     color: var(--text);
-    font-size: 12px;
-    padding: 6px;
-    resize: vertical;
-    min-height: 60px;
+    font-size: 14px;
+    font-weight: 600;
     font-family: inherit;
     outline: none;
+    padding: 2px 4px;
+    transition: border-color .15s;
   }
-  .pin-popup-actions { display: flex; gap: 6px; margin-top: 8px; }
-  .pin-note-label { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; }
+
+  .dk-entry-title-input:focus { border-bottom-color: var(--accent); }
+
+  .dk-entry-body {
+    padding: 0 18px 16px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+
+  .dk-entry-body.open { display: block; }
+
+  .dk-entry-content {
+    width: 100%;
+    min-height: 120px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.65;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color .15s;
+    margin-top: 12px;
+  }
+
+  .dk-entry-content:focus { border-color: var(--accent); }
+  .dk-entry-content::placeholder { color: var(--text-dim); }
+
+  .dk-entry-rendered {
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  .dk-entry-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+  }
+
+  /* ── QUESTION ANSWER ─────────────────────────────── */
+  .q-answer-section {
+    margin-top: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+  }
+
+  .q-add-answer-btn {
+    width: 100%;
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    font-size: 12px;
+    font-family: inherit;
+    font-weight: 500;
+    padding: 6px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all .15s;
+  }
+  .q-add-answer-btn .material-symbols-rounded { font-size: 14px; }
+  .q-add-answer-btn:hover { border-color: var(--green); color: var(--green); background: var(--green-bg); }
+
+  .q-answer-card {
+    background: var(--green-bg);
+    border: 1px solid rgba(52,211,153,.2);
+    border-left: 3px solid var(--green);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+  }
+
+  .q-answer-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .q-answer-input {
+    width: 100%;
+    min-height: 68px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.6;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color .15s;
+  }
+
+  .q-answer-input:focus { border-color: var(--green); }
+  .q-answer-input::placeholder { color: var(--text-dim); }
+
+  .q-answer-editor-acts {
+    display: flex;
+    gap: 6px;
+    margin-top: 7px;
+  }
+
+  .q-answer-display {
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--green);
+    word-break: break-word;
+  }
+
+  .q-answer-display p { margin: 0 0 6px; }
+  .q-answer-display p:last-child { margin-bottom: 0; }
+  .q-answer-display ul, .q-answer-display ol { margin: 0 0 6px 18px; }
+  .q-answer-display code { background: rgba(52,211,153,.12); border-radius: 3px; padding: 1px 5px; font-size: 11px; }
+
+  /* ── NAV SECTION ADD BUTTON ─────────────────────── */
+  .nav-section-add {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 0;
+    transition: all .15s;
+    flex-shrink: 0;
+  }
+
+  .nav-section-add:hover { border-color: var(--accent); color: var(--accent); }
+  .nav-section-add .material-symbols-rounded { font-size: 14px; }
+
+  /* ── ADD FEATURE MODAL ───────────────────────────── */
+  .add-feature-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.65);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .add-feature-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    width: min(500px, 94vw);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 64px rgba(0,0,0,.5);
+    overflow: hidden;
+  }
+
+  .add-feature-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .add-feature-head strong { font-size: 15px; font-weight: 700; }
+
+  .add-feature-body {
+    padding: 22px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .add-feature-field { margin-bottom: 16px; }
+
+  .add-feature-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .add-feature-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .15s;
+  }
+
+  .add-feature-input:focus { border-color: var(--accent); }
+  .add-feature-input::placeholder { color: var(--text-dim); }
+  .add-feature-input.error { border-color: var(--red); }
+
+  .add-feature-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 32px 9px 12px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='currentColor' opacity='.6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 8px;
+    transition: border-color .15s;
+  }
+
+  .add-feature-select:focus { border-color: var(--accent); }
+  .add-feature-select option { background: var(--surface2); color: var(--text); }
+
+  .icon-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+    gap: 6px;
+  }
+
+  .icon-picker-btn {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all .15s;
+    padding: 0;
+  }
+
+  .icon-picker-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .icon-picker-btn.selected { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .icon-picker-btn .material-symbols-rounded { font-size: 20px; }
+
+  .add-feature-footer {
+    padding: 16px 22px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+  }
 
 </style>
 </head>
@@ -1343,15 +1893,23 @@
   <nav class="sidebar-nav">
     <div class="nav-section-label">Overview</div>
     <div class="nav-item active" data-view="schedule" onclick="showView('schedule', this)">
-      <span class="nav-icon">📅</span>
+      <span class="nav-icon material-symbols-rounded">calendar_month</span>
       <span class="nav-label">Schedule Overview</span>
     </div>
 
-    <div class="nav-section-label" style="margin-top:8px">Features</div>
+    <div class="nav-section-label" style="margin-top:8px">
+      Features
+      <button class="nav-section-add" onclick="openAddFeatureModal()" title="Add new feature">
+        <span class="material-symbols-rounded">add</span>
+      </button>
+    </div>
     <div id="nav-features"></div>
   </nav>
   <div class="sidebar-footer">
-    Last updated: <span id="last-updated">—</span>
+    <span>Updated: <span id="last-updated">—</span></span>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light / dark">
+      <span class="material-symbols-rounded" id="theme-icon">light_mode</span>
+    </button>
   </div>
 </div>
 
@@ -1360,11 +1918,17 @@
 
   <!-- SCHEDULE VIEW -->
   <div id="view-schedule" class="view active">
-    <div class="schedule-header">
-      <h2>Schedule Overview</h2>
-      <p>All active features at a glance. Click a card to dive into the details.</p>
+    <div class="schedule-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+      <div>
+        <h2>Schedule Overview</h2>
+        <p>All active features at a glance. Click a card to dive into the details.</p>
+      </div>
+      <button class="btn btn-primary" style="white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:5px" onclick="openAddFeatureModal()">
+        <span class="material-symbols-rounded" style="font-size:16px">add</span> Add Feature
+      </button>
     </div>
     <div class="schedule-grid" id="schedule-grid"></div>
+    <div id="deleted-features-section"></div>
   </div>
 
   <!-- FEATURE VIEWS are injected here -->
@@ -1374,6 +1938,57 @@
 
 <div id="toast">Saved</div>
 
+<!-- ADD FEATURE MODAL -->
+<div id="add-feature-modal" style="display:none" class="add-feature-overlay" onclick="if(event.target===this)closeAddFeatureModal()">
+  <div class="add-feature-box">
+    <div class="add-feature-head">
+      <strong id="af-modal-title">Add New Feature</strong>
+      <button class="q-icon-btn" onclick="closeAddFeatureModal()" title="Close">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+    <div class="add-feature-body">
+      <div class="add-feature-field">
+        <label class="add-feature-label" for="af-title">Title *</label>
+        <input id="af-title" class="add-feature-input" placeholder="e.g. Bulk Import Orders"
+          onkeydown="if(event.key==='Enter')submitNewFeature()" />
+      </div>
+      <div class="add-feature-field">
+        <label class="add-feature-label">Icon</label>
+        <div class="icon-picker-grid" id="af-icon-grid"></div>
+      </div>
+      <div class="add-feature-field">
+        <label class="add-feature-label" for="af-status">Status</label>
+        <select id="af-status" class="add-feature-select">
+          <option value="Discovery">Discovery</option>
+          <option value="Design">Design</option>
+          <option value="Dev">Dev</option>
+          <option value="QA">QA</option>
+          <option value="Done">Done</option>
+        </select>
+      </div>
+      <div class="add-feature-field">
+        <label class="add-feature-label" for="af-customer">Customer</label>
+        <input id="af-customer" class="add-feature-input" placeholder="e.g. SmartCare, General" />
+      </div>
+      <div class="add-feature-field">
+        <label class="add-feature-label" for="af-due">Due Date</label>
+        <input id="af-due" class="add-feature-input" placeholder="e.g. Apr 30, 2026 or TBD" />
+      </div>
+      <div class="add-feature-field">
+        <label class="add-feature-label" for="af-summary">Summary (optional)</label>
+        <textarea id="af-summary" class="add-feature-input" rows="3"
+          placeholder="Brief description of this feature…"
+          style="resize:vertical;min-height:72px"></textarea>
+      </div>
+    </div>
+    <div class="add-feature-footer">
+      <button class="btn" onclick="closeAddFeatureModal()">Cancel</button>
+      <button id="af-submit-btn" class="btn btn-primary" onclick="submitNewFeature()">Add Feature</button>
+    </div>
+  </div>
+</div>
+
 <!-- SUMMARY EXPAND MODAL -->
 <div id="summary-modal" style="display:none">
   <div class="summary-modal-overlay" onclick="closeSummaryModal()"></div>
@@ -1381,35 +1996,11 @@
     <div class="summary-modal-head">
       <strong id="summary-modal-title">Call Summary</strong>
       <div style="display:flex;gap:8px">
-        <button class="btn" style="font-size:12px" onclick="copySummaryFromModal()">Copy</button>
-        <button class="btn" style="font-size:12px" onclick="closeSummaryModal()">✕ Close</button>
+        <button class="btn" style="font-size:12px;display:flex;align-items:center;gap:4px" onclick="copySummaryFromModal()"><span class="material-symbols-rounded" style="font-size:14px">content_copy</span> Copy</button>
+        <button class="q-icon-btn" onclick="closeSummaryModal()" title="Close"><span class="material-symbols-rounded">close</span></button>
       </div>
     </div>
     <div class="summary-modal-body md-body" id="summary-modal-content"></div>
-  </div>
-</div>
-
-<!-- ANNOTATOR OVERLAY -->
-<div id="annotator-overlay" class="annotator-overlay">
-  <div class="annotator-toolbar">
-    <div class="annotator-title" id="annotator-title"></div>
-    <button class="tool-btn active" data-tool="pin" onclick="setAnnotTool('pin')">Pin</button>
-    <button class="tool-btn" data-tool="draw" onclick="setAnnotTool('draw')">Draw</button>
-    <button class="tool-btn" onclick="clearAnnotDrawing()">Clear Drawing</button>
-    <button class="tool-btn" onclick="saveAnnotation()" style="color:var(--green);border-color:var(--green)">Save &amp; Close</button>
-    <button class="tool-btn" onclick="closeAnnotator()">Discard &amp; Close</button>
-  </div>
-  <div class="annotator-body">
-    <div class="annotator-canvas-wrap" id="annotator-wrap">
-      <img class="annotator-img" id="annotator-img" src="" alt="" />
-      <canvas class="annotator-draw-canvas" id="annotator-canvas"
-        onmousedown="annotMouseDown(event)"
-        onmousemove="annotMouseMove(event)"
-        onmouseup="annotMouseUp()"
-        onmouseleave="annotMouseUp()"></canvas>
-      <div class="annotator-pin-layer pin-mode" id="annotator-pin-layer"
-        onclick="annotPinClick(event)"></div>
-    </div>
   </div>
 </div>
 
@@ -2300,7 +2891,7 @@ Key commits:
 const FEATURES = [
   {
     id: "index-cost",
-    icon: "🗂",
+    icon: "folder_open",
     title: "Index Cost (Cost Catalogue)",
     status: "Design",
     hasDoc: true,
@@ -2364,11 +2955,11 @@ const FEATURES = [
   },
   {
     id: "bulk-po",
-    icon: "📦",
+    icon: "inventory_2",
     title: "Bulk PO Creation from Maintenance Jobs",
     status: "Design",
     hasDoc: true,
-    docLabel: "Domain Docs",
+    docLabel: "Feature Understanding",
     customer: "ServiceLogic (Tolin Mechanical, Piedmont, IES)",
     due: "Jun 15, 2026",
     team: [
@@ -2431,7 +3022,7 @@ const FEATURES = [
   },
   {
     id: "avalara-tax",
-    icon: "🧾",
+    icon: "receipt_long",
     title: "Avalara Tax Exemption",
     status: "Design",
     hasDoc: true,
@@ -2483,11 +3074,11 @@ const FEATURES = [
   },
   {
     id: "job-taxability",
-    icon: "💼",
+    icon: "work",
     title: "Job Taxability Settings (PPC)",
     status: "Dev",
     hasDoc: true,
-    docLabel: "Domain Docs",
+    docLabel: "Feature Understanding",
     customer: "PPC Partners",
     due: "Apr 15, 2026",
     team: [
@@ -2532,11 +3123,11 @@ const FEATURES = [
   },
   {
     id: "vendors-unified",
-    icon: "🔧",
+    icon: "handyman",
     title: "Vendors / Subcontractors Unified Experience",
     status: "Dev",
     hasDoc: true,
-    docLabel: "Domain Docs",
+    docLabel: "Feature Understanding",
     customer: "Internal / Multiple",
     due: "TBD",
     team: [
@@ -2568,7 +3159,7 @@ const FEATURES = [
   },
   {
     id: "pricebook-fee",
-    icon: "📋",
+    icon: "price_check",
     title: "Pricebook Fee Configuration",
     status: "Design",
     hasDoc: true,
@@ -2632,11 +3223,11 @@ const FEATURES = [
   },
   {
     id: "pricebook-separation",
-    icon: "✂️",
+    icon: "content_cut",
     title: "Pricebook Separation (Split by Cost Type)",
     status: "Dev",
     hasDoc: true,
-    docLabel: "Domain Docs",
+    docLabel: "Feature Understanding",
     customer: "Service Logic",
     due: "TBD",
     team: [
@@ -2676,11 +3267,11 @@ const FEATURES = [
   },
   {
     id: "pricebook-bulk-edits",
-    icon: "✏️",
+    icon: "edit_note",
     title: "Pricebook Bulk Edits",
     status: "Discovery",
     hasDoc: true,
-    docLabel: "Domain Docs",
+    docLabel: "Feature Understanding",
     customer: "SmartCare",
     due: "TBD",
     team: [],
@@ -2712,11 +3303,11 @@ const FEATURES = [
   },
   {
     id: "multiple-vendor-locations",
-    icon: "📍",
+    icon: "location_on",
     title: "Multiple Vendor Locations",
     status: "Dev",
     hasDoc: true,
-    docLabel: "Domain Docs",
+    docLabel: "Feature Understanding",
     customer: "General",
     due: "TBD",
     team: [],
@@ -2760,6 +3351,22 @@ const STATUS_BADGE = {
   "QA":        "badge-qa",
   "Done":      "badge-done",
 };
+
+// ═══════════════════════════════════════════════════════════════
+//  CUSTOM FEATURES (stored in localStorage)
+// ═══════════════════════════════════════════════════════════════
+function loadCustomFeatures() {
+  try { return JSON.parse(localStorage.getItem('fh_custom_features') || '[]'); }
+  catch { return []; }
+}
+
+function saveCustomFeatures(features) {
+  localStorage.setItem('fh_custom_features', JSON.stringify(features));
+}
+
+function getAllFeatures() {
+  return [...FEATURES, ...loadCustomFeatures()];
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  STATE (persisted in localStorage)
@@ -2859,9 +3466,9 @@ function showFeature(id) {
 // ═══════════════════════════════════════════════════════════════
 function renderSidebar() {
   const container = document.getElementById('nav-features');
-  container.innerHTML = FEATURES.map(f => `
+  container.innerHTML = getAllFeatures().map(f => `
     <div class="nav-item" data-feature="${f.id}" onclick="showFeature('${f.id}')">
-      <span class="nav-icon">${f.icon}</span>
+      <span class="nav-icon material-symbols-rounded">${f.icon}</span>
       <span class="nav-label">${f.title}</span>
       <span class="badge nav-badge ${STATUS_BADGE[getStatus(f)] || 'badge-done'}">${getStatus(f)}</span>
     </div>
@@ -2873,7 +3480,7 @@ function renderSidebar() {
 // ═══════════════════════════════════════════════════════════════
 function renderScheduleCards() {
   const grid = document.getElementById('schedule-grid');
-  grid.innerHTML = FEATURES.map(f => {
+  grid.innerHTML = getAllFeatures().map(f => {
     const status = getStatus(f);
     const due = getDue(f);
     const pct = progressOf(f);
@@ -2882,7 +3489,7 @@ function renderScheduleCards() {
     return `
     <div class="schedule-card" onclick="showFeature('${f.id}')">
       <div class="sc-top">
-        <div class="sc-title">${f.icon} ${f.title}</div>
+        <div class="sc-title"><span class="material-symbols-rounded sc-icon">${f.icon}</span>${f.title}</div>
         <span class="badge ${STATUS_BADGE[status] || 'badge-done'}">${status}</span>
       </div>
       <div class="sc-meta">
@@ -2903,46 +3510,21 @@ function renderScheduleCards() {
 // ═══════════════════════════════════════════════════════════════
 function renderFeatureViews() {
   const container = document.getElementById('feature-views');
-  container.innerHTML = FEATURES.map(f => buildFeatureView(f)).join('');
+  container.innerHTML = getAllFeatures().map(f => buildFeatureView(f)).join('');
 }
 
 function buildFeatureView(f) {
   const currentStep = getCurrentStep(f.id, f.currentFocus);
-  const notes = getNotes(f.id);
-  const figmaLink = getFigmaLink(f.id);
-  const designNotes = getDesignNotes(f.id);
   const status = getStatus(f);
   const due = getDue(f);
 
-  const teamHtml = f.team.length
-    ? `<div class="team-row">${f.team.map(p => `
-        <div class="team-person">
-          <div class="avatar">${initials(p.name)}</div>
-          ${p.name} <span style="color:var(--text-dim)">· ${p.role}</span>
-        </div>`).join('')}</div>`
-    : `<p style="color:var(--text-dim);font-size:13px">Team TBD</p>`;
-
-  const linksHtml = f.links.length
-    ? `<div class="links-grid">${f.links.map(l => `
-        <a class="link-chip" href="${l.url}" target="_blank">
-          <span>↗</span>${l.label}
-        </a>`).join('')}</div>`
-    : `<p style="color:var(--text-dim);font-size:13px">No links added yet</p>`;
-
-  const decisionsHtml = f.decisions.length
-    ? `<ul class="decision-list">${f.decisions.map(d => `<li>${d}</li>`).join('')}</ul>`
-    : `<p style="color:var(--text-dim);font-size:13px">No decisions recorded yet</p>`;
-
-  const constraintsHtml = f.constraints.length
-    ? f.constraints.map(c => `<span class="constraint-tag">🚫 ${c}</span>`).join('')
-    : `<span style="color:var(--text-dim);font-size:13px">None noted</span>`;
 
   return `
   <div id="view-${f.id}" class="view">
     <!-- HEADER -->
     <div class="feature-header">
       <div class="feature-title-block">
-        <h2>${f.icon} ${f.title}</h2>
+        <h2><span class="material-symbols-rounded" style="font-size:20px;vertical-align:middle;margin-right:8px;opacity:.8">${f.icon}</span>${f.title}</h2>
         <div class="feature-meta-row">
           <select id="${f.id}_status_sel"
             class="status-select ${STATUS_BADGE[status] || 'badge-done'}"
@@ -2951,18 +3533,26 @@ function buildFeatureView(f) {
               `<option value="${s}" ${status===s?'selected':''}>${s}</option>`).join('')}
           </select>
           <span class="meta-sep">|</span>
-          <span>${f.customer}</span>
+          <span class="meta-customer">${f.customer}</span>
           <span class="meta-sep">|</span>
           <span>Due: <input class="due-input" value="${due}"
             onchange="handleDueChange('${f.id}', this.value)"
             onblur="handleDueChange('${f.id}', this.value)" /></span>
         </div>
       </div>
+      ${f.isCustom ? `<div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn" style="display:flex;align-items:center;gap:5px" onclick="openEditFeatureModal('${f.id}')">
+          <span class="material-symbols-rounded" style="font-size:15px">edit</span> Edit Info
+        </button>
+        <button class="btn" style="border-color:var(--red);color:var(--red);display:flex;align-items:center;gap:5px" onclick="deleteCustomFeature('${f.id}')">
+          <span class="material-symbols-rounded" style="font-size:15px">delete</span> Delete
+        </button>
+      </div>` : ''}
     </div>
 
     <!-- CURRENT FOCUS RIBBON -->
     <div class="focus-ribbon">
-      <div class="focus-ribbon-icon">🎯</div>
+      <div class="focus-ribbon-icon"><span class="material-symbols-rounded" style="font-size:22px">my_location</span></div>
       <div class="focus-ribbon-text">
         <strong>Current Focus</strong>
         <span id="${f.id}_step_display">${currentStep}</span>
@@ -2980,45 +3570,27 @@ function buildFeatureView(f) {
     <!-- TABS -->
     <div class="tabs">
       <div class="tab active" onclick="switchTab('${f.id}', 'context', this)">Context</div>
-      <div class="tab" onclick="switchTab('${f.id}', 'todo', this)">What's Left</div>
-      <div class="tab" onclick="switchTab('${f.id}', 'done', this)">What's Done</div>
-      <div class="tab" onclick="switchTab('${f.id}', 'questions', this)">Open Questions</div>
-      <div class="tab" onclick="switchTab('${f.id}', 'notes', this)">My Notes</div>
-      <div class="tab" onclick="switchTab('${f.id}', 'design', this)">Design</div>
-      ${f.hasDoc ? `<div class="tab" onclick="switchTab('${f.id}', 'docs', this)">${f.docLabel || 'Docs'}</div>` : ''}
-      ${f.hasDomainDoc ? `<div class="tab" onclick="switchTab('${f.id}', 'ddocs', this)">Domain Docs</div>` : ''}
-      <div class="tab" onclick="switchTab('${f.id}', 'calls', this)">Customer Calls</div>
-      <div class="tab" onclick="switchTab('${f.id}', 'handoff', this); renderHandoff('${f.id}')">Design Handoff</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'dknowledge', this)">Domain Knowledge</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'calls', this)">Customer Context</div>
+      ${f.hasDomainDoc ? `<div class="tab" onclick="switchTab('${f.id}', 'ddocs', this)">Feature Brief</div>` : ''}
+      ${f.hasDoc && f.docLabel !== 'Design Spec' ? `<div class="tab" onclick="switchTab('${f.id}', 'docs', this)">${f.docLabel === 'Feature Understanding' ? 'Feature Brief' : (f.docLabel || 'Docs')}</div>` : ''}
+      <div class="tab" onclick="switchTab('${f.id}', 'questions', this)">Q&amp;A</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'spec', this)">Design Spec</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'design', this)">Design Notes</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'notes', this)">Notes</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'todo', this)">Next Tasks</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'done', this)">Completed</div>
     </div>
 
     <!-- CONTEXT TAB -->
     <div id="${f.id}_tab_context" class="tab-panel active">
-      <div class="context-card">
-        <h3>📖 Summary</h3>
-        <p>${f.summary}</p>
-      </div>
-      <div class="context-card">
-        <h3>✅ Key Decisions</h3>
-        ${decisionsHtml}
-      </div>
-      <div class="context-card">
-        <h3>🚫 Constraints &amp; Non-goals</h3>
-        <div>${constraintsHtml}</div>
-      </div>
-      <div class="context-card">
-        <h3>👥 Team</h3>
-        ${teamHtml}
-      </div>
-      <div class="context-card">
-        <h3>🔗 Links</h3>
-        ${linksHtml}
-      </div>
+      ${buildContextTabHtml(f)}
     </div>
 
     <!-- TODO TAB -->
     <div id="${f.id}_tab_todo" class="tab-panel">
       <div class="context-card">
-        <h3>🔲 Design Tasks Remaining</h3>
+        <h3><span class="material-symbols-rounded ctx-icon">pending_actions</span> Design Tasks Remaining</h3>
         <ul class="checklist" id="${f.id}_todo_list"></ul>
         <div class="add-item-row">
           <input class="add-item-input" id="${f.id}_add_todo" placeholder="Add a task…"
@@ -3031,7 +3603,7 @@ function buildFeatureView(f) {
     <!-- DONE TAB -->
     <div id="${f.id}_tab_done" class="tab-panel">
       <div class="context-card">
-        <h3>✅ Completed</h3>
+        <h3><span class="material-symbols-rounded ctx-icon">check_circle</span> Completed</h3>
         <ul class="done-list" id="${f.id}_done_list"></ul>
         <div class="add-item-row">
           <input class="add-item-input" id="${f.id}_add_done" placeholder="Add a completed item…"
@@ -3044,7 +3616,7 @@ function buildFeatureView(f) {
     <!-- QUESTIONS TAB -->
     <div id="${f.id}_tab_questions" class="tab-panel">
       <div class="context-card">
-        <h3>❓ Open Questions</h3>
+        <h3><span class="material-symbols-rounded ctx-icon">help</span> Q&amp;A</h3>
         <div id="${f.id}_q_list"></div>
         <div class="add-item-row">
           <input class="add-item-input" id="${f.id}_add_q" placeholder="Add a question…"
@@ -3056,43 +3628,17 @@ function buildFeatureView(f) {
 
     <!-- NOTES TAB -->
     <div id="${f.id}_tab_notes" class="tab-panel">
-      <div class="context-card">
-        <h3>📝 My Notes</h3>
-        <textarea class="editable-note" id="${f.id}_notes"
-          placeholder="Write anything here — meeting takeaways, open threads, reminders..."
-          oninput="handleNotes('${f.id}', this.value)">${notes}</textarea>
-      </div>
+      <div id="${f.id}_notes_panel"></div>
     </div>
 
     <!-- DESIGN TAB -->
     <div id="${f.id}_tab_design" class="tab-panel">
-      <div class="context-card">
-        <h3>🎨 Figma / Prototype</h3>
-        <input class="design-link-input" id="${f.id}_figma_link"
-          placeholder="Paste Figma or prototype URL..."
-          value="${figmaLink}"
-          onchange="saveFigmaLink('${f.id}', this.value)"
-          onblur="saveFigmaLink('${f.id}', this.value)" />
-        <a id="${f.id}_figma_open" class="link-chip design-open-btn"
-          href="${figmaLink}" target="_blank"
-          style="display:${figmaLink ? 'inline-flex' : 'none'}">↗ Open Design</a>
-      </div>
-      <div class="context-card">
-        <h3>🖼 Screenshots</h3>
-        <div id="${f.id}_design_imgs" class="design-img-grid"></div>
-        <div class="add-item-row">
-          <input class="add-item-input" id="${f.id}_add_img"
-            placeholder="Paste image URL to add screenshot…"
-            onkeydown="if(event.key==='Enter')addDesignImg('${f.id}')" />
-          <button class="btn btn-primary" onclick="addDesignImg('${f.id}')">Add</button>
-        </div>
-      </div>
-      <div class="context-card">
-        <h3>📝 Design Notes</h3>
-        <textarea class="editable-note" id="${f.id}_design_notes"
-          placeholder="Decisions, reviewer feedback, open design questions, what changed…"
-          oninput="saveDesignNotes('${f.id}', this.value)">${designNotes}</textarea>
-      </div>
+      <div id="${f.id}_design_panel"></div>
+    </div>
+
+    <!-- DESIGN SPEC TAB -->
+    <div id="${f.id}_tab_spec" class="tab-panel">
+      <div id="${f.id}_spec_panel"></div>
     </div>
 
     <!-- DOCS TAB -->
@@ -3107,14 +3653,17 @@ function buildFeatureView(f) {
       <div id="${f.id}_ddocs_view"></div>
     </div>` : ''}
 
+    <!-- DOMAIN KNOWLEDGE TAB -->
+    <div id="${f.id}_tab_dknowledge" class="tab-panel">
+      <div id="${f.id}_dk_list"></div>
+      <div style="margin-top:14px">
+        <button class="btn btn-primary" onclick="addDomainKnowledge('${f.id}')">+ Add Entry</button>
+      </div>
+    </div>
+
     <!-- CUSTOMER CALLS TAB -->
     <div id="${f.id}_tab_calls" class="tab-panel">
       <div id="${f.id}_calls_list"></div>
-    </div>
-
-    <!-- DESIGN HANDOFF TAB -->
-    <div id="${f.id}_tab_handoff" class="tab-panel">
-      <div id="${f.id}_handoff_body"></div>
     </div>
   </div>`;
 }
@@ -3127,7 +3676,7 @@ function switchTab(featureId, tabName, el) {
   allTabs.forEach(t => t.classList.remove('active'));
   el.classList.add('active');
 
-  const panels = ['context','todo','done','questions','notes','design','docs','ddocs','calls','handoff'];
+  const panels = ['context','todo','done','questions','notes','design','spec','docs','ddocs','dknowledge','calls'];
   panels.forEach(p => {
     const panel = document.getElementById(`${featureId}_tab_${p}`);
     if (panel) panel.classList.toggle('active', p === tabName);
@@ -3183,7 +3732,7 @@ function handleDueChange(featureId, val) {
 
 // ── TODO ──────────────────────────────────────────────────────
 function renderTodoList(featureId) {
-  const f = FEATURES.find(x => x.id === featureId);
+  const f = getAllFeatures().find(x => x.id === featureId);
   const el = document.getElementById(`${featureId}_todo_list`);
   if (!f || !el) return;
   const checked = getChecked(featureId);
@@ -3201,7 +3750,7 @@ function renderTodoList(featureId) {
     return `<li class="check-item">
       <input type="checkbox" id="${featureId}_td_${idx}" ${done?'checked':''} onchange="handleCheck('${featureId}',${idx},this.checked)"/>
       <label class="check-label${done?' done':''}" for="${featureId}_td_${idx}">${item}</label>
-      <button class="remove-btn" onclick="removeCustomTodo('${featureId}',${i})">×</button>
+      <button class="remove-btn" title="Remove" onclick="removeCustomTodo('${featureId}',${i})"><span class="material-symbols-rounded">delete</span></button>
     </li>`;
   }).join('');
   el.innerHTML = (base + extra) || `<li style="list-style:none;display:block"><div class="empty-state"><h3>No tasks yet</h3><p>Add what still needs to be designed or decided.</p><button class="btn btn-primary" onclick="document.getElementById('${featureId}_add_todo').focus()">+ Add Task</button></div></li>`;
@@ -3223,13 +3772,13 @@ function removeCustomTodo(featureId, i) {
 
 // ── DONE ──────────────────────────────────────────────────────
 function renderDoneList(featureId) {
-  const f = FEATURES.find(x => x.id === featureId);
+  const f = getAllFeatures().find(x => x.id === featureId);
   const el = document.getElementById(`${featureId}_done_list`);
   if (!f || !el) return;
   const custom = getFeatureState(featureId).customDone || [];
   const base = f.done.map(d => `<li class="done-item"><span>${d}</span></li>`).join('');
   const extra = custom.map((item, i) => `<li class="done-item" style="justify-content:space-between">
-    <span>${item}</span><button class="remove-btn" onclick="removeCustomDone('${featureId}',${i})">×</button>
+    <span>${item}</span><button class="remove-btn" title="Remove" onclick="removeCustomDone('${featureId}',${i})"><span class="material-symbols-rounded">delete</span></button>
   </li>`).join('');
   el.innerHTML = (base + extra) || `<li style="list-style:none;display:block"><div class="empty-state"><h3>Nothing completed yet</h3><p>Add items you've already finished to track progress.</p><button class="btn btn-primary" onclick="document.getElementById('${featureId}_add_done').focus()">+ Add Item</button></div></li>`;
 }
@@ -3249,41 +3798,241 @@ function removeCustomDone(featureId, i) {
 }
 
 // ── QUESTIONS ─────────────────────────────────────────────────
+function autoResizeQText(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
 function renderQuestionsList(featureId) {
-  const f = FEATURES.find(x => x.id === featureId);
+  const f = getAllFeatures().find(x => x.id === featureId);
   const el = document.getElementById(`${featureId}_q_list`);
   if (!f || !el) return;
   const st = getFeatureState(featureId);
   const resolvedBase = st.resolvedBase || {};
   const resolvedCustom = st.resolvedCustom || {};
   const custom = st.customQuestions || [];
+  const deletedBase = st.deletedBase || {};
+  const answers = st.questionAnswers || {};
+  const attachments = st.qAttachments || {};
 
-  const baseHtml = f.questions.map((q, i) => {
-    const res = !!resolvedBase[i];
-    return `<div class="question-card" style="${res?'opacity:.4':''}">
-      <p style="${res?'text-decoration:line-through':''}">${q}</p>
-      <div class="question-actions">
-        <button class="resolve-btn${res?' resolved':''}" onclick="${res?`unresolveQ('${featureId}','base',${i})`:`resolveQ('${featureId}','base',${i})`}">
-          ${res?'Reopen':'Mark resolved'}
+  function answerBlock(key) {
+    const ans = answers[key] || '';
+    const isEditing = !!_answerEditMode[`${featureId}_${key}`];
+
+    if (!ans && !isEditing) {
+      return `<div class="q-answer-section">
+        <button class="q-add-answer-btn" onclick="openAnswerEdit('${featureId}','${key}')">
+          <span class="material-symbols-rounded">add_comment</span> Add answer…
         </button>
+      </div>`;
+    }
+
+    if (isEditing) {
+      return `<div class="q-answer-section">
+        <div class="q-answer-header" style="margin-bottom:6px">
+          <span class="q-answer-label"><span class="material-symbols-rounded" style="font-size:12px">question_answer</span> Answer</span>
+        </div>
+        <textarea class="q-answer-input" id="qa_input_${featureId}_${key}"
+          placeholder="Type your answer… (markdown supported)"
+          autofocus>${escHtml(ans)}</textarea>
+        <div class="q-answer-editor-acts">
+          <button class="btn btn-primary" style="font-size:12px;padding:5px 12px"
+            onclick="saveAnswerFromEditor('${featureId}','${key}')">Save</button>
+          <button class="btn" style="font-size:12px;padding:5px 12px"
+            onclick="closeAnswerEdit('${featureId}','${key}')">${ans ? 'Cancel' : 'Discard'}</button>
+        </div>
+      </div>`;
+    }
+
+    // Has answer, not editing
+    return `<div class="q-answer-section">
+      <div class="q-answer-card">
+        <div class="q-answer-card-header">
+          <span class="q-answer-label"><span class="material-symbols-rounded" style="font-size:12px">question_answer</span> Answer</span>
+          <div class="q-answer-acts">
+            <button class="q-icon-btn" title="Edit answer" onclick="openAnswerEdit('${featureId}','${key}')">
+              <span class="material-symbols-rounded">edit</span>
+            </button>
+            <button class="q-icon-btn del" title="Delete answer" onclick="deleteAnswer('${featureId}','${key}')">
+              <span class="material-symbols-rounded">delete</span>
+            </button>
+          </div>
+        </div>
+        <div class="q-answer-display">${typeof marked !== 'undefined' ? marked.parse(ans) : escHtml(ans)}</div>
       </div>
     </div>`;
+  }
+
+  function attachBlock(key) {
+    const items = attachments[key] || [];
+    if (!items.length) return `<div class="q-attachments" id="qa_attach_${featureId}_${key}"></div>`;
+    const chips = items.map(a => {
+      if (a.type === 'image') {
+        return '<div class="q-attach-img-wrap"><img class="q-attach-img" src="' + escHtml(a.url) + '" onclick="window.open(\'' + escHtml(a.url) + '\',\'_blank\')" onerror="this.parentElement.style.display=\'none\'" /><button class="q-attach-img-remove" title="Remove" onclick="removeQAttachment(\'' + featureId + '\',\'' + key + '\',\'' + a.id + '\')"><span class="material-symbols-rounded">close</span></button></div>';
+      }
+      const label = a.url.length > 52 ? a.url.slice(0, 52) + '\u2026' : a.url;
+      return '<a class="q-attach-chip" href="' + escHtml(a.url) + '" target="_blank"><span class="material-symbols-rounded" style="font-size:12px">open_in_new</span><span class="chip-label">' + escHtml(label) + '</span><button class="chip-remove" title="Remove" onclick="event.preventDefault();removeQAttachment(\'' + featureId + '\',\'' + key + '\',\'' + a.id + '\')"><span class="material-symbols-rounded">close</span></button></a>';
+    }).join('');
+    return `<div class="q-attachments" id="qa_attach_${featureId}_${key}">${chips}</div>`;
+  }
+
+  function buildCard(q, key, type, idx, res, resolveCmd, deleteCmd) {
+    const displayText = (type === 'base' && st.editedBase && st.editedBase[idx] !== undefined) ? st.editedBase[idx] : q;
+    return `<div class="question-card${res ? ' q-resolved' : ''}">
+      <div class="q-header">
+        <textarea class="q-text" id="q_text_${featureId}_${key}"
+          onblur="saveQuestionText('${featureId}','${type}',${idx},this.value)"
+          oninput="autoResizeQText(this)">${escHtml(displayText)}</textarea>
+        <div class="q-acts">
+          <button class="q-icon-btn${res ? ' resolved' : ''}" title="${res ? 'Reopen' : 'Resolve'}" onclick="${resolveCmd}">
+            <span class="material-symbols-rounded">${res ? 'undo' : 'check_circle'}</span>
+          </button>
+          <button class="q-icon-btn" id="q_attachbtn_${featureId}_${key}" title="Attach" onclick="toggleQAttach('${featureId}','${key}')">
+            <span class="material-symbols-rounded">attach_file</span>
+          </button>
+          <button class="q-icon-btn del" title="Delete" onclick="${deleteCmd}">
+            <span class="material-symbols-rounded">delete</span>
+          </button>
+        </div>
+      </div>
+      ${attachBlock(key)}
+      ${answerBlock(key)}
+      <div class="q-attach-row" id="q_attachrow_${featureId}_${key}">
+        <input id="q_attachurl_${featureId}_${key}"
+          placeholder="Paste URL or Ctrl+V to paste screenshot…"
+          onkeydown="if(event.key==='Enter')addQAttachment('${featureId}','${key}')"
+          onpaste="handleQAttachPaste(event,'${featureId}','${key}')" />
+        <button class="btn btn-primary" style="white-space:nowrap;font-size:11px;padding:5px 10px"
+          onclick="addQAttachment('${featureId}','${key}')">Add</button>
+      </div>
+      <div class="q-paste-hint" id="q_pastehint_${featureId}_${key}" style="display:none">
+        <span class="material-symbols-rounded">image</span> Screenshot pasted — saved above
+      </div>
+    </div>`;
+  }
+
+  const baseHtml = f.questions.map((q, i) => {
+    if (deletedBase[i]) return '';
+    const res = !!resolvedBase[i];
+    const key = 'base_' + i;
+    const resolveCmd = res ? `unresolveQ('${featureId}','base',${i})` : `resolveQ('${featureId}','base',${i})`;
+    return buildCard(q, key, 'base', i, res, resolveCmd, `deleteBaseQ('${featureId}',${i})`);
   }).join('');
 
   const customHtml = custom.map((q, i) => {
     const res = !!resolvedCustom[i];
-    return `<div class="question-card" style="${res?'opacity:.4':''}">
-      <p style="${res?'text-decoration:line-through':''}">${q}</p>
-      <div class="question-actions">
-        <button class="resolve-btn${res?' resolved':''}" onclick="${res?`unresolveQ('${featureId}','custom',${i})`:`resolveQ('${featureId}','custom',${i})`}">
-          ${res?'Reopen':'Mark resolved'}
-        </button>
-        <button class="remove-btn" onclick="removeCustomQ('${featureId}',${i})">×</button>
-      </div>
+    const key = 'custom_' + i;
+    const resolveCmd = res ? `unresolveQ('${featureId}','custom',${i})` : `resolveQ('${featureId}','custom',${i})`;
+    return buildCard(q, key, 'custom', i, res, resolveCmd, `removeCustomQ('${featureId}',${i})`);
+  }).join('');
+
+  // ── Deleted section ──────────────────────────────
+  const deletedBaseItems = f.questions.map((q, i) => {
+    if (!deletedBase[i]) return '';
+    const displayText = (st.editedBase && st.editedBase[i] !== undefined) ? st.editedBase[i] : q;
+    return `<div class="deleted-q-item">
+      <span class="deleted-q-text">${escHtml(displayText)}</span>
+      <button class="restore-btn" onclick="restoreBaseQ('${featureId}',${i})">
+        <span class="material-symbols-rounded">undo</span> Restore
+      </button>
     </div>`;
   }).join('');
 
-  el.innerHTML = (baseHtml + customHtml) || `<div class="empty-state"><h3>No open questions</h3><p>Add anything that still needs an answer below.</p><button class="btn btn-primary" onclick="document.getElementById('${featureId}_add_q').focus()">+ Add Question</button></div>`;
+  const deletedCustomItems = (st.deletedCustomQuestions || []).map(d =>
+    `<div class="deleted-q-item">
+      <span class="deleted-q-text">${escHtml(d.text)}</span>
+      <button class="restore-btn" onclick="restoreCustomQ('${featureId}','${d.id}')">
+        <span class="material-symbols-rounded">undo</span> Restore
+      </button>
+    </div>`
+  ).join('');
+
+  const deletedHtml = deletedBaseItems + deletedCustomItems;
+  const deletedSection = deletedHtml ? `
+    <button class="deleted-q-toggle" id="${featureId}_deleted_q_btn" onclick="toggleDeletedQ('${featureId}')">
+      <span class="material-symbols-rounded">expand_more</span>
+      ${(Object.values(deletedBase).filter(Boolean).length + (st.deletedCustomQuestions || []).length)} deleted question(s) — click to restore
+    </button>
+    <div id="${featureId}_deleted_q_list" style="display:none">${deletedHtml}</div>` : '';
+
+  el.innerHTML = ((baseHtml + customHtml) || `<div class="empty-state"><h3>No questions yet</h3><p>Add anything that still needs an answer below.</p><button class="btn btn-primary" onclick="document.getElementById('${featureId}_add_q').focus()">+ Add Question</button></div>`) + deletedSection;
+  setTimeout(() => el.querySelectorAll('.q-text').forEach(autoResizeQText), 0);
+}
+
+function deleteBaseQ(featureId, i) {
+  const del = { ...(getFeatureState(featureId).deletedBase || {}), [i]: true };
+  updateFeatureState(featureId, { deletedBase: del });
+  renderQuestionsList(featureId);
+}
+
+// Answer edit mode state (in-memory, resets on page reload — answers persist in localStorage)
+const _answerEditMode = {};
+
+function openAnswerEdit(featureId, key) {
+  _answerEditMode[`${featureId}_${key}`] = true;
+  renderQuestionsList(featureId);
+  setTimeout(() => {
+    const ta = document.getElementById(`qa_input_${featureId}_${key}`);
+    if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  }, 30);
+}
+
+function closeAnswerEdit(featureId, key) {
+  delete _answerEditMode[`${featureId}_${key}`];
+  renderQuestionsList(featureId);
+}
+
+function saveAnswerFromEditor(featureId, key) {
+  const ta = document.getElementById(`qa_input_${featureId}_${key}`);
+  if (!ta) return;
+  const val = ta.value.trim();
+  delete _answerEditMode[`${featureId}_${key}`];
+  const answers = { ...(getFeatureState(featureId).questionAnswers || {}), [key]: val };
+  if (!val) delete answers[key];
+  updateFeatureState(featureId, { questionAnswers: answers });
+  renderQuestionsList(featureId);
+}
+
+function saveAnswer(featureId, key, value) {
+  const answers = { ...(getFeatureState(featureId).questionAnswers || {}), [key]: value };
+  updateFeatureState(featureId, { questionAnswers: answers });
+}
+
+function deleteAnswer(featureId, key) {
+  delete _answerEditMode[`${featureId}_${key}`];
+  const answers = { ...(getFeatureState(featureId).questionAnswers || {}) };
+  delete answers[key];
+  updateFeatureState(featureId, { questionAnswers: answers });
+  renderQuestionsList(featureId);
+}
+
+function handleQAttachPaste(event, featureId, key) {
+  const items = event.clipboardData && event.clipboardData.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      event.preventDefault();
+      const blob = item.getAsFile();
+      if (!blob) continue;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const url = e.target.result; // data URL
+        const existing = getQAttachments(featureId);
+        const newA = { id: Date.now().toString(), url, type: 'image' };
+        const updated = { ...existing, [key]: [...(existing[key] || []), newA] };
+        updateFeatureState(featureId, { qAttachments: updated });
+        renderQuestionsList(featureId);
+        // Show brief hint
+        const hint = document.getElementById(`q_pastehint_${featureId}_${key}`);
+        if (hint) {
+          hint.style.display = 'flex';
+          setTimeout(() => { hint.style.display = 'none'; }, 2500);
+        }
+      };
+      reader.readAsDataURL(blob);
+      return;
+    }
+  }
 }
 
 function resolveQ(featureId, type, i) {
@@ -3304,8 +4053,91 @@ function addQuestion(featureId) {
   renderQuestionsList(featureId);
 }
 function removeCustomQ(featureId, i) {
-  const items = (getFeatureState(featureId).customQuestions || []).filter((_,j) => j !== i);
-  updateFeatureState(featureId, { customQuestions: items }); renderQuestionsList(featureId);
+  const st = getFeatureState(featureId);
+  const items = st.customQuestions || [];
+  const text = items[i];
+  if (!text) return;
+  const remaining = items.filter((_, j) => j !== i);
+  const deleted = [...(st.deletedCustomQuestions || []), { id: Date.now().toString(), text }];
+  updateFeatureState(featureId, { customQuestions: remaining, deletedCustomQuestions: deleted });
+  renderQuestionsList(featureId);
+}
+
+function restoreBaseQ(featureId, i) {
+  const del = { ...(getFeatureState(featureId).deletedBase || {}) };
+  delete del[i];
+  updateFeatureState(featureId, { deletedBase: del });
+  renderQuestionsList(featureId);
+}
+
+function restoreCustomQ(featureId, id) {
+  const st = getFeatureState(featureId);
+  const deletedCustom = st.deletedCustomQuestions || [];
+  const item = deletedCustom.find(d => d.id === id);
+  if (!item) return;
+  const remaining = deletedCustom.filter(d => d.id !== id);
+  const customQuestions = [...(st.customQuestions || []), item.text];
+  updateFeatureState(featureId, { deletedCustomQuestions: remaining, customQuestions });
+  renderQuestionsList(featureId);
+}
+
+function toggleDeletedQ(featureId) {
+  const list = document.getElementById(`${featureId}_deleted_q_list`);
+  const btn = document.getElementById(`${featureId}_deleted_q_btn`);
+  if (!list) return;
+  const open = list.style.display !== 'none';
+  list.style.display = open ? 'none' : 'block';
+  if (btn) {
+    const icon = btn.querySelector('.material-symbols-rounded');
+    if (icon) icon.textContent = open ? 'expand_more' : 'expand_less';
+  }
+}
+
+function saveQuestionText(featureId, type, idx, value) {
+  if (!value.trim()) return;
+  if (type === 'base') {
+    const editedBase = { ...(getFeatureState(featureId).editedBase || {}), [idx]: value };
+    updateFeatureState(featureId, { editedBase });
+  } else {
+    const items = (getFeatureState(featureId).customQuestions || []).map((q, i) => i === idx ? value : q);
+    updateFeatureState(featureId, { customQuestions: items });
+  }
+}
+
+function getQAttachments(featureId) {
+  return getFeatureState(featureId).qAttachments || {};
+}
+
+function toggleQAttach(featureId, key) {
+  const row = document.getElementById(`q_attachrow_${featureId}_${key}`);
+  const btn = document.getElementById(`q_attachbtn_${featureId}_${key}`);
+  if (!row) return;
+  row.classList.toggle('open');
+  if (btn) btn.classList.toggle('attach-active', row.classList.contains('open'));
+  if (row.classList.contains('open')) {
+    const inp = document.getElementById(`q_attachurl_${featureId}_${key}`);
+    if (inp) inp.focus();
+  }
+}
+
+function addQAttachment(featureId, key) {
+  const inp = document.getElementById(`q_attachurl_${featureId}_${key}`);
+  const url = inp ? inp.value.trim() : '';
+  if (!url) return;
+  const existing = getQAttachments(featureId);
+  const isImage = /\.(png|jpg|jpeg|gif|webp|svg)(\?.*)?$/i.test(url);
+  const newA = { id: Date.now().toString(), url, type: isImage ? 'image' : 'link' };
+  const updated = { ...existing, [key]: [...(existing[key] || []), newA] };
+  updateFeatureState(featureId, { qAttachments: updated });
+  if (inp) inp.value = '';
+  renderQuestionsList(featureId);
+}
+
+function removeQAttachment(featureId, key, attachId) {
+  const existing = getQAttachments(featureId);
+  const updated = { ...existing, [key]: (existing[key] || []).filter(a => a.id !== attachId) };
+  updateFeatureState(featureId, { qAttachments: updated });
+  renderQuestionsList(featureId);
 }
 
 function getFigmaLink(id) {
@@ -3350,19 +4182,23 @@ function renderDesignImgs(id) {
     <div class="design-img-card">
       <img src="${url}" onerror="this.style.display='none'" />
       <div class="img-url">${url}</div>
-      <button class="img-remove" onclick="removeDesignImg('${id}',${i})">✕</button>
+      <button class="img-remove" onclick="removeDesignImg('${id}',${i})" title="Remove"><span class="material-symbols-rounded" style="font-size:13px">close</span></button>
     </div>`).join('') : `<div class="empty-state"><h3>No screenshots yet</h3><p>Paste a screenshot URL using the field below.</p><button class="btn btn-primary" onclick="document.getElementById('${id}_add_img').focus()">+ Add Screenshot</button></div>`;
 }
 function renderAllDesignImgs() {
-  FEATURES.forEach(f => renderDesignImgs(f.id));
+  getAllFeatures().forEach(f => renderDesignImgs(f.id));
 }
 
 function renderAllSections() {
-  FEATURES.forEach(f => {
+  getAllFeatures().forEach(f => {
     renderTodoList(f.id);
     renderDoneList(f.id);
     renderQuestionsList(f.id);
     renderCallsList(f.id);
+    renderDomainKnowledgeList(f.id);
+    renderNotesTab(f.id);
+    renderDesignTab(f.id);
+    renderDesignSpecTab(f.id);
   });
 }
 
@@ -3370,7 +4206,7 @@ function renderAllSections() {
 //  DOCS RENDERING
 // ═══════════════════════════════════════════════════════════════
 function renderDocs() {
-  FEATURES.filter(f => f.hasDoc).forEach(f => {
+  getAllFeatures().filter(f => f.hasDoc).forEach(f => {
     const container = document.getElementById(`${f.id}_docs_view`);
     if (!container) return;
 
@@ -3422,7 +4258,7 @@ function renderDocs() {
 }
 
 function renderDomainDocs() {
-  FEATURES.filter(f => f.hasDomainDoc).forEach(f => {
+  getAllFeatures().filter(f => f.hasDomainDoc).forEach(f => {
     const container = document.getElementById(`${f.id}_ddocs_view`);
     if (!container) return;
     const rawEl = document.getElementById(`ddoc-${f.id}`);
@@ -3539,8 +4375,8 @@ function buildCallCard(featureId, call) {
         value="${escHtml(call.date)}"
         placeholder="Date (e.g. Jan 23, 2026)"
         onblur="updateCallField('${featureId}','${call.id}','date',this.value)" />
-      <button class="remove-btn" style="font-size:17px" title="Remove call"
-        onclick="removeCall('${featureId}','${call.id}')">×</button>
+      <button class="remove-btn" title="Remove call"
+        onclick="removeCall('${featureId}','${call.id}')"><span class="material-symbols-rounded">delete</span></button>
     </div>
 
     <div class="call-section-label">Call Recording Link</div>
@@ -3567,17 +4403,17 @@ function buildCallCard(featureId, call) {
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <button class="generate-btn" id="gen_${call.id}"
             onclick="copyPromptForAI('${featureId}','${call.id}')">
-            ✦ Copy prompt → Claude.ai
+            <span class="material-symbols-rounded" style="font-size:13px">auto_awesome</span> Copy prompt → Claude.ai
           </button>
           <span id="summary_btns_${call.id}"
             style="display:${hasSummary ? 'flex' : 'none'};gap:6px;align-items:center">
-            <button class="btn" style="font-size:11px;padding:5px 10px"
-              onclick="copySummary('${featureId}','${call.id}')">Copy</button>
-            <button class="btn" style="font-size:11px;padding:5px 10px"
-              onclick="expandSummary('${featureId}','${call.id}')">⤢ Expand</button>
-            <button class="btn" style="font-size:11px;padding:5px 10px"
+            <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
+              onclick="copySummary('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">content_copy</span> Copy</button>
+            <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
+              onclick="expandSummary('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">open_in_full</span> Expand</button>
+            <button class="btn" style="font-size:11px;padding:5px 10px;display:inline-flex;align-items:center;gap:3px"
               id="edit_summary_btn_${call.id}"
-              onclick="toggleSummaryEdit('${featureId}','${call.id}')">Edit</button>
+              onclick="toggleSummaryEdit('${featureId}','${call.id}')"><span class="material-symbols-rounded" style="font-size:13px">edit</span> Edit</button>
           </span>
         </div>
       </div>
@@ -3610,7 +4446,7 @@ function saveSummaryFromBlur(featureId, callId) {
   if (btns) btns.style.display = 'flex';
 
   const editBtn = document.getElementById(`edit_summary_btn_${callId}`);
-  if (editBtn) editBtn.textContent = 'Edit';
+  if (editBtn) editBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size:13px">edit</span> Edit';
 
   // Block the immediately-following button click from re-entering edit mode
   _summaryBlurLock[callId] = true;
@@ -3631,13 +4467,13 @@ function toggleSummaryEdit(featureId, callId) {
     updateCallField(featureId, callId, 'summary', val);
     if (rendered) { rendered.innerHTML = marked.parse(val); rendered.style.display = 'block'; }
     ta.style.display = 'none';
-    if (editBtn) editBtn.textContent = 'Edit';
+    if (editBtn) editBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size:13px">edit</span> Edit';
   } else {
     // Switch to edit mode
     if (rendered) rendered.style.display = 'none';
     ta.style.display = 'block';
     ta.focus();
-    if (editBtn) editBtn.textContent = 'Done';
+    if (editBtn) editBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size:13px">check</span> Done';
   }
 }
 
@@ -3680,7 +4516,7 @@ function copyPromptForAI(featureId, callId) {
     return;
   }
 
-  const f = FEATURES.find(x => x.id === featureId);
+  const f = getAllFeatures().find(x => x.id === featureId);
 
   const prompt = `You are a product design assistant at BuildOps summarizing a customer discovery call for a Staff Product Designer.
 
@@ -3704,12 +4540,12 @@ ${call.transcript}`;
   navigator.clipboard.writeText(prompt).then(() => {
     const btn = document.getElementById(`gen_${callId}`);
     if (btn) {
-      btn.textContent = '✓ Copied! Paste into Claude.ai';
+      btn.innerHTML = '<span class="material-symbols-rounded" style="font-size:13px">check_circle</span> Copied! Paste into Claude.ai';
       btn.style.background = 'var(--green-bg)';
       btn.style.color = 'var(--green)';
       btn.style.borderColor = 'var(--green)';
       setTimeout(() => {
-        btn.textContent = '✦ Copy prompt → Claude.ai';
+        btn.innerHTML = '<span class="material-symbols-rounded" style="font-size:13px">auto_awesome</span> Copy prompt → Claude.ai';
         btn.style.background = '';
         btn.style.color = '';
         btn.style.borderColor = '';
@@ -3722,410 +4558,1218 @@ ${call.transcript}`;
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  DESIGN HANDOFF
+//  DOMAIN KNOWLEDGE
 // ═══════════════════════════════════════════════════════════════
-
-function getHandoffScreens(featureId) {
-  return getFeatureState(featureId).handoffScreens || null;
+function getDomainKnowledge(featureId) {
+  return getFeatureState(featureId).domainKnowledge || [];
 }
 
-function saveHandoffScreens(featureId, screens) {
-  updateFeatureState(featureId, { handoffScreens: screens });
+function addDomainKnowledge(featureId) {
+  const entries = getDomainKnowledge(featureId);
+  const id = Date.now().toString();
+  updateFeatureState(featureId, { domainKnowledge: [...entries, { id, title: '', content: '' }] });
+  renderDomainKnowledgeList(featureId);
+  // Auto-expand the new entry
+  setTimeout(() => {
+    const body = document.getElementById(`dk_body_${featureId}_${id}`);
+    const chevron = document.getElementById(`dk_chevron_${featureId}_${id}`);
+    if (body) body.classList.add('open');
+    if (chevron) chevron.classList.add('open');
+    const titleInput = document.querySelector(`#dk_body_${featureId}_${id}`)?.closest('.dk-entry')?.querySelector('.dk-entry-title-input');
+    if (titleInput) titleInput.focus();
+  }, 50);
 }
 
-function initHandoffScreens(featureId) {
-  let screens = getHandoffScreens(featureId);
-  if (!screens) {
-    const f = FEATURES.find(x => x.id === featureId);
-    screens = (f ? (f.todo || []) : []).map((label, i) => ({
-      id: `screen-${Date.now()}-${i}`,
-      label,
-      imageData: null,
-      pins: [],
-      drawingData: null,
-    }));
-    saveHandoffScreens(featureId, screens);
+function removeDomainKnowledge(featureId, id) {
+  const entries = getDomainKnowledge(featureId).filter(e => e.id !== id);
+  updateFeatureState(featureId, { domainKnowledge: entries });
+  renderDomainKnowledgeList(featureId);
+}
+
+function updateDKField(featureId, id, field, value) {
+  const entries = getDomainKnowledge(featureId).map(e =>
+    e.id === id ? { ...e, [field]: value } : e
+  );
+  updateFeatureState(featureId, { domainKnowledge: entries });
+}
+
+function toggleDKEntry(featureId, id) {
+  const body = document.getElementById(`dk_body_${featureId}_${id}`);
+  const chevron = document.getElementById(`dk_chevron_${featureId}_${id}`);
+  if (!body) return;
+  body.classList.toggle('open');
+  if (chevron) chevron.classList.toggle('open');
+}
+
+function toggleDKEdit(featureId, id) {
+  const ta = document.getElementById(`dk_ta_${featureId}_${id}`);
+  const rendered = document.getElementById(`dk_rendered_${featureId}_${id}`);
+  const editBtn = document.getElementById(`dk_editbtn_${featureId}_${id}`);
+  if (!ta) return;
+  const isEditing = ta.style.display !== 'none';
+  if (isEditing) {
+    const val = ta.value;
+    updateDKField(featureId, id, 'content', val);
+    if (rendered) {
+      rendered.innerHTML = val ? marked.parse(val) : '<span style="color:var(--text-dim);font-size:13px">No content yet.</span>';
+      rendered.style.display = 'block';
+    }
+    ta.style.display = 'none';
+    if (editBtn) editBtn.textContent = 'Edit';
+  } else {
+    if (rendered) rendered.style.display = 'none';
+    ta.style.display = 'block';
+    ta.focus();
+    if (editBtn) editBtn.textContent = 'Done';
   }
-  return screens;
 }
 
-function renderHandoff(featureId) {
-  const container = document.getElementById(`${featureId}_handoff_body`);
-  if (!container) return;
-  const screens = initHandoffScreens(featureId);
-  const attached = screens.filter(s => s.imageData).length;
-  container.innerHTML = `
-    <div class="handoff-header">
-      <div style="font-size:12px;color:var(--text-muted)">${screens.length} screen${screens.length !== 1 ? 's' : ''} &nbsp;·&nbsp; ${attached} attached</div>
-      <div style="display:flex;gap:8px">
-        <button class="btn" onclick="addHandoffScreen('${featureId}')">+ Add Screen</button>
-        <button class="export-btn" onclick="exportHandoff('${featureId}')">&#8599; Export Handoff</button>
-      </div>
-    </div>
-    <div class="screen-grid">
-      ${screens.length ? screens.map(s => buildScreenCard(featureId, s)).join('') : `<div class="empty-state" style="width:100%"><h3>No screens yet</h3><p>Add your first screen to start the design handoff.</p><button class="btn btn-primary" onclick="addHandoffScreen('${featureId}')">+ Add Screen</button></div>`}
-    </div>
-  `;
-}
-
-function buildScreenCard(featureId, screen) {
-  const hasImage = !!screen.imageData;
-  const pinCount = (screen.pins || []).length;
-  const pinsOverlay = (screen.pins || []).map((pin, pi) => `
-    <div style="position:absolute;left:${pin.x*100}%;top:${pin.y*100}%;transform:translate(-50%,-100%) rotate(-45deg);width:16px;height:16px;background:var(--accent);border:1.5px solid white;border-radius:50% 50% 50% 0;display:flex;align-items:center;justify-content:center;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.5)">
-      <span style="transform:rotate(45deg);font-size:8px;font-weight:700;color:white">${pi+1}</span>
-    </div>`).join('');
-  // Use composite (image + drawing merged) if available, else raw image
-  const previewSrc = screen.compositeData || screen.imageData;
-  const preview = hasImage
-    ? `<div style="position:relative;width:100%;height:100%">
-        <img src="${previewSrc}" alt="${screen.label}" style="width:100%;height:100%;object-fit:cover;display:block" />
-        ${pinsOverlay}
-      </div>`
-    : `<div class="upload-placeholder"><div class="ph-icon">&#128444;</div><div>Click to attach design</div></div>`;
+function buildDKEntryCard(featureId, e) {
+  const hasContent = !!(e.content && e.content.trim());
   return `
-    <div class="screen-card">
-      <div class="screen-card-header">
-        <div class="screen-card-label" title="${screen.label}">${screen.label}</div>
-        <span class="screen-card-status ${hasImage ? 'screen-status-attached' : 'screen-status-pending'}">${hasImage ? 'Attached' : 'Pending'}</span>
+  <div class="dk-entry">
+    <div class="dk-entry-header" onclick="toggleDKEntry('${featureId}','${e.id}')">
+      <span class="dk-chevron" id="dk_chevron_${featureId}_${e.id}">▶</span>
+      <input class="dk-entry-title-input"
+        value="${escHtml(e.title)}"
+        placeholder="Entry title…"
+        onclick="event.stopPropagation()"
+        onblur="updateDKField('${featureId}','${e.id}','title',this.value)" />
+      <button class="remove-btn" title="Delete entry"
+        onclick="event.stopPropagation();removeDomainKnowledge('${featureId}','${e.id}')"><span class="material-symbols-rounded">delete</span></button>
+    </div>
+    <div class="dk-entry-body" id="dk_body_${featureId}_${e.id}">
+      <div id="dk_rendered_${featureId}_${e.id}" class="md-body dk-entry-rendered" style="display:${hasContent ? 'block' : 'none'}">
+        ${hasContent ? marked.parse(e.content) : ''}
       </div>
-      <div class="screen-card-preview" onclick="${hasImage ? `openAnnotator('${featureId}','${screen.id}')` : `triggerImageUpload('${screen.id}')`}">
-        ${preview}
+      <textarea class="dk-entry-content" id="dk_ta_${featureId}_${e.id}"
+        placeholder="Add notes, domain context, or paste markdown…"
+        style="display:${hasContent ? 'none' : 'block'}"
+        onblur="updateDKField('${featureId}','${e.id}','content',this.value)">${escHtml(e.content)}</textarea>
+      <div class="dk-entry-actions">
+        <button class="btn" id="dk_editbtn_${featureId}_${e.id}"
+          onclick="toggleDKEdit('${featureId}','${e.id}')">${hasContent ? 'Edit' : 'Done'}</button>
       </div>
-      <div class="screen-card-actions">
-        <button class="btn btn-primary" style="font-size:11px;padding:4px 10px" onclick="triggerImageUpload('${screen.id}')">Upload</button>
-        ${hasImage ? `<button class="btn" style="font-size:11px;padding:4px 10px" onclick="openAnnotator('${featureId}','${screen.id}')">Annotate</button>` : ''}
-        <button class="btn" style="font-size:11px;padding:4px 10px;margin-left:auto;color:var(--red)" onclick="removeHandoffScreen('${featureId}','${screen.id}')">&#10005;</button>
-      </div>
-      <input type="file" accept="image/*" id="upload-${screen.id}" style="display:none"
-        onchange="handleImageUpload(event,'${featureId}','${screen.id}')" />
+    </div>
+  </div>`;
+}
+
+function renderDomainKnowledgeList(featureId) {
+  const el = document.getElementById(`${featureId}_dk_list`);
+  if (!el) return;
+  const entries = getDomainKnowledge(featureId);
+  if (!entries.length) {
+    el.innerHTML = `<div class="empty-state"><h3>No domain knowledge entries yet</h3><p>Capture domain context, research, or background knowledge.</p><button class="btn btn-primary" onclick="addDKEntry('${featureId}')">+ Add Entry</button></div>`;
+    return;
+  }
+  el.innerHTML = entries.map(e => buildDKEntryCard(featureId, e)).join('');
+}
+
+function renderAllDomainKnowledge() {
+  getAllFeatures().forEach(f => renderDomainKnowledgeList(f.id));
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CONTEXT TAB BUILDER
+// ═══════════════════════════════════════════════════════════════
+// Context field state helpers — store overrides in fh_state so ALL features are editable
+function getCtxSummary(id, fallback) {
+  const s = loadState()[id] || {};
+  return s.ctx_summary !== undefined ? s.ctx_summary : (fallback || '');
+}
+function getCtxArr(id, key, fallback) {
+  const s = loadState()[id] || {};
+  const v = s['ctx_' + key];
+  return v !== undefined ? v : (fallback || []);
+}
+function setCtxField(id, key, value) {
+  updateFeatureState(id, { ['ctx_' + key]: value });
+  showToast();
+}
+
+function buildContextTabHtml(f) {
+  const id = f.id;
+  const summary     = getCtxSummary(id, f.summary);
+  const decisions   = getCtxArr(id, 'decisions',   f.decisions   || []);
+  const constraints = getCtxArr(id, 'constraints', f.constraints || []);
+  const team        = getCtxArr(id, 'team',        f.team        || []);
+  const links       = getCtxArr(id, 'links',       f.links       || []);
+
+  // Summary
+  const summaryHtml = `<textarea class="editable-note" style="min-height:72px;margin-top:4px"
+      placeholder="Describe this feature…"
+      onblur="setCtxField('${id}','summary',this.value)">${escHtml(summary)}</textarea>`;
+
+  // Decisions
+  const decItemsHtml = decisions.length
+    ? `<ul class="decision-list">${decisions.map((d, i) => `
+        <li style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
+          <span style="flex:1">${escHtml(d)}</span>
+          <button class="remove-btn" title="Remove" onclick="removeCtxArrItem('${id}','decisions',${i})"><span class="material-symbols-rounded">delete</span></button>
+        </li>`).join('')}</ul>`
+    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:10px">No decisions recorded yet</p>`;
+  const decisionsHtml = decItemsHtml + `
+    <div class="add-item-row" style="padding-top:8px">
+      <input class="add-item-input" id="${id}_add_decision" placeholder="Add a key decision…"
+        onkeydown="if(event.key==='Enter')addCtxArrItem('${id}','decisions','${id}_add_decision')" />
+      <button class="btn btn-primary" onclick="addCtxArrItem('${id}','decisions','${id}_add_decision')">Add</button>
+    </div>`;
+
+  // Constraints
+  const conItemsHtml = constraints.length
+    ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">${constraints.map((c, i) =>
+        `<span class="constraint-tag" style="display:inline-flex;align-items:center;gap:4px">${escHtml(c)}<button style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:0;display:flex;align-items:center" onclick="removeCtxArrItem('${id}','constraints',${i})" title="Remove"><span class="material-symbols-rounded" style="font-size:13px">close</span></button></span>`
+      ).join('')}</div>`
+    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:10px">None noted</p>`;
+  const constraintsHtml = conItemsHtml + `
+    <div class="add-item-row" style="padding-top:0;border-top:none">
+      <input class="add-item-input" id="${id}_add_constraint" placeholder="Add a constraint or non-goal…"
+        onkeydown="if(event.key==='Enter')addCtxArrItem('${id}','constraints','${id}_add_constraint')" />
+      <button class="btn btn-primary" onclick="addCtxArrItem('${id}','constraints','${id}_add_constraint')">Add</button>
+    </div>`;
+
+  // Team
+  const teamItemsHtml = team.length
+    ? `<div class="team-row" style="margin-bottom:10px">${team.map((p, i) => `
+        <div class="team-person">
+          <div class="avatar">${initials(p.name)}</div>
+          ${escHtml(p.name)} <span style="color:var(--text-dim)">· ${escHtml(p.role)}</span>
+          <button class="remove-btn" title="Remove" onclick="removeCtxTeamMember('${id}',${i})"><span class="material-symbols-rounded">close</span></button>
+        </div>`).join('')}</div>`
+    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:10px">No team members yet</p>`;
+  const teamHtml = teamItemsHtml + `
+    <div class="add-item-row" style="padding-top:0;border-top:none">
+      <input class="add-item-input" id="${id}_add_team_name" placeholder="Name…" style="flex:1.5"
+        onkeydown="if(event.key==='Enter')addCtxTeamMember('${id}')" />
+      <input class="add-item-input" id="${id}_add_team_role" placeholder="Role…"
+        onkeydown="if(event.key==='Enter')addCtxTeamMember('${id}')" />
+      <button class="btn btn-primary" onclick="addCtxTeamMember('${id}')">Add</button>
+    </div>`;
+
+  // Links
+  const linkItemsHtml = links.length
+    ? `<div class="links-grid" style="margin-bottom:10px">${links.map((l, i) => `
+        <div style="display:flex;align-items:center;gap:5px">
+          <a class="link-chip" href="${escHtml(l.url)}" target="_blank">
+            <span class="material-symbols-rounded" style="font-size:12px">open_in_new</span>${escHtml(l.label)}
+          </a>
+          <button class="remove-btn" title="Remove" onclick="removeCtxLink('${id}',${i})"><span class="material-symbols-rounded">close</span></button>
+        </div>`).join('')}</div>`
+    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:10px">No links added yet</p>`;
+  const linksHtml = linkItemsHtml + `
+    <div style="display:flex;gap:6px;align-items:center;margin-top:2px">
+      <input class="add-item-input" id="${id}_add_link_label" placeholder="Label…" style="flex:1"
+        onkeydown="if(event.key==='Enter')addCtxLink('${id}')" />
+      <input class="add-item-input" id="${id}_add_link_url" placeholder="https://…" style="flex:2"
+        onkeydown="if(event.key==='Enter')addCtxLink('${id}')" />
+      <button class="btn btn-primary" onclick="addCtxLink('${id}')">Add</button>
+    </div>`;
+
+  return `
+    <div class="context-card">
+      <h3><span class="material-symbols-rounded ctx-icon">menu_book</span> Summary</h3>
+      ${summaryHtml}
+    </div>
+    <div class="context-card">
+      <h3><span class="material-symbols-rounded ctx-icon">task_alt</span> Key Decisions</h3>
+      ${decisionsHtml}
+    </div>
+    <div class="context-card">
+      <h3><span class="material-symbols-rounded ctx-icon">block</span> Constraints &amp; Non-goals</h3>
+      ${constraintsHtml}
+    </div>
+    <div class="context-card">
+      <h3><span class="material-symbols-rounded ctx-icon">group</span> Team</h3>
+      ${teamHtml}
+    </div>
+    <div class="context-card">
+      <h3><span class="material-symbols-rounded ctx-icon">link</span> Links</h3>
+      ${linksHtml}
     </div>`;
 }
 
-function triggerImageUpload(screenId) {
-  document.getElementById(`upload-${screenId}`).click();
+function renderContextTab(featureId) {
+  const f = getAllFeatures().find(x => x.id === featureId);
+  const panel = document.getElementById(`${featureId}_tab_context`);
+  if (!f || !panel) return;
+  panel.innerHTML = buildContextTabHtml(f);
 }
 
-function handleImageUpload(event, featureId, screenId) {
-  const file = event.target.files[0];
+// ═══════════════════════════════════════════════════════════════
+//  CONTEXT DATA EDITING (all features via fh_state)
+// ═══════════════════════════════════════════════════════════════
+
+// Keep patchCustomFeature for Edit Info modal (title/icon/status/customer/due)
+function patchCustomFeature(featureId, field, value) {
+  const custom = loadCustomFeatures().map(f =>
+    f.id === featureId ? { ...f, [field]: value } : f
+  );
+  saveCustomFeatures(custom);
+}
+
+function addCtxArrItem(featureId, field, inputId) {
+  const inp = document.getElementById(inputId);
+  const text = inp && inp.value.trim();
+  if (!text) return;
+  const f = getAllFeatures().find(x => x.id === featureId);
+  if (!f) return;
+  setCtxField(featureId, field, [...getCtxArr(featureId, field, f[field] || []), text]);
+  if (inp) inp.value = '';
+  renderContextTab(featureId);
+}
+
+function removeCtxArrItem(featureId, field, index) {
+  const f = getAllFeatures().find(x => x.id === featureId);
+  if (!f) return;
+  setCtxField(featureId, field, getCtxArr(featureId, field, f[field] || []).filter((_, i) => i !== index));
+  renderContextTab(featureId);
+}
+
+function addCtxTeamMember(featureId) {
+  const f = getAllFeatures().find(x => x.id === featureId);
+  if (!f) return;
+  const nameEl = document.getElementById(`${featureId}_add_team_name`);
+  const roleEl = document.getElementById(`${featureId}_add_team_role`);
+  const name = nameEl && nameEl.value.trim();
+  if (!name) { if (nameEl) nameEl.focus(); return; }
+  setCtxField(featureId, 'team', [...getCtxArr(featureId, 'team', f.team || []), { name, role: roleEl ? roleEl.value.trim() : '' }]);
+  if (nameEl) nameEl.value = '';
+  if (roleEl) roleEl.value = '';
+  renderContextTab(featureId);
+}
+
+function removeCtxTeamMember(featureId, index) {
+  const f = getAllFeatures().find(x => x.id === featureId);
+  if (!f) return;
+  setCtxField(featureId, 'team', getCtxArr(featureId, 'team', f.team || []).filter((_, i) => i !== index));
+  renderContextTab(featureId);
+}
+
+function addCtxLink(featureId) {
+  const f = getAllFeatures().find(x => x.id === featureId);
+  if (!f) return;
+  const labelEl = document.getElementById(`${featureId}_add_link_label`);
+  const urlEl = document.getElementById(`${featureId}_add_link_url`);
+  const url = urlEl && urlEl.value.trim();
+  if (!url) { if (urlEl) urlEl.focus(); return; }
+  setCtxField(featureId, 'links', [...getCtxArr(featureId, 'links', f.links || []), { label: (labelEl && labelEl.value.trim()) || url, url }]);
+  if (labelEl) labelEl.value = '';
+  if (urlEl) urlEl.value = '';
+  renderContextTab(featureId);
+}
+
+function removeCtxLink(featureId, index) {
+  const f = getAllFeatures().find(x => x.id === featureId);
+  if (!f) return;
+  setCtxField(featureId, 'links', getCtxArr(featureId, 'links', f.links || []).filter((_, i) => i !== index));
+  renderContextTab(featureId);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DELETED FEATURES (soft-delete + restore)
+// ═══════════════════════════════════════════════════════════════
+function loadDeletedFeatures() {
+  try { return JSON.parse(localStorage.getItem('fh_deleted_features') || '[]'); }
+  catch { return []; }
+}
+
+function saveDeletedFeatures(features) {
+  localStorage.setItem('fh_deleted_features', JSON.stringify(features));
+}
+
+function restoreDeletedFeature(featureId) {
+  const deleted = loadDeletedFeatures();
+  const feature = deleted.find(f => f.id === featureId);
+  if (!feature) return;
+
+  const { deletedAt, ...clean } = feature;
+  saveCustomFeatures([...loadCustomFeatures(), clean]);
+  saveDeletedFeatures(deleted.filter(f => f.id !== featureId));
+
+  // Add feature view to DOM
+  const featureViews = document.getElementById('feature-views');
+  featureViews.insertAdjacentHTML('beforeend', buildFeatureView(clean));
+  renderTodoList(clean.id);
+  renderDoneList(clean.id);
+  renderQuestionsList(clean.id);
+  renderCallsList(clean.id);
+  renderDomainKnowledgeList(clean.id);
+  renderNotesTab(clean.id);
+  renderDesignTab(clean.id);
+  renderDesignSpecTab(clean.id);
+
+  renderSidebar();
+  renderScheduleCards();
+  renderDeletedFeaturesSection();
+  setTimeout(() => showFeature(clean.id), 50);
+}
+
+function renderDeletedFeaturesSection() {
+  const section = document.getElementById('deleted-features-section');
+  if (!section) return;
+  const deleted = loadDeletedFeatures();
+  if (!deleted.length) { section.innerHTML = ''; return; }
+  section.innerHTML = `
+    <div style="margin-top:24px">
+      <button class="deleted-q-toggle" id="deleted-feat-btn" onclick="toggleDeletedFeaturesSection()" style="width:100%">
+        <span class="material-symbols-rounded">expand_more</span>
+        ${deleted.length} deleted feature${deleted.length !== 1 ? 's' : ''} — click to restore
+      </button>
+      <div id="deleted-feat-list" style="display:none;margin-top:8px">
+        ${deleted.map(f => `
+          <div class="deleted-q-item" style="opacity:1">
+            <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+              <span class="material-symbols-rounded" style="font-size:18px;color:var(--text-dim);flex-shrink:0">${f.icon}</span>
+              <span class="deleted-q-text" style="text-decoration:none;color:var(--text-muted)">${escHtml(f.title)}</span>
+              <span class="badge ${STATUS_BADGE[f.status] || 'badge-done'}" style="opacity:.6;flex-shrink:0">${f.status}</span>
+            </div>
+            <button class="restore-btn" onclick="restoreDeletedFeature('${f.id}')">
+              <span class="material-symbols-rounded">undo</span> Restore
+            </button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function toggleDeletedFeaturesSection() {
+  const list = document.getElementById('deleted-feat-list');
+  const btn = document.getElementById('deleted-feat-btn');
+  if (!list) return;
+  const open = list.style.display !== 'none';
+  list.style.display = open ? 'none' : 'block';
+  const icon = btn && btn.querySelector('.material-symbols-rounded');
+  if (icon) icon.textContent = open ? 'expand_more' : 'expand_less';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ADD FEATURE MODAL
+// ═══════════════════════════════════════════════════════════════
+const AF_ICONS = [
+  'folder_open','inventory_2','receipt_long','work','handyman',
+  'price_check','content_cut','edit_note','location_on','star',
+  'hub','build','settings','description','flag',
+  'payments','shopping_cart','local_shipping','warehouse','analytics',
+  'dashboard','person_add','group','business','rocket_launch',
+  'label','task','notes','integration_instructions','bug_report',
+];
+
+let _afSelectedIcon = 'star';
+let _afEditingId = null;
+
+function openAddFeatureModal() {
+  _afEditingId = null;
+  document.getElementById('af-modal-title').textContent = 'Add New Feature';
+  document.getElementById('af-submit-btn').textContent = 'Add Feature';
+  document.getElementById('add-feature-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  document.getElementById('af-title').value = '';
+  document.getElementById('af-title').classList.remove('error');
+  document.getElementById('af-customer').value = '';
+  document.getElementById('af-due').value = '';
+  document.getElementById('af-summary').value = '';
+  document.getElementById('af-status').value = 'Discovery';
+  _afSelectedIcon = 'star';
+  renderAFIconPicker();
+  setTimeout(() => document.getElementById('af-title').focus(), 50);
+}
+
+function openEditFeatureModal(featureId) {
+  const f = loadCustomFeatures().find(x => x.id === featureId);
+  if (!f) return;
+  _afEditingId = featureId;
+  document.getElementById('af-modal-title').textContent = 'Edit Feature Info';
+  document.getElementById('af-submit-btn').textContent = 'Save Changes';
+  document.getElementById('add-feature-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  document.getElementById('af-title').value = f.title || '';
+  document.getElementById('af-title').classList.remove('error');
+  document.getElementById('af-customer').value = f.customer === 'TBD' ? '' : (f.customer || '');
+  document.getElementById('af-due').value = f.due === 'TBD' ? '' : (f.due || '');
+  document.getElementById('af-summary').value = f.summary || '';
+  document.getElementById('af-status').value = f.status || 'Discovery';
+  _afSelectedIcon = f.icon || 'star';
+  renderAFIconPicker();
+  setTimeout(() => document.getElementById('af-title').focus(), 50);
+}
+
+function closeAddFeatureModal() {
+  document.getElementById('add-feature-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  _afEditingId = null;
+}
+
+function renderAFIconPicker() {
+  const grid = document.getElementById('af-icon-grid');
+  if (!grid) return;
+  grid.innerHTML = AF_ICONS.map(icon => `
+    <button class="icon-picker-btn${icon === _afSelectedIcon ? ' selected' : ''}"
+      title="${icon}" onclick="selectAFIcon('${icon}')">
+      <span class="material-symbols-rounded">${icon}</span>
+    </button>`).join('');
+}
+
+function selectAFIcon(icon) {
+  _afSelectedIcon = icon;
+  renderAFIconPicker();
+}
+
+function submitNewFeature() {
+  const titleEl = document.getElementById('af-title');
+  const title = titleEl.value.trim();
+  if (!title) {
+    titleEl.classList.add('error');
+    titleEl.focus();
+    setTimeout(() => titleEl.classList.remove('error'), 1500);
+    return;
+  }
+
+  const newTitle    = title;
+  const newIcon     = _afSelectedIcon;
+  const newStatus   = document.getElementById('af-status').value;
+  const newCustomer = document.getElementById('af-customer').value.trim() || 'TBD';
+  const newDue      = document.getElementById('af-due').value.trim() || 'TBD';
+  const newSummary  = document.getElementById('af-summary').value.trim();
+
+  if (_afEditingId) {
+    // ── EDIT MODE: update existing custom feature ──────────────
+    const custom = loadCustomFeatures().map(f => {
+      if (f.id !== _afEditingId) return f;
+      return { ...f, title: newTitle, icon: newIcon, status: newStatus,
+               customer: newCustomer, due: newDue, summary: newSummary };
+    });
+    saveCustomFeatures(custom);
+
+    // Update the feature header in the DOM (icon, title, status select, meta row)
+    const titleH2 = document.querySelector(`#view-${_afEditingId} .feature-title-block h2`);
+    if (titleH2) titleH2.innerHTML =
+      `<span class="material-symbols-rounded" style="font-size:20px;vertical-align:middle;margin-right:8px;opacity:.8">${newIcon}</span>${escHtml(newTitle)}`;
+    const statusSel = document.getElementById(`${_afEditingId}_status_sel`);
+    if (statusSel) {
+      statusSel.value = newStatus;
+      statusSel.className = 'status-select ' + (STATUS_BADGE[newStatus] || 'badge-done');
+    }
+    const metaCustomer = document.querySelector(`#view-${_afEditingId} .meta-customer`);
+    if (metaCustomer) metaCustomer.textContent = newCustomer;
+    const dueInput = document.querySelector(`#view-${_afEditingId} .due-input`);
+    if (dueInput) dueInput.value = newDue;
+    // Re-render context tab so summary reflects the change
+    renderContextTab(_afEditingId);
+
+    renderSidebar();
+    renderScheduleCards();
+    closeAddFeatureModal();
+    showToast();
+    return;
+  }
+
+  // ── CREATE MODE ────────────────────────────────────────────────
+  const id = 'custom_' + Date.now();
+  const feature = {
+    id,
+    icon: newIcon,
+    title: newTitle,
+    status: newStatus,
+    hasDoc: false,
+    hasDomainDoc: false,
+    customer: newCustomer,
+    due: newDue,
+    team: [],
+    currentFocus: '',
+    summary: newSummary,
+    decisions: [],
+    constraints: [],
+    links: [],
+    done: [],
+    todo: [],
+    questions: [],
+    isCustom: true,
+  };
+
+  const custom = loadCustomFeatures();
+  saveCustomFeatures([...custom, feature]);
+
+  // Append feature view to DOM
+  const featureViews = document.getElementById('feature-views');
+  featureViews.insertAdjacentHTML('beforeend', buildFeatureView(feature));
+
+  renderTodoList(feature.id);
+  renderDoneList(feature.id);
+  renderQuestionsList(feature.id);
+  renderCallsList(feature.id);
+  renderDomainKnowledgeList(feature.id);
+  renderNotesTab(feature.id);
+  renderDesignTab(feature.id);
+  renderDesignSpecTab(feature.id);
+
+  renderSidebar();
+  renderScheduleCards();
+
+  closeAddFeatureModal();
+  setTimeout(() => showFeature(feature.id), 50);
+}
+
+function deleteCustomFeature(featureId) {
+  if (!confirm('Delete this feature? You can restore it later from the Schedule Overview.')) return;
+
+  const custom = loadCustomFeatures();
+  const feature = custom.find(f => f.id === featureId);
+  if (!feature) return;
+
+  // Move to deleted list (soft delete)
+  saveCustomFeatures(custom.filter(f => f.id !== featureId));
+  saveDeletedFeatures([...loadDeletedFeatures(), { ...feature, deletedAt: Date.now() }]);
+
+  // Remove feature view from DOM
+  const view = document.getElementById('view-' + featureId);
+  if (view) view.remove();
+
+  // Navigate back to schedule
+  const scheduleNav = document.querySelector('[data-view="schedule"]');
+  showView('schedule', scheduleNav);
+
+  renderSidebar();
+  renderScheduleCards();
+  renderDeletedFeaturesSection();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  NOTES TAB
+// ═══════════════════════════════════════════════════════════════
+
+const _noteEditMode = {};
+
+function getNoteEntries(id) {
+  const s = loadState()[id] || {};
+  if (s.notesEntries !== undefined) return s.notesEntries;
+  // Migrate from old single-note textarea
+  const old = s.notes || '';
+  const init = old.trim() ? [{ id: 'n_mig', text: old.trim(), createdAt: Date.now() }] : [];
+  updateFeatureState(id, { notesEntries: init });
+  return init;
+}
+
+function saveNoteEntries(id, v) { updateFeatureState(id, { notesEntries: v }); }
+
+function renderNotesTab(id) {
+  const panel = document.getElementById(id + '_notes_panel');
+  if (!panel) return;
+  const entries = getNoteEntries(id).slice().reverse();
+  const itemsHtml = entries.length ? entries.map(n => {
+    const ek = id + '::' + n.id;
+    if (_noteEditMode[ek]) {
+      return `<div class="note-entry note-editing">
+        <textarea class="editable-note" id="ne_${id}_${n.id}" style="min-height:80px;margin-top:0">${escHtml(n.text)}</textarea>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn btn-primary" style="font-size:12px;padding:4px 14px" onclick="saveNoteEntry('${id}','${n.id}')">Save</button>
+          <button class="btn" style="font-size:12px;padding:4px 14px" onclick="cancelNoteEdit('${id}','${n.id}')">Cancel</button>
+        </div>
+      </div>`;
+    }
+    return `<div class="note-entry">
+      <div class="note-entry-body">${marked.parse(n.text || '')}</div>
+      <div class="note-entry-meta">
+        <span class="note-ts">${formatNoteDate(n.createdAt)}</span>
+        <div style="display:flex;gap:3px">
+          <button class="q-icon-btn" title="Edit" onclick="editNoteEntry('${id}','${n.id}')">
+            <span class="material-symbols-rounded">edit</span>
+          </button>
+          <button class="q-icon-btn del" title="Delete" onclick="deleteNoteEntry('${id}','${n.id}')">
+            <span class="material-symbols-rounded">delete</span>
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') : `<div class="design-section-empty">No notes yet — click <strong>Add Note</strong> to get started.</div>`;
+
+  panel.innerHTML = `<div class="context-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="margin-bottom:0"><span class="material-symbols-rounded ctx-icon">sticky_note_2</span> Notes</h3>
+      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px" onclick="addNoteEntry('${id}')">
+        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Note
+      </button>
+    </div>
+    <div>${itemsHtml}</div>
+  </div>`;
+}
+
+function formatNoteDate(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    + ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+function addNoteEntry(id) {
+  const note = { id: 'n' + Date.now(), text: '', createdAt: Date.now() };
+  saveNoteEntries(id, [...getNoteEntries(id), note]);
+  _noteEditMode[id + '::' + note.id] = true;
+  renderNotesTab(id);
+  setTimeout(() => { const ta = document.getElementById('ne_' + id + '_' + note.id); if (ta) ta.focus(); }, 30);
+}
+
+function editNoteEntry(id, noteId) {
+  _noteEditMode[id + '::' + noteId] = true;
+  renderNotesTab(id);
+  setTimeout(() => {
+    const ta = document.getElementById('ne_' + id + '_' + noteId);
+    if (ta) { ta.focus(); ta.selectionStart = ta.selectionEnd = ta.value.length; }
+  }, 30);
+}
+
+function saveNoteEntry(id, noteId) {
+  const ta = document.getElementById('ne_' + id + '_' + noteId);
+  const text = ta ? ta.value.trim() : '';
+  if (!text) { cancelNoteEdit(id, noteId); return; }
+  saveNoteEntries(id, getNoteEntries(id).map(n => n.id === noteId ? { ...n, text } : n));
+  delete _noteEditMode[id + '::' + noteId];
+  renderNotesTab(id);
+  showToast();
+}
+
+function cancelNoteEdit(id, noteId) {
+  const entries = getNoteEntries(id);
+  const note = entries.find(n => n.id === noteId);
+  if (note && !note.text) saveNoteEntries(id, entries.filter(n => n.id !== noteId));
+  delete _noteEditMode[id + '::' + noteId];
+  renderNotesTab(id);
+}
+
+function deleteNoteEntry(id, noteId) {
+  if (!confirm('Delete this note?')) return;
+  saveNoteEntries(id, getNoteEntries(id).filter(n => n.id !== noteId));
+  delete _noteEditMode[id + '::' + noteId];
+  renderNotesTab(id);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DESIGN TAB
+// ═══════════════════════════════════════════════════════════════
+
+function isValidUrl(str) {
+  try { const u = new URL(str); return u.protocol === 'http:' || u.protocol === 'https:'; }
+  catch { return false; }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DESIGN FILES TAB
+// ═══════════════════════════════════════════════════════════════
+
+const _designFileEditMode = {};
+
+function getDesignFiles(id) {
+  const s = loadState()[id] || {};
+  if (s.designFiles !== undefined) return s.designFiles;
+  return [];
+}
+function saveDesignFiles(id, v) { updateFeatureState(id, { designFiles: v }); }
+
+// ── CRUD ─────────────────────────────────────────────────────
+function addDesignFile(id) {
+  const df = { id: 'df' + Date.now(), title: '', figmaUrl: '', figmaLabel: '', protoUrl: '', protoLabel: '', screenshots: [], notes: '', createdAt: Date.now() };
+  saveDesignFiles(id, [...getDesignFiles(id), df]);
+  _designFileEditMode[id + '::' + df.id] = true;
+  renderDesignTab(id);
+  setTimeout(() => { const el = document.getElementById('df_title_' + id + '_' + df.id); if (el) el.focus(); }, 30);
+}
+
+function editDesignFile(id, dfId) {
+  _designFileEditMode[id + '::' + dfId] = true;
+  renderDesignTab(id);
+  setTimeout(() => { const el = document.getElementById('df_title_' + id + '_' + dfId); if (el) el.focus(); }, 30);
+}
+
+function saveDesignFile(id, dfId) {
+  const title = (document.getElementById('df_title_' + id + '_' + dfId) || {}).value?.trim() || '';
+  if (!title) {
+    const el = document.getElementById('df_title_' + id + '_' + dfId);
+    if (el) { el.style.borderColor = 'var(--red)'; setTimeout(() => el.style.borderColor = '', 1800); el.focus(); }
+    return;
+  }
+  const figmaUrl   = (document.getElementById('df_figma_'    + id + '_' + dfId) || {}).value?.trim() || '';
+  const figmaLabel = (document.getElementById('df_figmalbl_' + id + '_' + dfId) || {}).value?.trim() || '';
+  const protoUrl   = (document.getElementById('df_proto_'    + id + '_' + dfId) || {}).value?.trim() || '';
+  const protoLabel = (document.getElementById('df_protolbl_' + id + '_' + dfId) || {}).value?.trim() || '';
+  const notes      = (document.getElementById('df_notes_'    + id + '_' + dfId) || {}).value?.trim() || '';
+  const files = getDesignFiles(id);
+  const idx = files.findIndex(x => x.id === dfId);
+  if (idx === -1) return;
+  files[idx] = { ...files[idx], title, figmaUrl, figmaLabel, protoUrl, protoLabel, notes };
+  saveDesignFiles(id, files);
+  delete _designFileEditMode[id + '::' + dfId];
+  renderDesignTab(id);
+  showToast();
+}
+
+function cancelDesignFile(id, dfId) {
+  const files = getDesignFiles(id);
+  const df = files.find(x => x.id === dfId);
+  if (df && !df.title) saveDesignFiles(id, files.filter(x => x.id !== dfId));
+  delete _designFileEditMode[id + '::' + dfId];
+  renderDesignTab(id);
+}
+
+function deleteDesignFile(id, dfId) {
+  if (!confirm('Delete this design file?')) return;
+  saveDesignFiles(id, getDesignFiles(id).filter(x => x.id !== dfId));
+  delete _designFileEditMode[id + '::' + dfId];
+  renderDesignTab(id);
+  showToast();
+}
+
+// ── Screenshots within a design file ─────────────────────────
+function handleDesignFileScreenshot(id, dfId, input) {
+  const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
-    const screens = getHandoffScreens(featureId);
-    const idx = screens.findIndex(s => s.id === screenId);
+    const files = getDesignFiles(id);
+    const idx = files.findIndex(x => x.id === dfId);
     if (idx === -1) return;
-    screens[idx].imageData = e.target.result;
-    saveHandoffScreens(featureId, screens);
-    renderHandoff(featureId);
+    files[idx].screenshots = [...(files[idx].screenshots || []), { id: 'sc' + Date.now(), url: e.target.result, label: file.name }];
+    saveDesignFiles(id, files);
+    renderDesignTab(id);
+    showToast();
   };
   reader.readAsDataURL(file);
+  input.value = '';
 }
 
-function addHandoffScreen(featureId) {
-  const label = prompt('Screen name:');
-  if (!label || !label.trim()) return;
-  const screens = getHandoffScreens(featureId) || [];
-  screens.push({ id: `screen-${Date.now()}`, label: label.trim(), imageData: null, pins: [], drawingData: null });
-  saveHandoffScreens(featureId, screens);
-  renderHandoff(featureId);
-}
-
-function removeHandoffScreen(featureId, screenId) {
-  if (!confirm('Remove this screen?')) return;
-  const screens = (getHandoffScreens(featureId) || []).filter(s => s.id !== screenId);
-  saveHandoffScreens(featureId, screens);
-  renderHandoff(featureId);
-}
-
-// ── ANNOTATOR ─────────────────────────────────────────────────
-let _annotFeatureId = null, _annotScreenId = null;
-let _annotTool = 'pin';
-let _annotDrawing = false, _annotCtx = null;
-let _activePinPopup = null;
-
-function openAnnotator(featureId, screenId) {
-  const screens = getHandoffScreens(featureId);
-  const screen = screens.find(s => s.id === screenId);
-  if (!screen || !screen.imageData) return;
-  _annotFeatureId = featureId;
-  _annotScreenId = screenId;
-  const overlay = document.getElementById('annotator-overlay');
-  document.getElementById('annotator-title').textContent = screen.label;
-  const img = document.getElementById('annotator-img');
-  img.src = screen.imageData;
-  overlay.classList.add('open');
-  document.body.style.overflow = 'hidden';
-  img.onload = () => {
-    const canvas = document.getElementById('annotator-canvas');
-    canvas.width = img.offsetWidth;
-    canvas.height = img.offsetHeight;
-    _annotCtx = canvas.getContext('2d');
-    if (screen.drawingData) {
-      const di = new Image();
-      di.onload = () => _annotCtx.drawImage(di, 0, 0);
-      di.src = screen.drawingData;
-    } else {
-      _annotCtx.clearRect(0, 0, canvas.width, canvas.height);
+function handleDesignFilePaste(event, id, dfId) {
+  const items = event.clipboardData && event.clipboardData.items;
+  if (!items) { event.preventDefault(); return; }
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      event.preventDefault();
+      const reader = new FileReader();
+      reader.onload = e => {
+        const files = getDesignFiles(id);
+        const idx = files.findIndex(x => x.id === dfId);
+        if (idx === -1) return;
+        files[idx].screenshots = [...(files[idx].screenshots || []), { id: 'sc' + Date.now(), url: e.target.result, label: 'Pasted image' }];
+        saveDesignFiles(id, files);
+        renderDesignTab(id);
+        showToast();
+      };
+      reader.readAsDataURL(item.getAsFile());
+      return;
     }
-    renderAnnotPins(screen.pins || []);
-    setAnnotTool('pin');
-  };
-  if (img.complete && img.naturalWidth) img.onload();
-}
-
-function closeAnnotator() {
-  document.getElementById('annotator-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-  closeActivePinPopup();
-  _annotFeatureId = null;
-  _annotScreenId = null;
-}
-
-function setAnnotTool(tool) {
-  _annotTool = tool;
-  const canvas = document.getElementById('annotator-canvas');
-  const pinLayer = document.getElementById('annotator-pin-layer');
-  document.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
-  if (tool === 'draw') {
-    canvas.style.pointerEvents = 'auto';
-    canvas.style.cursor = 'crosshair';
-    pinLayer.classList.remove('pin-mode');
-  } else {
-    canvas.style.pointerEvents = 'none';
-    canvas.style.cursor = '';
-    pinLayer.classList.toggle('pin-mode', tool === 'pin');
   }
+  event.preventDefault();
 }
 
-function annotMouseDown(e) {
-  if (_annotTool !== 'draw') return;
-  _annotDrawing = true;
-  const rect = e.target.getBoundingClientRect();
-  _annotCtx.beginPath();
-  _annotCtx.strokeStyle = '#6c7bff';
-  _annotCtx.lineWidth = 2;
-  _annotCtx.lineCap = 'round';
-  _annotCtx.lineJoin = 'round';
-  _annotCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+function deleteDesignFileScreenshot(id, dfId, scId) {
+  if (!confirm('Remove this screenshot?')) return;
+  const files = getDesignFiles(id);
+  const idx = files.findIndex(x => x.id === dfId);
+  if (idx === -1) return;
+  files[idx].screenshots = files[idx].screenshots.filter(s => s.id !== scId);
+  saveDesignFiles(id, files);
+  renderDesignTab(id);
 }
 
-function annotMouseMove(e) {
-  if (!_annotDrawing || _annotTool !== 'draw') return;
-  const rect = e.target.getBoundingClientRect();
-  _annotCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-  _annotCtx.stroke();
+// ── Card HTML helpers ─────────────────────────────────────────
+function _designFileEditFormHtml(id, df) {
+  const scsHtml = (df.screenshots || []).length
+    ? `<div class="screenshot-grid" style="margin-bottom:8px">${(df.screenshots || []).map(sc => `<div class="screenshot-card">
+        <img src="${sc.url}" onerror="this.closest('.screenshot-card').style.display='none'" onclick="window.open(this.src,'_blank')" />
+        <div class="screenshot-label">${escHtml(sc.label || '')}</div>
+        <button class="screenshot-remove" onclick="deleteDesignFileScreenshot('${id}','${df.id}','${sc.id}')" title="Remove">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>`).join('')}</div>`
+    : '';
+  return `<div class="context-card">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Title <span style="color:var(--red)">*</span></label>
+        <input class="add-item-input" id="df_title_${id}_${df.id}" value="${escHtml(df.title)}" placeholder="e.g. Mobile Checkout Flow, v2 Redesign…" />
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Figma Design</label>
+        <div style="display:flex;gap:6px">
+          <input class="add-item-input" id="df_figmalbl_${id}_${df.id}" value="${escHtml(df.figmaLabel)}" placeholder="Label…" style="flex:0 0 130px" />
+          <input class="add-item-input" id="df_figma_${id}_${df.id}" value="${escHtml(df.figmaUrl)}" placeholder="https://figma.com/…" style="flex:1" />
+        </div>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Prototype</label>
+        <div style="display:flex;gap:6px">
+          <input class="add-item-input" id="df_protolbl_${id}_${df.id}" value="${escHtml(df.protoLabel)}" placeholder="Label…" style="flex:0 0 130px" />
+          <input class="add-item-input" id="df_proto_${id}_${df.id}" value="${escHtml(df.protoUrl)}" placeholder="https://…" style="flex:1" />
+        </div>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px">Screenshots</label>
+        ${scsHtml}
+        <div style="display:flex;gap:6px;align-items:center">
+          <label class="btn" style="display:flex;align-items:center;gap:4px;font-size:12px;padding:4px 10px;cursor:pointer;flex-shrink:0">
+            <span class="material-symbols-rounded" style="font-size:14px">upload</span> Upload
+            <input type="file" accept="image/*" style="display:none" onchange="handleDesignFileScreenshot('${id}','${df.id}',this)" />
+          </label>
+          <textarea class="screenshot-paste-zone" placeholder="Paste image (Ctrl+V / Cmd+V)…" onpaste="handleDesignFilePaste(event,'${id}','${df.id}')" rows="1" style="flex:1;min-height:34px;padding:6px 10px;resize:none"></textarea>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Notes</label>
+        <textarea class="editable-note" id="df_notes_${id}_${df.id}" style="min-height:80px" placeholder="Design notes, decisions, observations…">${escHtml(df.notes)}</textarea>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary" style="font-size:12px;padding:5px 14px" onclick="saveDesignFile('${id}','${df.id}')">Save</button>
+        <button class="btn" style="font-size:12px;padding:5px 14px" onclick="cancelDesignFile('${id}','${df.id}')">Cancel</button>
+      </div>
+    </div>
+  </div>`;
 }
 
-function annotMouseUp() { _annotDrawing = false; }
+function _designFileCardHtml(id, df) {
+  const hasFigma = !!df.figmaUrl;
+  const hasProto = !!df.protoUrl;
+  const hasScs   = (df.screenshots || []).length > 0;
+  const hasNotes = !!(df.notes && df.notes.trim());
+  const hasContent = hasFigma || hasProto || hasScs || hasNotes;
 
-function annotPinClick(e) {
-  if (_annotTool !== 'pin') return;
-  if (e.target.closest('.pin-marker') || e.target.closest('.pin-popup')) return;
-  closeActivePinPopup();
-  const rect = e.currentTarget.getBoundingClientRect();
-  const x = (e.clientX - rect.left) / rect.width;
-  const y = (e.clientY - rect.top) / rect.height;
-  const px = e.clientX - rect.left;
-  const py = e.clientY - rect.top;
-  showNewPinPopup(x, y, px, py);
+  const linksHtml = (hasFigma || hasProto) ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+    ${hasFigma ? `<a href="${escHtml(df.figmaUrl)}" target="_blank" class="link-chip">
+      <span class="material-symbols-rounded" style="font-size:12px;flex-shrink:0">palette</span>
+      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(df.figmaLabel || 'Figma Design')}</span>
+    </a>` : ''}
+    ${hasProto ? `<a href="${escHtml(df.protoUrl)}" target="_blank" class="link-chip">
+      <span class="material-symbols-rounded" style="font-size:12px;flex-shrink:0">play_circle</span>
+      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(df.protoLabel || 'Prototype')}</span>
+    </a>` : ''}
+  </div>` : '';
+
+  const scsHtml = hasScs ? `<div class="screenshot-grid" style="margin-bottom:${hasNotes ? '10px' : '0'}">${
+    (df.screenshots || []).map(sc => `<div class="screenshot-card">
+      <img src="${sc.url}" onerror="this.closest('.screenshot-card').style.display='none'" onclick="window.open(this.src,'_blank')" />
+      <div class="screenshot-label">${escHtml(sc.label || '')}</div>
+      <button class="screenshot-remove" onclick="deleteDesignFileScreenshot('${id}','${df.id}','${sc.id}')" title="Remove">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>`).join('')
+  }</div>` : '';
+
+  const notesHtml = hasNotes ? `<div class="note-entry-body" style="font-size:13px;margin-top:${hasScs ? '0' : '0'}">${marked.parse(df.notes)}</div>` : '';
+  const emptyHint = !hasContent ? `<div style="font-size:12px;color:var(--text-dim);font-style:italic;padding:4px 0">No content yet — click edit to add details.</div>` : '';
+
+  return `<div class="context-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${hasContent ? '12px' : '4px'}">
+      <h3 style="margin-bottom:0;font-size:14px">${escHtml(df.title)}</h3>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button class="q-icon-btn" title="Edit" onclick="editDesignFile('${id}','${df.id}')">
+          <span class="material-symbols-rounded">edit</span>
+        </button>
+        <button class="q-icon-btn del" title="Delete" onclick="deleteDesignFile('${id}','${df.id}')">
+          <span class="material-symbols-rounded">delete</span>
+        </button>
+      </div>
+    </div>
+    ${linksHtml}${scsHtml}${notesHtml}${emptyHint}
+  </div>`;
 }
 
-function showNewPinPopup(xRatio, yRatio, px, py) {
-  closeActivePinPopup();
-  const pinLayer = document.getElementById('annotator-pin-layer');
-  const popup = document.createElement('div');
-  popup.className = 'pin-popup';
-  popup.style.left = `${Math.min(px + 10, pinLayer.offsetWidth - 240)}px`;
-  popup.style.top = `${Math.max(py - 10, 0)}px`;
-  popup.innerHTML = `
-    <div class="pin-note-label">Pin note</div>
-    <textarea id="new-pin-note" placeholder="Describe this annotation..."></textarea>
-    <div class="pin-popup-actions">
-      <button class="btn btn-primary" style="font-size:11px;padding:4px 10px" onclick="saveNewPin(${xRatio},${yRatio})">Add Pin</button>
-      <button class="btn" style="font-size:11px;padding:4px 10px" onclick="closeActivePinPopup()">Cancel</button>
+// ── Main render ──────────────────────────────────────────────
+function renderDesignTab(id) {
+  const panel = document.getElementById(id + '_design_panel');
+  if (!panel) return;
+  const designFiles = getDesignFiles(id);
+
+  if (!designFiles.length) {
+    panel.innerHTML = `<div class="context-card" style="text-align:center;padding:48px 20px">
+      <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">palette</span>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No design files yet.<br>Each file groups a Figma link, prototype, screenshots, and notes.</div>
+      <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addDesignFile('${id}')">+ Add Design File</button>
     </div>`;
-  pinLayer.appendChild(popup);
-  _activePinPopup = popup;
-  popup.querySelector('textarea').focus();
-}
-
-function saveNewPin(x, y) {
-  const note = document.getElementById('new-pin-note')?.value.trim() || '';
-  closeActivePinPopup();
-  const screens = getHandoffScreens(_annotFeatureId);
-  const screen = screens.find(s => s.id === _annotScreenId);
-  if (!screen) return;
-  screen.pins = screen.pins || [];
-  screen.pins.push({ id: Date.now(), x, y, note });
-  saveHandoffScreens(_annotFeatureId, screens);
-  renderAnnotPins(screen.pins);
-}
-
-function renderAnnotPins(pins) {
-  const pinLayer = document.getElementById('annotator-pin-layer');
-  pinLayer.querySelectorAll('.pin-marker').forEach(el => el.remove());
-  pins.forEach((pin, i) => {
-    const marker = document.createElement('div');
-    marker.className = 'pin-marker';
-    marker.style.left = `${pin.x * 100}%`;
-    marker.style.top = `${pin.y * 100}%`;
-    marker.innerHTML = `<span>${i + 1}</span>`;
-    marker.title = pin.note || '';
-    marker.onclick = e => { e.stopPropagation(); showExistingPinPopup(pin, i, marker); };
-    pinLayer.appendChild(marker);
-  });
-}
-
-function showExistingPinPopup(pin, idx, anchor) {
-  closeActivePinPopup();
-  const pinLayer = document.getElementById('annotator-pin-layer');
-  const ar = anchor.getBoundingClientRect();
-  const lr = pinLayer.getBoundingClientRect();
-  const popup = document.createElement('div');
-  popup.className = 'pin-popup';
-  popup.style.left = `${Math.min(ar.left - lr.left + 30, pinLayer.offsetWidth - 240)}px`;
-  popup.style.top = `${Math.max(ar.top - lr.top - 10, 0)}px`;
-  popup.innerHTML = `
-    <div class="pin-note-label">Pin ${idx + 1}</div>
-    <textarea id="edit-pin-${pin.id}">${pin.note || ''}</textarea>
-    <div class="pin-popup-actions">
-      <button class="btn btn-primary" style="font-size:11px;padding:4px 10px" onclick="updatePin(${pin.id})">Save</button>
-      <button class="btn" style="font-size:11px;padding:4px 10px;color:var(--red)" onclick="deletePin(${pin.id})">Delete</button>
-      <button class="btn" style="font-size:11px;padding:4px 10px" onclick="closeActivePinPopup()">&#10005;</button>
-    </div>`;
-  pinLayer.appendChild(popup);
-  _activePinPopup = popup;
-}
-
-function updatePin(pinId) {
-  const screens = getHandoffScreens(_annotFeatureId);
-  const screen = screens.find(s => s.id === _annotScreenId);
-  if (!screen) return;
-  const pin = screen.pins.find(p => p.id === pinId);
-  if (pin) {
-    pin.note = document.getElementById(`edit-pin-${pinId}`)?.value || '';
-    saveHandoffScreens(_annotFeatureId, screens);
+    return;
   }
-  closeActivePinPopup();
-  renderAnnotPins(screen.pins);
+
+  const filesHtml = designFiles.map(df => {
+    const ek = id + '::' + df.id;
+    return _designFileEditMode[ek] ? _designFileEditFormHtml(id, df) : _designFileCardHtml(id, df);
+  }).join('');
+
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">Design Files</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Each file groups a Figma link, prototype, screenshots, and notes</div>
+      </div>
+      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="addDesignFile('${id}')">
+        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Design File
+      </button>
+    </div>
+    ${filesHtml}`;
 }
 
-function deletePin(pinId) {
-  const screens = getHandoffScreens(_annotFeatureId);
-  const screen = screens.find(s => s.id === _annotScreenId);
-  if (!screen) return;
-  screen.pins = screen.pins.filter(p => p.id !== pinId);
-  saveHandoffScreens(_annotFeatureId, screens);
-  closeActivePinPopup();
-  renderAnnotPins(screen.pins);
+// ═══════════════════════════════════════════════════════════════
+//  DESIGN SPEC TAB
+// ═══════════════════════════════════════════════════════════════
+
+const _specEditMode = {};
+
+function getSpecLinks(id) {
+  const s = loadState()[id] || {};
+  if (s.specLinks !== undefined) return s.specLinks;
+  updateFeatureState(id, { specLinks: [] });
+  return [];
+}
+function saveSpecLinks(id, v) { updateFeatureState(id, { specLinks: v }); }
+
+function toFigmaEmbedUrl(url) {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes('figma.com')) {
+      return 'https://www.figma.com/embed?embed_host=share&url=' + encodeURIComponent(url);
+    }
+  } catch {}
+  return null;
 }
 
-function closeActivePinPopup() {
-  if (_activePinPopup) { _activePinPopup.remove(); _activePinPopup = null; }
+function toGithubRawUrl(url) {
+  try {
+    const u = new URL(url);
+    if (u.hostname === 'github.com') {
+      // /owner/repo/blob/branch/path/to/file
+      const parts = u.pathname.split('/').filter(Boolean);
+      if (parts.length >= 5 && parts[2] === 'blob') {
+        const [owner, repo, , branch, ...rest] = parts;
+        return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${rest.join('/')}`;
+      }
+    }
+  } catch {}
+  return null;
 }
 
-function clearAnnotDrawing() {
-  if (!_annotCtx) return;
-  const canvas = document.getElementById('annotator-canvas');
-  _annotCtx.clearRect(0, 0, canvas.width, canvas.height);
+function _specContentId(featureId, linkId) {
+  return 'spc_' + featureId + '_' + linkId;
 }
 
-function saveAnnotation() {
-  const annotCanvas = document.getElementById('annotator-canvas');
-  const annotImg = document.getElementById('annotator-img');
-  const screens = getHandoffScreens(_annotFeatureId);
-  const screen = screens.find(s => s.id === _annotScreenId);
-  if (!screen) return;
+function renderSpecContent(featureId, linkId, url) {
+  const el = document.getElementById(_specContentId(featureId, linkId));
+  if (!el) return;
 
-  // Keep raw drawing for re-editing in the annotator
-  screen.drawingData = annotCanvas.toDataURL();
+  const rawUrl = toGithubRawUrl(url);
+  if (rawUrl) {
+    const ext = rawUrl.split('?')[0].split('.').pop().toLowerCase();
+    el.innerHTML = `<div class="spec-loading"><span class="material-symbols-rounded">progress_activity</span>Loading from GitHub…</div>`;
+    fetch(rawUrl)
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+      .then(text => {
+        if (ext === 'md' || ext === 'markdown') {
+          el.innerHTML = `<div class="context-card" style="margin-top:10px"><div class="md-body">${marked.parse(text)}</div></div>`;
+        } else {
+          // Non-markdown GitHub file — create a blob URL so it renders without CORS restrictions
+          const blob = new Blob([text], { type: ext === 'html' ? 'text/html' : 'text/plain' });
+          const blobUrl = URL.createObjectURL(blob);
+          el.innerHTML = `<div class="spec-embed-wrap" style="margin-top:10px"><iframe src="${blobUrl}"></iframe></div>`;
+        }
+      })
+      .catch(() => {
+        el.innerHTML = `<div style="padding:12px;font-size:13px;color:var(--text-dim)">
+          Could not load file from GitHub.
+          <a href="${escHtml(url)}" target="_blank" class="link-chip" style="margin-left:6px">
+            <span class="material-symbols-rounded" style="font-size:12px">open_in_new</span> Open on GitHub
+          </a>
+        </div>`;
+      });
+    return;
+  }
 
-  // Composite: merge original image + drawing into one image at display size
-  // so the card preview shows them perfectly aligned
-  const merge = document.createElement('canvas');
-  merge.width = annotImg.offsetWidth;
-  merge.height = annotImg.offsetHeight;
-  const mCtx = merge.getContext('2d');
-  mCtx.drawImage(annotImg, 0, 0, merge.width, merge.height);
-  mCtx.drawImage(annotCanvas, 0, 0, merge.width, merge.height);
-  screen.compositeData = merge.toDataURL();
+  // Figma or general URL → iframe
+  const embedUrl = toFigmaEmbedUrl(url) || url;
+  el.innerHTML = `<div class="spec-embed-wrap" style="margin-top:10px">
+    <iframe src="${escHtml(embedUrl)}" allowfullscreen
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation-by-user-activation"
+      onload="this.nextElementSibling.style.display='none'"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+    ></iframe>
+    <div style="display:none;padding:24px;text-align:center;color:var(--text-dim);font-size:13px;flex-direction:column;align-items:center;gap:8px">
+      <span class="material-symbols-rounded" style="font-size:32px">link_off</span>
+      This content cannot be embedded. Use the link above to open it.
+    </div>
+  </div>`;
+}
 
-  saveHandoffScreens(_annotFeatureId, screens);
-  const fid = _annotFeatureId;
-  closeAnnotator();
-  renderHandoff(fid);
+function addSpecLink(id) {
+  const lk = { id: 'sl' + Date.now(), url: '', label: '' };
+  saveSpecLinks(id, [...getSpecLinks(id), lk]);
+  _specEditMode[id + '::' + lk.id] = true;
+  renderDesignSpecTab(id);
+  setTimeout(() => { const el = document.getElementById('sl_lbl_' + id + '_' + lk.id); if (el) el.focus(); }, 30);
+}
+
+function editSpecLink(id, linkId) {
+  _specEditMode[id + '::' + linkId] = true;
+  renderDesignSpecTab(id);
+}
+
+function saveSpecLink(id, linkId) {
+  const url = (document.getElementById('sl_url_' + id + '_' + linkId) || {}).value || '';
+  const label = (document.getElementById('sl_lbl_' + id + '_' + linkId) || {}).value || '';
+  if (!isValidUrl(url.trim())) {
+    const errEl = document.getElementById('sl_err_' + id + '_' + linkId);
+    if (errEl) { errEl.style.display = 'block'; setTimeout(() => errEl.style.display = 'none', 2500); }
+    return;
+  }
+  saveSpecLinks(id, getSpecLinks(id).map(lk =>
+    lk.id === linkId ? { ...lk, url: url.trim(), label: label.trim() } : lk));
+  delete _specEditMode[id + '::' + linkId];
+  renderDesignSpecTab(id);
   showToast();
 }
 
-// ── EXPORT HANDOFF ────────────────────────────────────────────
-function exportHandoff(featureId) {
-  const f = FEATURES.find(x => x.id === featureId);
-  const screens = getHandoffScreens(featureId) || [];
-  const screensHtml = screens.map((screen, i) => {
-    const imgHtml = screen.imageData
-      ? `<div style="position:relative;display:inline-block;width:100%">
-           <img src="${screen.imageData}" style="width:100%;display:block;border-radius:8px" />
-           ${screen.drawingData ? `<img src="${screen.drawingData}" style="position:absolute;inset:0;width:100%;pointer-events:none;border-radius:8px" />` : ''}
-           ${(screen.pins||[]).map((pin, pi) => `<div style="position:absolute;left:${pin.x*100}%;top:${pin.y*100}%;transform:translate(-50%,-100%) rotate(-45deg);width:26px;height:26px;background:#6c7bff;border:2px solid white;border-radius:50% 50% 50% 0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5)"><span style="transform:rotate(45deg);font-size:10px;font-weight:700;color:white">${pi+1}</span></div>`).join('')}
-         </div>`
-      : `<div style="height:160px;background:#1a1d27;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#8b90a8;font-size:13px">No image attached yet</div>`;
-    const pinsHtml = (screen.pins||[]).length
-      ? `<div style="margin-top:14px">${(screen.pins||[]).map((pin, pi) => `<div style="display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #2a2f45;font-size:13px"><div style="background:#6c7bff;color:white;font-size:10px;font-weight:700;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center">${pi+1}</div><div style="color:#e2e4f0">${pin.note || '(no note)'}</div></div>`).join('')}</div>`
+function cancelSpecLink(id, linkId) {
+  const list = getSpecLinks(id);
+  const entry = list.find(lk => lk.id === linkId);
+  if (entry && !entry.url) saveSpecLinks(id, list.filter(lk => lk.id !== linkId));
+  delete _specEditMode[id + '::' + linkId];
+  renderDesignSpecTab(id);
+}
+
+function deleteSpecLink(id, linkId) {
+  if (!confirm('Remove this spec link?')) return;
+  saveSpecLinks(id, getSpecLinks(id).filter(lk => lk.id !== linkId));
+  delete _specEditMode[id + '::' + linkId];
+  renderDesignSpecTab(id);
+}
+
+function renderDesignSpecTab(id) {
+  const panel = document.getElementById(id + '_spec_panel');
+  if (!panel) return;
+  const specLinks = getSpecLinks(id);
+  const f = getAllFeatures().find(x => x.id === id);
+
+  // Built-in design spec document (features with hasDoc + docLabel 'Design Spec')
+  const hasBuiltinSpec = f && f.hasDoc && (f.docLabel === 'Design Spec' || !f.docLabel);
+  const builtinHtml = hasBuiltinSpec ? `<div class="context-card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <h3 style="margin-bottom:0"><span class="material-symbols-rounded ctx-icon">description</span> Spec Document</h3>
+      ${f.docSrc ? `<a href="${escHtml(f.docSrc)}" target="_blank" class="link-chip" style="font-size:11px">
+        <span class="material-symbols-rounded" style="font-size:12px">open_in_new</span> Open full screen
+      </a>` : ''}
+    </div>
+    ${f.docSrc
+      ? `<iframe src="${escHtml(f.docSrc)}" style="width:100%;height:80vh;border:1px solid var(--border);border-radius:var(--radius-sm);background:#fff;" title="${escHtml(f.title)} spec"></iframe>`
+      : `<div id="${escHtml('spc_builtin_' + id)}"></div>`
+    }
+  </div>` : '';
+
+  const linksHtml = specLinks.map(lk => {
+    const ek = id + '::' + lk.id;
+    if (_specEditMode[ek]) {
+      return `<div class="context-card">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <input class="add-item-input" id="sl_lbl_${id}_${lk.id}" value="${escHtml(lk.label)}" placeholder="Label (e.g. Mobile Spec, GitHub README)…" />
+          <input class="add-item-input" id="sl_url_${id}_${lk.id}" value="${escHtml(lk.url)}" placeholder="https://github.com/…, figma.com, Zeplin, Storybook…" />
+          <div id="sl_err_${id}_${lk.id}" class="input-error" style="display:none">Please enter a valid https:// URL</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-primary" style="font-size:12px;padding:5px 14px" onclick="saveSpecLink('${id}','${lk.id}')">Save</button>
+            <button class="btn" style="font-size:12px;padding:5px 14px" onclick="cancelSpecLink('${id}','${lk.id}')">Cancel</button>
+          </div>
+        </div>
+      </div>`;
+    }
+    const isGithub = toGithubRawUrl(lk.url) !== null;
+    const sourceTag = isGithub
+      ? `<span style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:2px 6px">GitHub</span>`
       : '';
-    return `<div style="background:#1a1d27;border:1px solid #2a2f45;border-radius:10px;overflow:hidden;margin-bottom:24px">
-      <div style="padding:12px 16px;border-bottom:1px solid #2a2f45;display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:14px;font-weight:600;color:#e2e4f0">${i+1}. ${screen.label}</div>
-        <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:${screen.imageData?'#0d2e1f':'#2e2210'};color:${screen.imageData?'#3ecf8e':'#f5a623'};font-weight:600">${screen.imageData?'Attached':'Pending'}</span>
+    return `<div class="context-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px">
+        <div style="min-width:0;flex:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          ${lk.label ? `<span style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(lk.label)}</span>` : ''}
+          ${sourceTag}
+          <a href="${escHtml(lk.url)}" target="_blank" class="link-chip" style="max-width:280px;overflow:hidden">
+            <span class="material-symbols-rounded" style="font-size:12px;flex-shrink:0">open_in_new</span>
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(lk.url)}</span>
+          </a>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button class="q-icon-btn" title="Edit" onclick="editSpecLink('${id}','${lk.id}')">
+            <span class="material-symbols-rounded">edit</span>
+          </button>
+          <button class="q-icon-btn del" title="Remove" onclick="deleteSpecLink('${id}','${lk.id}')">
+            <span class="material-symbols-rounded">delete</span>
+          </button>
+        </div>
       </div>
-      <div style="padding:16px">${imgHtml}${pinsHtml}</div>
+      <div id="${_specContentId(id, lk.id)}">
+        <div class="spec-loading"><span class="material-symbols-rounded">progress_activity</span>Loading…</div>
+      </div>
     </div>`;
   }).join('');
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0" />
-<title>Design Handoff — ${f ? f.title : featureId}</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1117;color:#e2e4f0;padding:40px 20px;max-width:960px;margin:0 auto}
-</style>
-</head>
-<body>
-  <div style="margin-bottom:32px">
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6c7bff;font-weight:700;margin-bottom:6px">Design Handoff</div>
-    <div style="font-size:24px;font-weight:700;margin-bottom:4px">${f ? f.icon+' '+f.title : featureId}</div>
-    <div style="font-size:13px;color:#8b90a8;margin-bottom:16px">${f ? f.customer : ''} &nbsp;·&nbsp; ${screens.length} screen${screens.length!==1?'s':''} &nbsp;·&nbsp; Exported ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
-    ${f&&f.summary?`<div style="font-size:13px;color:#8b90a8;line-height:1.6;padding:14px;background:#1a1d27;border-radius:8px;border:1px solid #2a2f45">${f.summary}</div>`:''}
-  </div>
-  ${screensHtml}
-  <div style="font-size:11px;color:#5a5f7a;margin-top:40px;text-align:center;padding-bottom:40px">Generated from Feature Context Hub</div>
-</body>
-</html>`;
-  const blob = new Blob([html], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `handoff-${featureId}.html`; a.click();
-  URL.revokeObjectURL(url);
-  showToast();
+
+  const isEmpty = !hasBuiltinSpec && !specLinks.length;
+
+  if (isEmpty) {
+    panel.innerHTML = `<div class="context-card" style="text-align:center;padding:48px 20px">
+      <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">description</span>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No spec links yet.<br>Supports GitHub files, Figma, Zeplin, Storybook…</div>
+      <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addSpecLink('${id}')">+ Add Spec Link</button>
+    </div>`;
+  } else {
+    panel.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text)">Design Spec</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Link Figma, GitHub files, Zeplin, Storybook, or any spec document</div>
+        </div>
+        <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="addSpecLink('${id}')">
+          <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Link
+        </button>
+      </div>
+      ${builtinHtml}
+      ${linksHtml}`;
+  }
+
+  // Async: render content for each user-added spec link
+  specLinks.filter(lk => lk.url && !_specEditMode[id + '::' + lk.id]).forEach(lk => {
+    renderSpecContent(id, lk.id, lk.url);
+  });
+
+  // Async: render built-in markdown spec doc (for features with no docSrc)
+  if (hasBuiltinSpec && f && !f.docSrc) {
+    const builtinEl = document.getElementById('spc_builtin_' + id);
+    if (builtinEl) {
+      const rawEl = document.getElementById('doc-' + id);
+      const saved = getFeatureState(id).doc;
+      const raw = saved || (rawEl ? rawEl.textContent.trim() : '');
+      builtinEl.innerHTML = raw
+        ? `<div class="md-body">${marked.parse(raw)}</div>`
+        : `<div style="font-size:13px;color:var(--text-dim);padding:8px 0">No spec document yet.</div>`;
+    }
+  }
 }
 
-function renderAllHandoffs() {
-  FEATURES.forEach(f => renderHandoff(f.id));
+// ═══════════════════════════════════════════════════════════════
+//  THEME
+// ═══════════════════════════════════════════════════════════════
+function toggleTheme() {
+  const html = document.documentElement;
+  const isLight = html.getAttribute('data-theme') === 'light';
+  const next = isLight ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('fh_theme', next);
+  const icon = document.getElementById('theme-icon');
+  if (icon) icon.textContent = next === 'dark' ? 'light_mode' : 'dark_mode';
 }
 
 // ═══════════════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════════════
 function init() {
+  const savedTheme = localStorage.getItem('fh_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  const themeIcon = document.getElementById('theme-icon');
+  if (themeIcon) themeIcon.textContent = savedTheme === 'dark' ? 'light_mode' : 'dark_mode';
+
   renderSidebar();
   renderFeatureViews();
   renderScheduleCards();
+  renderDeletedFeaturesSection();
   renderAllSections();
   renderAllDesignImgs();
   renderDocs();
   renderDomainDocs();
-  renderAllHandoffs();
 
   const lastUpdated = document.getElementById('last-updated');
   const saved = localStorage.getItem('fh_state');
