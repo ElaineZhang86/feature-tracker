@@ -637,7 +637,7 @@
   }
 
   .empty-state h3 { font-size: 16px; margin-bottom: 8px; color: var(--text-muted); }
-  .empty-state p { font-size: 13px; }
+  .empty-state p { font-size: 13px; margin-bottom: 16px; }
 
   /* ── MARKDOWN DOC RENDERER ───────────────────── */
   .md-body {
@@ -2883,9 +2883,6 @@ function buildFeatureView(f) {
     <!-- CUSTOMER CALLS TAB -->
     <div id="${f.id}_tab_calls" class="tab-panel">
       <div id="${f.id}_calls_list"></div>
-      <div style="margin-top:14px">
-        <button class="btn btn-primary" onclick="addCall('${f.id}')">+ Add Call</button>
-      </div>
     </div>
   </div>`;
 }
@@ -2975,7 +2972,7 @@ function renderTodoList(featureId) {
       <button class="remove-btn" onclick="removeCustomTodo('${featureId}',${i})">×</button>
     </li>`;
   }).join('');
-  el.innerHTML = (base + extra) || `<li style="padding:8px 0;color:var(--text-dim);font-size:13px">No tasks yet.</li>`;
+  el.innerHTML = (base + extra) || `<li style="list-style:none;display:block"><div class="empty-state"><h3>No tasks yet</h3><p>Add what still needs to be designed or decided.</p><button class="btn btn-primary" onclick="document.getElementById('${featureId}_add_todo').focus()">+ Add Task</button></div></li>`;
 }
 
 function addTodo(featureId) {
@@ -3002,7 +2999,7 @@ function renderDoneList(featureId) {
   const extra = custom.map((item, i) => `<li class="done-item" style="justify-content:space-between">
     <span>${item}</span><button class="remove-btn" onclick="removeCustomDone('${featureId}',${i})">×</button>
   </li>`).join('');
-  el.innerHTML = (base + extra) || `<li style="padding:8px 0;color:var(--text-dim);font-size:13px">Nothing completed yet.</li>`;
+  el.innerHTML = (base + extra) || `<li style="list-style:none;display:block"><div class="empty-state"><h3>Nothing completed yet</h3><p>Add items you've already finished to track progress.</p><button class="btn btn-primary" onclick="document.getElementById('${featureId}_add_done').focus()">+ Add Item</button></div></li>`;
 }
 
 function addDone(featureId) {
@@ -3054,7 +3051,7 @@ function renderQuestionsList(featureId) {
     </div>`;
   }).join('');
 
-  el.innerHTML = (baseHtml + customHtml) || `<div class="empty-state"><h3>No open questions</h3><p>Everything is resolved!</p></div>`;
+  el.innerHTML = (baseHtml + customHtml) || `<div class="empty-state"><h3>No open questions</h3><p>Add anything that still needs an answer below.</p><button class="btn btn-primary" onclick="document.getElementById('${featureId}_add_q').focus()">+ Add Question</button></div>`;
 }
 
 function resolveQ(featureId, type, i) {
@@ -3122,7 +3119,7 @@ function renderDesignImgs(id) {
       <img src="${url}" onerror="this.style.display='none'" />
       <div class="img-url">${url}</div>
       <button class="img-remove" onclick="removeDesignImg('${id}',${i})">✕</button>
-    </div>`).join('') : '';
+    </div>`).join('') : `<div class="empty-state"><h3>No screenshots yet</h3><p>Paste a screenshot URL using the field below.</p><button class="btn btn-primary" onclick="document.getElementById('${id}_add_img').focus()">+ Add Screenshot</button></div>`;
 }
 function renderAllDesignImgs() {
   FEATURES.forEach(f => renderDesignImgs(f.id));
@@ -3286,13 +3283,11 @@ function renderCallsList(featureId) {
   if (!el) return;
   const calls = getCalls(featureId);
   if (!calls.length) {
-    el.innerHTML = `<div class="empty-state" style="padding:40px 20px">
-      <h3>No customer calls yet</h3>
-      <p>Click "+ Add Call" to track a call link, paste a transcript, and generate an AI summary.</p>
-    </div>`;
+    el.innerHTML = `<div class="empty-state"><h3>No customer calls yet</h3><p>Track call recordings, paste transcripts, and generate AI summaries.</p><button class="btn btn-primary" onclick="addCall('${featureId}')">+ Add Call</button></div>`;
     return;
   }
-  el.innerHTML = calls.map(call => buildCallCard(featureId, call)).join('');
+  el.innerHTML = calls.map(call => buildCallCard(featureId, call)).join('') +
+    `<div style="margin-top:14px"><button class="btn btn-primary" onclick="addCall('${featureId}')">+ Add Call</button></div>`;
 }
 
 function buildCallCard(featureId, call) {
@@ -3492,6 +3487,399 @@ ${call.transcript}`;
   }).catch(() => {
     alert('Could not copy to clipboard. Try selecting and copying the transcript manually.');
   });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DESIGN HANDOFF
+// ═══════════════════════════════════════════════════════════════
+
+function getHandoffScreens(featureId) {
+  return getFeatureState(featureId).handoffScreens || null;
+}
+
+function saveHandoffScreens(featureId, screens) {
+  updateFeatureState(featureId, { handoffScreens: screens });
+}
+
+function initHandoffScreens(featureId) {
+  let screens = getHandoffScreens(featureId);
+  if (!screens) {
+    const f = FEATURES.find(x => x.id === featureId);
+    screens = (f ? (f.todo || []) : []).map((label, i) => ({
+      id: `screen-${Date.now()}-${i}`,
+      label,
+      imageData: null,
+      pins: [],
+      drawingData: null,
+    }));
+    saveHandoffScreens(featureId, screens);
+  }
+  return screens;
+}
+
+function renderHandoff(featureId) {
+  const container = document.getElementById(`${featureId}_handoff_body`);
+  if (!container) return;
+  const screens = initHandoffScreens(featureId);
+  const attached = screens.filter(s => s.imageData).length;
+  container.innerHTML = `
+    <div class="handoff-header">
+      <div style="font-size:12px;color:var(--text-muted)">${screens.length} screen${screens.length !== 1 ? 's' : ''} &nbsp;·&nbsp; ${attached} attached</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="addHandoffScreen('${featureId}')">+ Add Screen</button>
+        <button class="export-btn" onclick="exportHandoff('${featureId}')">&#8599; Export Handoff</button>
+      </div>
+    </div>
+    <div class="screen-grid">
+      ${screens.length ? screens.map(s => buildScreenCard(featureId, s)).join('') : `<div class="empty-state" style="width:100%"><h3>No screens yet</h3><p>Add your first screen to start the design handoff.</p><button class="btn btn-primary" onclick="addHandoffScreen('${featureId}')">+ Add Screen</button></div>`}
+    </div>
+  `;
+}
+
+function buildScreenCard(featureId, screen) {
+  const hasImage = !!screen.imageData;
+  const pinCount = (screen.pins || []).length;
+  const pinsOverlay = (screen.pins || []).map((pin, pi) => `
+    <div style="position:absolute;left:${pin.x*100}%;top:${pin.y*100}%;transform:translate(-50%,-100%) rotate(-45deg);width:16px;height:16px;background:var(--accent);border:1.5px solid white;border-radius:50% 50% 50% 0;display:flex;align-items:center;justify-content:center;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.5)">
+      <span style="transform:rotate(45deg);font-size:8px;font-weight:700;color:white">${pi+1}</span>
+    </div>`).join('');
+  // Use composite (image + drawing merged) if available, else raw image
+  const previewSrc = screen.compositeData || screen.imageData;
+  const preview = hasImage
+    ? `<div style="position:relative;width:100%;height:100%">
+        <img src="${previewSrc}" alt="${screen.label}" style="width:100%;height:100%;object-fit:cover;display:block" />
+        ${pinsOverlay}
+      </div>`
+    : `<div class="upload-placeholder"><div class="ph-icon">&#128444;</div><div>Click to attach design</div></div>`;
+  return `
+    <div class="screen-card">
+      <div class="screen-card-header">
+        <div class="screen-card-label" title="${screen.label}">${screen.label}</div>
+        <span class="screen-card-status ${hasImage ? 'screen-status-attached' : 'screen-status-pending'}">${hasImage ? 'Attached' : 'Pending'}</span>
+      </div>
+      <div class="screen-card-preview" onclick="${hasImage ? `openAnnotator('${featureId}','${screen.id}')` : `triggerImageUpload('${screen.id}')`}">
+        ${preview}
+      </div>
+      <div class="screen-card-actions">
+        <button class="btn btn-primary" style="font-size:11px;padding:4px 10px" onclick="triggerImageUpload('${screen.id}')">Upload</button>
+        ${hasImage ? `<button class="btn" style="font-size:11px;padding:4px 10px" onclick="openAnnotator('${featureId}','${screen.id}')">Annotate</button>` : ''}
+        <button class="btn" style="font-size:11px;padding:4px 10px;margin-left:auto;color:var(--red)" onclick="removeHandoffScreen('${featureId}','${screen.id}')">&#10005;</button>
+      </div>
+      <input type="file" accept="image/*" id="upload-${screen.id}" style="display:none"
+        onchange="handleImageUpload(event,'${featureId}','${screen.id}')" />
+    </div>`;
+}
+
+function triggerImageUpload(screenId) {
+  document.getElementById(`upload-${screenId}`).click();
+}
+
+function handleImageUpload(event, featureId, screenId) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const screens = getHandoffScreens(featureId);
+    const idx = screens.findIndex(s => s.id === screenId);
+    if (idx === -1) return;
+    screens[idx].imageData = e.target.result;
+    saveHandoffScreens(featureId, screens);
+    renderHandoff(featureId);
+  };
+  reader.readAsDataURL(file);
+}
+
+function addHandoffScreen(featureId) {
+  const label = prompt('Screen name:');
+  if (!label || !label.trim()) return;
+  const screens = getHandoffScreens(featureId) || [];
+  screens.push({ id: `screen-${Date.now()}`, label: label.trim(), imageData: null, pins: [], drawingData: null });
+  saveHandoffScreens(featureId, screens);
+  renderHandoff(featureId);
+}
+
+function removeHandoffScreen(featureId, screenId) {
+  if (!confirm('Remove this screen?')) return;
+  const screens = (getHandoffScreens(featureId) || []).filter(s => s.id !== screenId);
+  saveHandoffScreens(featureId, screens);
+  renderHandoff(featureId);
+}
+
+// ── ANNOTATOR ─────────────────────────────────────────────────
+let _annotFeatureId = null, _annotScreenId = null;
+let _annotTool = 'pin';
+let _annotDrawing = false, _annotCtx = null;
+let _activePinPopup = null;
+
+function openAnnotator(featureId, screenId) {
+  const screens = getHandoffScreens(featureId);
+  const screen = screens.find(s => s.id === screenId);
+  if (!screen || !screen.imageData) return;
+  _annotFeatureId = featureId;
+  _annotScreenId = screenId;
+  const overlay = document.getElementById('annotator-overlay');
+  document.getElementById('annotator-title').textContent = screen.label;
+  const img = document.getElementById('annotator-img');
+  img.src = screen.imageData;
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  img.onload = () => {
+    const canvas = document.getElementById('annotator-canvas');
+    canvas.width = img.offsetWidth;
+    canvas.height = img.offsetHeight;
+    _annotCtx = canvas.getContext('2d');
+    if (screen.drawingData) {
+      const di = new Image();
+      di.onload = () => _annotCtx.drawImage(di, 0, 0);
+      di.src = screen.drawingData;
+    } else {
+      _annotCtx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    renderAnnotPins(screen.pins || []);
+    setAnnotTool('pin');
+  };
+  if (img.complete && img.naturalWidth) img.onload();
+}
+
+function closeAnnotator() {
+  document.getElementById('annotator-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  closeActivePinPopup();
+  _annotFeatureId = null;
+  _annotScreenId = null;
+}
+
+function setAnnotTool(tool) {
+  _annotTool = tool;
+  const canvas = document.getElementById('annotator-canvas');
+  const pinLayer = document.getElementById('annotator-pin-layer');
+  document.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
+  if (tool === 'draw') {
+    canvas.style.pointerEvents = 'auto';
+    canvas.style.cursor = 'crosshair';
+    pinLayer.classList.remove('pin-mode');
+  } else {
+    canvas.style.pointerEvents = 'none';
+    canvas.style.cursor = '';
+    pinLayer.classList.toggle('pin-mode', tool === 'pin');
+  }
+}
+
+function annotMouseDown(e) {
+  if (_annotTool !== 'draw') return;
+  _annotDrawing = true;
+  const rect = e.target.getBoundingClientRect();
+  _annotCtx.beginPath();
+  _annotCtx.strokeStyle = '#6c7bff';
+  _annotCtx.lineWidth = 2;
+  _annotCtx.lineCap = 'round';
+  _annotCtx.lineJoin = 'round';
+  _annotCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+}
+
+function annotMouseMove(e) {
+  if (!_annotDrawing || _annotTool !== 'draw') return;
+  const rect = e.target.getBoundingClientRect();
+  _annotCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+  _annotCtx.stroke();
+}
+
+function annotMouseUp() { _annotDrawing = false; }
+
+function annotPinClick(e) {
+  if (_annotTool !== 'pin') return;
+  if (e.target.closest('.pin-marker') || e.target.closest('.pin-popup')) return;
+  closeActivePinPopup();
+  const rect = e.currentTarget.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width;
+  const y = (e.clientY - rect.top) / rect.height;
+  const px = e.clientX - rect.left;
+  const py = e.clientY - rect.top;
+  showNewPinPopup(x, y, px, py);
+}
+
+function showNewPinPopup(xRatio, yRatio, px, py) {
+  closeActivePinPopup();
+  const pinLayer = document.getElementById('annotator-pin-layer');
+  const popup = document.createElement('div');
+  popup.className = 'pin-popup';
+  popup.style.left = `${Math.min(px + 10, pinLayer.offsetWidth - 240)}px`;
+  popup.style.top = `${Math.max(py - 10, 0)}px`;
+  popup.innerHTML = `
+    <div class="pin-note-label">Pin note</div>
+    <textarea id="new-pin-note" placeholder="Describe this annotation..."></textarea>
+    <div class="pin-popup-actions">
+      <button class="btn btn-primary" style="font-size:11px;padding:4px 10px" onclick="saveNewPin(${xRatio},${yRatio})">Add Pin</button>
+      <button class="btn" style="font-size:11px;padding:4px 10px" onclick="closeActivePinPopup()">Cancel</button>
+    </div>`;
+  pinLayer.appendChild(popup);
+  _activePinPopup = popup;
+  popup.querySelector('textarea').focus();
+}
+
+function saveNewPin(x, y) {
+  const note = document.getElementById('new-pin-note')?.value.trim() || '';
+  closeActivePinPopup();
+  const screens = getHandoffScreens(_annotFeatureId);
+  const screen = screens.find(s => s.id === _annotScreenId);
+  if (!screen) return;
+  screen.pins = screen.pins || [];
+  screen.pins.push({ id: Date.now(), x, y, note });
+  saveHandoffScreens(_annotFeatureId, screens);
+  renderAnnotPins(screen.pins);
+}
+
+function renderAnnotPins(pins) {
+  const pinLayer = document.getElementById('annotator-pin-layer');
+  pinLayer.querySelectorAll('.pin-marker').forEach(el => el.remove());
+  pins.forEach((pin, i) => {
+    const marker = document.createElement('div');
+    marker.className = 'pin-marker';
+    marker.style.left = `${pin.x * 100}%`;
+    marker.style.top = `${pin.y * 100}%`;
+    marker.innerHTML = `<span>${i + 1}</span>`;
+    marker.title = pin.note || '';
+    marker.onclick = e => { e.stopPropagation(); showExistingPinPopup(pin, i, marker); };
+    pinLayer.appendChild(marker);
+  });
+}
+
+function showExistingPinPopup(pin, idx, anchor) {
+  closeActivePinPopup();
+  const pinLayer = document.getElementById('annotator-pin-layer');
+  const ar = anchor.getBoundingClientRect();
+  const lr = pinLayer.getBoundingClientRect();
+  const popup = document.createElement('div');
+  popup.className = 'pin-popup';
+  popup.style.left = `${Math.min(ar.left - lr.left + 30, pinLayer.offsetWidth - 240)}px`;
+  popup.style.top = `${Math.max(ar.top - lr.top - 10, 0)}px`;
+  popup.innerHTML = `
+    <div class="pin-note-label">Pin ${idx + 1}</div>
+    <textarea id="edit-pin-${pin.id}">${pin.note || ''}</textarea>
+    <div class="pin-popup-actions">
+      <button class="btn btn-primary" style="font-size:11px;padding:4px 10px" onclick="updatePin(${pin.id})">Save</button>
+      <button class="btn" style="font-size:11px;padding:4px 10px;color:var(--red)" onclick="deletePin(${pin.id})">Delete</button>
+      <button class="btn" style="font-size:11px;padding:4px 10px" onclick="closeActivePinPopup()">&#10005;</button>
+    </div>`;
+  pinLayer.appendChild(popup);
+  _activePinPopup = popup;
+}
+
+function updatePin(pinId) {
+  const screens = getHandoffScreens(_annotFeatureId);
+  const screen = screens.find(s => s.id === _annotScreenId);
+  if (!screen) return;
+  const pin = screen.pins.find(p => p.id === pinId);
+  if (pin) {
+    pin.note = document.getElementById(`edit-pin-${pinId}`)?.value || '';
+    saveHandoffScreens(_annotFeatureId, screens);
+  }
+  closeActivePinPopup();
+  renderAnnotPins(screen.pins);
+}
+
+function deletePin(pinId) {
+  const screens = getHandoffScreens(_annotFeatureId);
+  const screen = screens.find(s => s.id === _annotScreenId);
+  if (!screen) return;
+  screen.pins = screen.pins.filter(p => p.id !== pinId);
+  saveHandoffScreens(_annotFeatureId, screens);
+  closeActivePinPopup();
+  renderAnnotPins(screen.pins);
+}
+
+function closeActivePinPopup() {
+  if (_activePinPopup) { _activePinPopup.remove(); _activePinPopup = null; }
+}
+
+function clearAnnotDrawing() {
+  if (!_annotCtx) return;
+  const canvas = document.getElementById('annotator-canvas');
+  _annotCtx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function saveAnnotation() {
+  const annotCanvas = document.getElementById('annotator-canvas');
+  const annotImg = document.getElementById('annotator-img');
+  const screens = getHandoffScreens(_annotFeatureId);
+  const screen = screens.find(s => s.id === _annotScreenId);
+  if (!screen) return;
+
+  // Keep raw drawing for re-editing in the annotator
+  screen.drawingData = annotCanvas.toDataURL();
+
+  // Composite: merge original image + drawing into one image at display size
+  // so the card preview shows them perfectly aligned
+  const merge = document.createElement('canvas');
+  merge.width = annotImg.offsetWidth;
+  merge.height = annotImg.offsetHeight;
+  const mCtx = merge.getContext('2d');
+  mCtx.drawImage(annotImg, 0, 0, merge.width, merge.height);
+  mCtx.drawImage(annotCanvas, 0, 0, merge.width, merge.height);
+  screen.compositeData = merge.toDataURL();
+
+  saveHandoffScreens(_annotFeatureId, screens);
+  const fid = _annotFeatureId;
+  closeAnnotator();
+  renderHandoff(fid);
+  showToast();
+}
+
+// ── EXPORT HANDOFF ────────────────────────────────────────────
+function exportHandoff(featureId) {
+  const f = FEATURES.find(x => x.id === featureId);
+  const screens = getHandoffScreens(featureId) || [];
+  const screensHtml = screens.map((screen, i) => {
+    const imgHtml = screen.imageData
+      ? `<div style="position:relative;display:inline-block;width:100%">
+           <img src="${screen.imageData}" style="width:100%;display:block;border-radius:8px" />
+           ${screen.drawingData ? `<img src="${screen.drawingData}" style="position:absolute;inset:0;width:100%;pointer-events:none;border-radius:8px" />` : ''}
+           ${(screen.pins||[]).map((pin, pi) => `<div style="position:absolute;left:${pin.x*100}%;top:${pin.y*100}%;transform:translate(-50%,-100%) rotate(-45deg);width:26px;height:26px;background:#6c7bff;border:2px solid white;border-radius:50% 50% 50% 0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5)"><span style="transform:rotate(45deg);font-size:10px;font-weight:700;color:white">${pi+1}</span></div>`).join('')}
+         </div>`
+      : `<div style="height:160px;background:#1a1d27;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#8b90a8;font-size:13px">No image attached yet</div>`;
+    const pinsHtml = (screen.pins||[]).length
+      ? `<div style="margin-top:14px">${(screen.pins||[]).map((pin, pi) => `<div style="display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #2a2f45;font-size:13px"><div style="background:#6c7bff;color:white;font-size:10px;font-weight:700;border-radius:50%;min-width:20px;height:20px;display:flex;align-items:center;justify-content:center">${pi+1}</div><div style="color:#e2e4f0">${pin.note || '(no note)'}</div></div>`).join('')}</div>`
+      : '';
+    return `<div style="background:#1a1d27;border:1px solid #2a2f45;border-radius:10px;overflow:hidden;margin-bottom:24px">
+      <div style="padding:12px 16px;border-bottom:1px solid #2a2f45;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:14px;font-weight:600;color:#e2e4f0">${i+1}. ${screen.label}</div>
+        <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:${screen.imageData?'#0d2e1f':'#2e2210'};color:${screen.imageData?'#3ecf8e':'#f5a623'};font-weight:600">${screen.imageData?'Attached':'Pending'}</span>
+      </div>
+      <div style="padding:16px">${imgHtml}${pinsHtml}</div>
+    </div>`;
+  }).join('');
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Design Handoff — ${f ? f.title : featureId}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1117;color:#e2e4f0;padding:40px 20px;max-width:960px;margin:0 auto}
+</style>
+</head>
+<body>
+  <div style="margin-bottom:32px">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6c7bff;font-weight:700;margin-bottom:6px">Design Handoff</div>
+    <div style="font-size:24px;font-weight:700;margin-bottom:4px">${f ? f.icon+' '+f.title : featureId}</div>
+    <div style="font-size:13px;color:#8b90a8;margin-bottom:16px">${f ? f.customer : ''} &nbsp;·&nbsp; ${screens.length} screen${screens.length!==1?'s':''} &nbsp;·&nbsp; Exported ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+    ${f&&f.summary?`<div style="font-size:13px;color:#8b90a8;line-height:1.6;padding:14px;background:#1a1d27;border-radius:8px;border:1px solid #2a2f45">${f.summary}</div>`:''}
+  </div>
+  ${screensHtml}
+  <div style="font-size:11px;color:#5a5f7a;margin-top:40px;text-align:center;padding-bottom:40px">Generated from Feature Context Hub</div>
+</body>
+</html>`;
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `handoff-${featureId}.html`; a.click();
+  URL.revokeObjectURL(url);
+  showToast();
+}
+
+function renderAllHandoffs() {
+  FEATURES.forEach(f => renderHandoff(f.id));
 }
 
 // ═══════════════════════════════════════════════════════════════
