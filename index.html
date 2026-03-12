@@ -1645,13 +1645,31 @@
   }
 
   .call-status-chip {
-    font-size: 10px; font-weight: 700; letter-spacing: .04em;
-    text-transform: uppercase; padding: 2px 7px; border-radius: 20px;
-    white-space: nowrap; flex-shrink: 0;
+    font-size: 10px; font-weight: 700; letter-spacing: .05em;
+    text-transform: uppercase; padding: 2px 8px; border-radius: 4px;
+    white-space: nowrap; flex-shrink: 0; border: 1px solid transparent;
   }
-  .call-status-chip.scheduled         { background: var(--blue-bg);   color: var(--blue);   }
-  .call-status-chip.completed         { background: var(--green-bg);  color: var(--green);  }
-  .call-status-chip.action-items-pending { background: var(--yellow-bg); color: var(--yellow); }
+  .call-status-chip.scheduled {
+    background: rgba(96,165,250,.15); color: #60a5fa;
+    border-color: rgba(96,165,250,.3);
+  }
+  .call-status-chip.completed {
+    background: rgba(52,211,153,.15); color: #34d399;
+    border-color: rgba(52,211,153,.3);
+  }
+  .call-status-chip.action-items-pending {
+    background: rgba(251,191,36,.15); color: #fbbf24;
+    border-color: rgba(251,191,36,.3);
+  }
+  [data-theme="light"] .call-status-chip.scheduled {
+    background: rgba(37,99,235,.1); color: #1d4ed8; border-color: rgba(37,99,235,.25);
+  }
+  [data-theme="light"] .call-status-chip.completed {
+    background: rgba(22,163,74,.1); color: #15803d; border-color: rgba(22,163,74,.25);
+  }
+  [data-theme="light"] .call-status-chip.action-items-pending {
+    background: rgba(217,119,6,.1); color: #b45309; border-color: rgba(217,119,6,.25);
+  }
 
   /* ── CALLS: entry rows ──────────────────────────── */
   .call-entry { margin-bottom: 8px; }
@@ -2186,9 +2204,9 @@
         <div style="flex:1">
           <label class="af-label">Status</label>
           <select id="nc-status" class="add-feature-input" style="cursor:pointer">
-            <option value="scheduled">📅 Scheduled</option>
-            <option value="completed">✅ Completed</option>
-            <option value="action-items-pending">⚡ Action Items Pending</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="completed">Completed</option>
+            <option value="action-items-pending">Action Items Pending</option>
           </select>
         </div>
       </div>
@@ -5028,9 +5046,9 @@ function buildCallCard(featureId, call) {
       <input class="call-detail-input" placeholder="Customer / company (optional)…" value="${escHtml(call.customer || call.label || '')}"
         onblur="updateCallField('${featureId}','${call.id}','customer',this.value);updateCallField('${featureId}','${call.id}','label',this.value);renderCallsList('${featureId}')" />
       <select class="call-detail-select" onchange="updateCallField('${featureId}','${call.id}','status',this.value);renderCallsList('${featureId}')">
-        <option value="scheduled"            ${status === 'scheduled'            ? 'selected' : ''}>📅 Scheduled</option>
-        <option value="completed"            ${status === 'completed'            ? 'selected' : ''}>✅ Completed</option>
-        <option value="action-items-pending" ${status === 'action-items-pending' ? 'selected' : ''}>⚡ Action Items Pending</option>
+        <option value="scheduled"            ${status === 'scheduled'            ? 'selected' : ''}>Scheduled</option>
+        <option value="completed"            ${status === 'completed'            ? 'selected' : ''}>Completed</option>
+        <option value="action-items-pending" ${status === 'action-items-pending' ? 'selected' : ''}>Action Items Pending</option>
       </select>
     </div>
     <div class="call-detail-row">
