@@ -1347,8 +1347,49 @@
     pointer-events: none;
     z-index: 999;
   }
-
   #toast.show { opacity: 1; transform: translateY(0); }
+
+  /* Undo toast */
+  #undo-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(16px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 4px 20px rgba(0,0,0,.4);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px 10px 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: all .25s;
+    pointer-events: none;
+    z-index: 1000;
+    white-space: nowrap;
+  }
+  #undo-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+  #undo-toast strong { color: var(--text); }
+  #undo-toast .undo-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  #undo-toast .undo-btn:hover { opacity: .85; }
 
   /* ── CUSTOMER CALLS TAB ──────────────────────── */
   .call-card {
@@ -2137,6 +2178,10 @@
 </div>
 
 <div id="toast">Saved</div>
+<div id="undo-toast">
+  <span><strong id="undo-toast-name"></strong> deleted</span>
+  <button class="undo-btn" onclick="undoDeleteFeature()">Undo</button>
+</div>
 
 <!-- DELETE CONFIRMATION MODAL -->
 <div id="confirm-modal" style="display:none" class="add-feature-overlay">
@@ -3762,6 +3807,31 @@ function showToast() {
   t.classList.add('show');
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ── UNDO TOAST ────────────────────────────────────────────────
+let _undoFeatureId = null;
+let _undoTimer = null;
+
+function showUndoToast(featureTitle, featureId) {
+  _undoFeatureId = featureId;
+  document.getElementById('undo-toast-name').textContent = featureTitle;
+  const el = document.getElementById('undo-toast');
+  el.classList.add('show');
+  clearTimeout(_undoTimer);
+  _undoTimer = setTimeout(hideUndoToast, 8000);
+}
+
+function hideUndoToast() {
+  document.getElementById('undo-toast').classList.remove('show');
+  _undoFeatureId = null;
+}
+
+function undoDeleteFeature() {
+  if (!_undoFeatureId) return;
+  const id = _undoFeatureId;
+  hideUndoToast();
+  restoreDeletedFeature(id);
 }
 
 // ── CONFIRM MODAL ──────────────────────────────────────────────
@@ -6166,22 +6236,21 @@ function submitNewFeature() {
 }
 
 async function deleteFeature(featureId) {
-  if (!await showConfirm('Delete this feature? You can restore it later from the Schedule Overview.')) return;
+  if (!await showConfirm('Delete this feature? You can restore it any time.')) return;
 
   const custom = loadCustomFeatures();
   const customFeature = custom.find(f => f.id === featureId);
+  const allFeature = getAllFeatures().find(f => f.id === featureId) || customFeature;
+  const featureTitle = allFeature ? allFeature.title : featureId;
 
   if (customFeature) {
-    // Custom feature: move to deleted list
     saveCustomFeatures(custom.filter(f => f.id !== featureId));
     saveDeletedFeatures([...loadDeletedFeatures(), { ...customFeature, deletedAt: Date.now() }]);
   } else {
-    // Built-in feature: just hide it by ID
     const hidden = loadHiddenBuiltins();
     if (!hidden.includes(featureId)) saveHiddenBuiltins([...hidden, featureId]);
   }
 
-  // Remove feature view from DOM and navigate back to schedule
   const view = document.getElementById('view-' + featureId);
   if (view) view.remove();
   showView('schedule', document.querySelector('[data-view="schedule"]'));
@@ -6189,6 +6258,16 @@ async function deleteFeature(featureId) {
   renderSidebar();
   renderScheduleCards();
   renderDeletedFeaturesSection();
+
+  // Auto-expand the deleted section and show undo toast
+  const list = document.getElementById('deleted-feat-list');
+  const btn = document.getElementById('deleted-feat-btn');
+  if (list) list.style.display = 'block';
+  if (btn) {
+    const icon = btn.querySelector('.material-symbols-rounded');
+    if (icon) icon.style.transform = 'rotate(180deg)';
+  }
+  showUndoToast(featureTitle, featureId);
 }
 
 // Keep old name as alias for any legacy references
