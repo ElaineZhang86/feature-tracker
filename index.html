@@ -7457,15 +7457,13 @@ function loadFromSeed() {
   if (!seed) return;
   try {
     const data = JSON.parse(seed.textContent);
-    // Only seed if localStorage is empty for this app
-    const keys = ['fh_state', 'fh_custom_features', 'fh_hidden_builtins', 'fh_deleted_features'];
-    const hasAny = keys.some(k => localStorage.getItem(k) !== null);
-    if (hasAny) return; // user has local data — don't overwrite
+    // Always apply — the server embeds the latest committed state here,
+    // so the seed is always the authoritative source for feature-tracker.
     if (data.fh_state)           localStorage.setItem('fh_state', JSON.stringify(data.fh_state));
     if (data.fh_custom_features) localStorage.setItem('fh_custom_features', JSON.stringify(data.fh_custom_features));
     if (data.fh_hidden_builtins) localStorage.setItem('fh_hidden_builtins', JSON.stringify(data.fh_hidden_builtins));
     if (data.fh_deleted_features)localStorage.setItem('fh_deleted_features', JSON.stringify(data.fh_deleted_features));
-    console.log('[git-sync] Seeded localStorage from embedded snapshot.');
+    console.log('[git-sync] Loaded state from embedded seed.');
   } catch(e) {
     console.warn('[git-sync] Failed to parse fh-seed:', e);
   }
