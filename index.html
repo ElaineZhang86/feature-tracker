@@ -7534,5 +7534,670 @@ document.addEventListener('click', () => {
   }
 });
 </script>
+<script id="fh-seed" type="application/json">
+{
+  "fh_state": {
+    "index-cost": {
+      "tasks": [
+        {
+          "id": "bt_0",
+          "text": "UX flows for Cost Catalogue List page",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_1",
+          "text": "Cost Catalogue creation modal/page",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_2",
+          "text": "Cost Catalogue detail page (item list vs entries, similar to Pricebook entries)",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_3",
+          "text": "Update/archive flows for Cost Catalogue",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_4",
+          "text": "UI for upsert/remove CostCatalogueEntry",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_5",
+          "text": "Job creation: where/how user selects (or sees) the assigned cost catalogue",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_6",
+          "text": "Job Report: new column showing indexed cost alongside line item cost",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_7",
+          "text": "Creation modals for Inventory/PO lines: show indexed cost, use it for price preview",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_0",
+          "text": "Discovery call with SmartCare (Jan 23, 2026) — design attended, key decisions captured",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_1",
+          "text": "Alignment with Priyanka on Phase 1 scope (property-level catalog inheritance, no job-level override)",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_2",
+          "text": "TDD drafted (data model: CostCatalogue, CostCatalogueEntry, Job.costCatalogueId)",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_3",
+          "text": "Design ticket created (SERVICE-4335)",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        }
+      ],
+      "notesEntries": [],
+      "specLinks": [],
+      "ddocEntries": [
+        {
+          "id": "dde_builtin",
+          "title": "Feature Brief",
+          "content": "# Index Cost — Customer Discovery & SIP Evidence\n\n**Design Ticket:** [SERVICE-4335](https://buildops.atlassian.net/browse/SERVICE-4335)\n**Epic:** [SERVICE-4214](https://buildops.atlassian.net/browse/SERVICE-4214)\n**SIP Issues:** SIP-8787 · SIP (Index Cost Bulk Updates)\n\n---\n\n## What Customers Are Saying\n\n### SIP: \"Ability to Use Index Cost for Pricing on Job Report\"\n**Customer:** SmartCare (and others adopting Index Cost)\n\n**Problem:**\nJob Reports today continue to rely on costs from source purchasing documents (POs, AP Bills) or Inventory Issues — **not** from the Index Cost. This undermines the entire purpose of Index Cost and creates an inconsistency between the pricing strategy set in the Cost Catalogue and what actually appears on the job report.\n\n**Business Impact:**\n- Margins are frequently eroded or inconsistently applied\n- Pricing accuracy depends on individual vigilance rather than system enforcement\n- Teams spend excessive time validating costs and markups instead of higher-value work\n- Customers adopting Index Cost do not realize its full value until Job Report uses it\n\n**Current Workaround:**\nSupervisors, managers, or billing clerks manually verify that pricing is calculated using the correct cost before invoicing — highly manual and error-prone.\n\n---\n\n### SIP: \"Item-Level Index Cost Bulk Updates Applied to Pricebooks\"\n\n**Problem:**\nCustomers need to update pricing for a specific item when its supplier cost changes due to an external index, and apply that change **only to selected pricebooks**. BuildOps does not support targeted, item-level bulk updates tied to index cost changes.\n\n**Business Impact:**\n- Manual updates for every high-frequency cost change on indexed items\n- Risk of inconsistent pricing across pricebooks when updates are missed\n\n**Current Workaround:**\nManually identify impacted pricebooks, then update the item price one pricebook at a time. Some customers maintain separate tracking outside BuildOps to manage index changes.\n\n**Context:**\n- Customers using Inventory, Procurement, and multiple pricebooks tied to different customers/regions/contracts\n- Index-based cost changes on individual items are common and recurring — not an edge case\n- Under contract with due date **2026-06-30**\n\n---\n\n## Design Scope (SERVICE-4335)\n\nThe design ticket covers:\n1. **Cost Catalogue UI** — list view, create/edit cost catalogue entries\n2. **Job Report integration** — using index cost as markup base (max(Index Cost, Purchase Cost))\n3. **Property-level inheritance** — property inherits a Cost Catalogue; job inherits from property\n4. **Phase 1 only**: No manual override at job level, no pricebook-level cost override\n\n## What's Built (feature/index-cost branch)\n- `CostCatalogueList` UI with mock data (commit c7d322ae)\n- Index cost design spec (commit 48f9ea65)\n- Component preview: `docs/index-cost-component-preview.html`"
+        }
+      ]
+    },
+    "bulk-po": {
+      "tasks": [
+        {
+          "id": "bt_0",
+          "text": "Bulk action on Maintenance List (select + trigger)",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_1",
+          "text": "PO preview / confirmation dialog (grouped by vendor)",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_2",
+          "text": "\"Include in Bulk PO\" flag setting UI (on task material / checklist)",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_3",
+          "text": "PO Status column on Maintenance List",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_4",
+          "text": "Settings pages (vendor grouping config, department grouping option)",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_5",
+          "text": "Post-creation feedback / success + failure states",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_0",
+          "text": "Discovery calls with ServiceLogic complete",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_1",
+          "text": "PRD in draft (Tamara); Cycle 0 spec authored (PR #22890 filed)",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_2",
+          "text": "Alignment on PO grouping by vendor, draft status, confirmed with ServiceLogic",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_3",
+          "text": "Intacct integration export timing confirmed",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_4",
+          "text": "SA team import timeline confirmed",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_5",
+          "text": "Questions sent async to Manvi Gupta on checklist/task material inheritance",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        }
+      ],
+      "notesEntries": [],
+      "specLinks": [],
+      "ddocEntries": [
+        {
+          "id": "dde_builtin",
+          "title": "Feature Brief",
+          "content": "# Bulk PO Creation — Customer Discovery (IPP-326)\n\n**Discovery Call:** [Dec 12, 2025 (Gong)](https://us-1330.app.gong.io/call?id=4381445529237724212)\n**Spec:** IPP-326 | **DRI:** Tamara Mekhantseva\n**Customers:** Service Logic · Tolin Mechanical · Piedmont Service Group · IES\n\n---\n\n## What We Heard\n\n### Tolin Mechanical (Bobbi Duran, Director Corporate Services; Nick Dosen, CFO)\n> *\"I generate all of the filters that need to be ordered by contract into an excel spreadsheet... I forward that to our filter company.\"* — Bobbi Duran\n\n> *\"It's a little unreasonable to have us go hand-enter like 3,000 filters. We're going to have to come up with a way to import it.\"* — Nick Dosen\n\n- **700+ contracts** across Colorado and Arizona\n- Orders placed **last week of each month, 6 weeks in advance**\n- Single vendor per state (drop-ship, no inventory holding)\n- Current process: Agreement Central → Excel → PDF email to vendor → vendor delivers \"tagged and bagged by contract number\"\n- No formal receiving process; vendor accuracy is trusted\n- No item-to-equipment mapping; they order by contract totals, not per-unit\n\n### Piedmont Service Group (Kenneth Oesch, CFO)\n- 11 divisions, each with different rates ($85, $75, $35, etc.)\n- Billers manually look at who was on the call and change the amount on **every single invoice**\n- No automation exists — entirely manual across all 11 divisions\n\n### IES / Jason Saunders (Reference Standard)\n- One bulk PO action in current ERP generates POs per inventory site\n- PO lines include: Property ID, Job ID, Visit date, Material SKU + Qty, Warehouse\n- **This is the benchmark BuildOps should match**\n\n---\n\n## Key Discoveries\n\n| Topic | Finding |\n|-------|---------|\n| Entry point | Maintenance List bulk action (not SA level) — procurement managers work from the list |\n| Ordering timing | 6 weeks ahead; scheduling/tech assignment is NOT a prerequisite for ordering |\n| Grouping | One PO per vendor (or vendor × department when maintenances span multiple depts) |\n| Vendor resolution | Phase 1: item's `preferredVendorId` only; state-based routing deferred to Phase 2 |\n| Cost model | Non-inventory, expense-only; PO is non-posting committed cost; receipt ≠ journal entry |\n| Intacct | High likelihood bills generated in Intacct via AP automation and read back to BuildOps |\n| Import dependency | Tolin has ~3,000 filters — bulk import of task materials is a de facto prerequisite |\n\n---\n\n## What Was NOT Decided\n\n- Bounded limit per bulk operation (Tolin has 700 contracts — needs engineering sizing)\n- `includeInBulkPO` propagation model (SA template → generated maintenances)\n- Whether to call PO create endpoint N times or build a new bulk endpoint\n- Intacct: export on Draft creation or Submitted status?\n\n---\n\n## Prototype\n\nBranch: `feature/bulk-po` — run locally with `git checkout feature/bulk-po && yarn start`\n\nKey commits:\n- `251587d7` feat: add bulk PO creation for maintenance — ASSETS-3200\n- `ee451b89` fix: show no-eligible-items warning when API returns 0 task entries\n- `ffacc9ad` feat: add Create PO bulk action to SA maintenances table"
+        }
+      ]
+    },
+    "avalara-tax": {
+      "tasks": [
+        {
+          "id": "bt_0",
+          "text": "Where/how exemption certificate info is shown in BuildOps (from Avalara)",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_1",
+          "text": "Customer-level AP & AR Work Taxability UI",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_2",
+          "text": "Sync pattern with Sam Seo's work to reuse FE framework",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_3",
+          "text": "Finalize and share design spec (currently local)",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_0",
+          "text": "Spike ticket reviewed; scope clarified with Tamara (Feb 24)",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_1",
+          "text": "Avalara sync behavior understood (sales vs use taxable flow)",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_2",
+          "text": "Design spec started locally (noted in Slack Mar 10 in #ip-private)",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_3",
+          "text": "Coordination started with Sam Seo re: shared FE patterns with PPC taxability feature",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        }
+      ],
+      "notesEntries": [],
+      "specLinks": [],
+      "ddocEntries": [
+        {
+          "id": "dde_builtin",
+          "title": "Feature Brief",
+          "content": "# Avalara Tax Exemptions — Domain Knowledge (IP-5363)\n\n## Problem\n\nSome customers are tax-exempt (government, nonprofits). When these customers have an exemption certificate in Avalara:\n- AR invoices correctly show zero tax ✅\n- But BuildOps doesn't **retrieve** or **display** the exemption certificate details\n- BuildOps doesn't provide **customer-level AP/AR taxability defaults**\n- AP purchases for the same job still require manual configuration\n\n## Why AR Exemptions Cannot Auto-Drive AP\n\n> ⚠️ **Important legal distinction:** AR exemption certificates apply to sales only. AP tax depends on the contractor's resale status, jurisdiction, use vs. resale classification, and vendor behavior. Automatically reusing AR certificates for AP would misapply tax law in many cases.\n\n- An AR exemption certificate tells Avalara: \"Do not charge sales tax on invoices issued to this customer.\"\n- It does **NOT** mean the contractor is exempt from paying tax when buying materials\n- Correct approach: provide explicit, auditable AP controls (`AP Work Taxability Type`, `Use Taxable`)\n\n## Solution: 4 Workstreams\n\n### Workstream 1 — Retrieve & Store Exemption Certificate from Avalara\n\n- Extend customer Avalara sync to retrieve exemption certificate data\n- Store: `certificateId`, `exemptionCertRegion`, `exemptionReason`, `effectiveDate`, `expirationDate`, `status`\n- On-demand **\"Refresh from Avalara\"** action on Customer detail\n\n| Status | Condition |\n|---|---|\n| ✅ Exempt in Avalara | Valid cert + not expired |\n| ⚠️ Certificate Expired/Revoked | Valid cert + expired |\n| ❌ No certificate | No cert found |\n| ❓ Unknown | Sync failed — show last sync timestamp |\n\n### Workstream 2 — Customer-Level Taxability Fields (New)\n\n| Field | Type | Gating |\n|---|---|---|\n| `isUseTaxable` | Boolean (default: false) | `ap-taxes` flag |\n| `apWorkTaxabilityTypeId` | FK to WorkTaxabilityType | `work-taxability-types` + Avalara |\n| `arWorkTaxabilityTypeId` | FK to WorkTaxabilityType | `work-taxability-types` + Avalara |\n\n### Workstream 3 — Defaulting & Inheritance\n\nCustomer fields default into: Project, Job, Maintenance Job, Service Agreement. Rule: \"Customer fields provide defaults, not locked behavior\" — all can be manually overridden.\n\n### Workstream 4 — Exemption Status on Documents\n\n| Document | What's shown |\n|---|---|\n| PO / Receipt / Bill | Read-only badge: \"Exempt in Avalara (AR)\" / \"No certificate\" / \"Unknown\" |\n| AR Invoice | Badge + certificate summary + \"Last synced\" timestamp |\n\nDisplay is **informational only** — does not automatically change AP tax calculation.\n\n## Feature Flags\n\n| Flag | Controls |\n|---|---|\n| `work-taxability-types` | AP/AR Work Taxability Type fields on Customer, Job, SA |\n| `ap-taxes` | Use Taxable field + AP tax configuration |\n\n## Non-Goals\n\n- Auto-applying AR exemptions to AP (tax law violation)\n- Periodic background sync of certificates (deferred)\n- Editing exemption certificates from BuildOps (read-only — managed in Avalara)\n\n## Related Links\n\n- [IP-5363 - Avalara Tax Exemptions PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4260888584)\n- [TDD - IP-5363](https://buildops.atlassian.net/wiki/spaces/EN/pages/4334288898)\n- [IPP-337 - Job Taxability Settings PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4263018514)"
+        }
+      ]
+    },
+    "job-taxability": {
+      "tasks": [
+        {
+          "id": "bt_0",
+          "text": "Enhance Add/Edit PO Line with LineTaxabilityRule (in progress by eng)",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_1",
+          "text": "Invoice item + grid labels",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_2",
+          "text": "Invoice item taxable defaulting logic during invoice generation",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_3",
+          "text": "Deprecate feature flag",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_0",
+          "text": "Feature flag created (enable-job-level-taxability)",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_1",
+          "text": "DB migration for LineTaxabilityRule complete",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_2",
+          "text": "Job creation wizard / Job Details screen updated",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_3",
+          "text": "Job Template Settings added",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_4",
+          "text": "Work Taxability Type Settings updated",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_5",
+          "text": "WorkTaxabilityType entity extended",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        }
+      ],
+      "notesEntries": [],
+      "specLinks": [],
+      "ddocEntries": [
+        {
+          "id": "dde_builtin",
+          "title": "Feature Brief",
+          "content": "# Job Taxability Settings — Domain Docs (IPP-337 — PPC)\n\n## Problem\n\nService contractors operate on a simple, all-or-nothing tax model. PPC's current system (IFS) supports three clear states: **Taxable / Non-Taxable / Exempt**. Today in BuildOps, this is fragmented across multiple steps and configuration points.\n\nPPC's core rule:\n> \"The job is either taxable or not, and therefore, the things we purchase are the opposite.\"\n\n| Job Type | AR (Customer Invoice) | AP (Vendor Purchases) |\n|---|---|---|\n| **Taxable** | Charge sales tax to customer | Tax-exempt (resale certificate) |\n| **Non-Taxable** | No sales tax | Taxable (consumption/use tax) |\n| **Exempt Customer/Job** | No tax | No tax (government, nonprofit, etc.) |\n\n## Solution: Work Taxability Types\n\nA structured, hierarchical system for controlling AP and AR taxability across the entire job lifecycle.\n\n### New Concept: Work Taxability Type\n\nConfigurable value (set in Tax Settings) that controls:\n- **Line Taxability Rule:** Always Taxable / Always Non-Taxable / Inherit from Item List\n\n### New Entity Fields\n\n| Entity | New Fields |\n|---|---|\n| `WorkTaxabilityType` | `lineTaxabilityRule` (ALWAYS_TAXABLE / ALWAYS_NON_TAXABLE / INHERIT) |\n| `JobBlueprint` (Job Template) | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `Job` | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `ServiceAgreement` | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `Customer` | `apWorkTaxabilityTypeId` + `arWorkTaxabilityTypeId` |\n\n### Defaulting Hierarchy\n\n```\nCustomer defaults → Job Template re-defaults → SA re-defaults → Job (manual override)\n```\n\n### PO/Invoice Line Behavior\n\nWhen a PO is created for a job:\n- ALWAYS_TAXABLE → all lines `Taxable = true`\n- ALWAYS_NON_TAXABLE → all lines `Taxable = false`\n- INHERIT → each line inherits from the Item List `taxable` setting\n\n### Feature Flags\n\n| Flag | Controls |\n|---|---|\n| `work-taxability-types` | Exposes Work Taxability fields on Job Templates, Jobs, SAs, Customers |\n| `ap-taxes` | Exposes AP tax configuration settings |\n\n## PPC's Three Core Scenarios\n\n| Scenario | AR | AP |\n|---|---|---|\n| Taxable Job | Tax collected (sales tax) | Tax-exempt (resale certificate) |\n| Non-Taxable Job | Tax-exempt | Taxable (consumption/use tax) |\n| Exempt Customer/Job | Tax-exempt | Tax-exempt |\n\n## New Screen: Tax Settings\n\n`Company → Tax Settings` consolidates:\n- Work Taxability configuration (when `work-taxability-types` = true)\n- Sales Tax list\n- AP Taxes configuration (when `ap-taxes` = true and Avalara = false)\n\n## Related Links\n\n- [IPP-337 - Job Taxability Settings PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4263018514)\n- [Job Taxability - Meeting Notes (PPC)](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4262461453)"
+        }
+      ]
+    },
+    "vendors-unified": {
+      "tasks": [
+        {
+          "id": "bt_0",
+          "text": "Unified creation flow for vendor/subcontractor",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_1",
+          "text": "Unified detail view",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_0",
+          "text": "Initial page / requirements started (Tamara shared link Feb 25)",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_1",
+          "text": "Use Taxable checkbox behavior confirmed: show for all vendor types when ap-taxes = true",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        }
+      ],
+      "notesEntries": [],
+      "specLinks": [],
+      "ddocEntries": [
+        {
+          "id": "dde_builtin",
+          "title": "Feature Brief",
+          "content": "# Vendors & Subcontractors Unified Experience — Domain Docs (IP-5536)\n\n## Problem\n\nThe **Subcontractors** page and **Vendors** page live in completely separate places, even though subcontractors are fundamentally a type of vendor. This causes:\n- Users switching between two pages for related workflows\n- **Divergent data models** — contacts, addresses, notes, and status stored differently for suppliers vs. subcontractors\n- Inconsistent archival behavior (Supplier uses \"Active\" checkbox; Subcontractor uses \"Deactivate\")\n- Duplicate vendor records created when a vendor is both a supplier and a subcontractor\n\n## Proposed Solution\n\nConsolidate into a **single unified Vendors experience** under the Directory menu.\n\n## Key Changes\n\n### Vendor Types (New)\n\n| Type | Description |\n|---|---|\n| **Supplier** | Existing type. Provides goods/materials. |\n| **Subcontractor** | Existing type. Provides labor services. |\n| **Supplier & Subcontractor** | ⭐ New type. Eliminates need for duplicate records. |\n\n> ⚠️ **Sage 300 exception:** \"Supplier & Subcontractor\" type is NOT available for Sage 300/HH2 tenants.\n\n### Unified Vendor List Page (3 tabs)\n\n| Tab | Shows |\n|---|---|\n| **All** | Every vendor regardless of type |\n| **Suppliers** | type = Supplier OR Supplier & Subcontractor |\n| **Subcontractors** | type = Subcontractor OR Supplier & Subcontractor |\n\n### New Vendor Detail Page (adaptive by type)\n\n- **Supplier type** → Vendor Info, Billing/Shipping Address, Contact, Notes, POs & Subcontracts tab, Contacts tab, Bills tab\n- **Subcontractor or Supplier & Subcontractor** → All of the above + Compliance tab, Retainage Settings, Subcontractor Type, Service Zone, Tags\n\n### Unified Creation Wizard\n\n- **Supplier flow** → Vendor Type, Vendor Name, Use Taxable, Billing Address, Shipping Address, Contact, Notes\n- **Subcontractor flow** → All of the above + Subcontractor Type (multi-select), Service Zone (multi-select), Tags (multi-select), Retainage Settings (conditional)\n- When a vendor is created with type = Subcontractor or Supplier & Subcontractor → **auto-generates the linked Subcontractor record**\n\n### Auto-generation Field Mapping (Vendor → Subcontractor)\n\n| Subcontractor Field | Source from Vendor |\n|---|---|\n| Name | `Vendor.name` |\n| Email | `Vendor.email` |\n| Phone | `Vendor.phone` |\n| Business Address | Vendor Billing Address |\n| Subcontractor Type | Multi-select from wizard |\n| Service Zone | Multi-select from wizard |\n| Tags | Multi-select from wizard |\n| Status (isActive) | `Vendor.isActive` |\n| Contacts | Vendor's primary contact added as `SubcontractorContact` |\n\n### Unified Archive/Unarchive\n\n- Both types now use a single **Archive** action (kebab menu → Archive)\n- Sets `Vendor.isArchived = true`\n- Confirmation dialogue required\n- Type changes that would cause data loss (Subcontractor → Supplier) are **blocked**\n\n## Feature Flag\n\n`subcontracts` FF must be ON. When ON, the new unified Vendors experience replaces both old pages.\n\n## Open Questions\n\n| # | Question |\n|---|---|\n| 1 | Should edits to the Vendor record after creation sync to the linked Subcontractor record, or is auto-generation a one-time event? |\n| 2 | What markup rate applies for Supplier & Subcontractor vendors in financial calculations? |\n| 3 | How should Supplier & Subcontractor vendors be categorized in Project Report Services? |\n\n## Related Links\n\n- [Vendors & Subcontractors Unified Experience PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4308467713)\n- [IP-5383: Vendor/Subcontractor Unification TDD](https://buildops.atlassian.net/wiki/spaces/EN/pages/4332617736)"
+        }
+      ]
+    },
+    "pricebook-fee": {
+      "tasks": [
+        {
+          "id": "bt_0",
+          "text": "Design Fee Settings page (list + add/edit drawer)",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_1",
+          "text": "Design property-level fee selector UX",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_2",
+          "text": "Design job report fee section with auto-applied fees visible + editable",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_3",
+          "text": "Design bulk update propagation flow (apply to future vs. apply to all existing)",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_4",
+          "text": "Validate designs with ServiceLogic (Jason Saunders)",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_5",
+          "text": "Define migration UX — how do existing fee items appear during transition?",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_0",
+          "text": "Discovery calls with ServiceLogic (Jason Saunders), Tolin, Piedmont, Air Texas, IES complete",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_1",
+          "text": "Two approaches formally evaluated (Fee Pricebook vs. Property-Level Dropdown)",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_2",
+          "text": "Approach D (Fee Settings page + property dropdown) selected",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_3",
+          "text": "Fee Settings list page prototype built (fee-settings branch, SERVICE-4366)",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_4",
+          "text": "FeeDrawer add/edit component built",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_5",
+          "text": "PropertyFeeSelector component built",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_6",
+          "text": "DefaultFeesBanner for job report fee section built",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_7",
+          "text": "useResolveFeeProps hook built",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_8",
+          "text": "Fee Settings page wired into app routing + navigation",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_9",
+          "text": "LD gate removed from prototype (4b4fc0)",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        }
+      ],
+      "notesEntries": [],
+      "specLinks": [],
+      "ddocEntries": [
+        {
+          "id": "dde_builtin",
+          "title": "Feature Brief",
+          "content": "# Pricebook Fee Configuration — Domain Knowledge\n\n## Context\n\nFee configuration is a **direct dependency of Pricebook Separation**. When Labor and Material pricebooks are decoupled, fees (truck charges, service charges, consumables) no longer cleanly belong to either cost type.\n\n## What Are Fees?\n\nFees are **revenue-only items** — no cost behind them, no markup calculation, no job costing impact. Examples: Truck charge ($85 flat), Service charge ($75 flat), Torch kit, recovery fee (consumables).\n\n> Contrast with material items: materials carry both a cost and a revenue component. Fee items are pure revenue — they book to their own revenue account, not material revenue.\n\n## Two Approaches Evaluated\n\n### Option 1: Fee Pricebook\n\n| Pro | Con |\n|---|---|\n| Familiar model | Adds a 3rd pricebook to select |\n| Consistent with separation model | Fees may differ only occasionally — overkill for most |\n\n### Option 2: Property-Level Fee Item Library ✅ Current Direction\n\nA centralized **Fee Item Library** organized by category. Properties select one fee item per category.\n\n| Category | Example Items |\n|---|---|\n| Truck Charge | \"Standard Truck Charge $85\", \"Negotiated SC from $75→$50\" |\n| Service Charge | \"Standard Service Charge $75\" |\n\n**Propagation options when a fee item is updated:**\n- Update item in central Fee Library → auto-updates all properties referencing it\n- OR update per-property independently\n\n| Pro | Con |\n|---|---|\n| Independent selection — Truck Charge and Service Charge chosen separately per property | Requires new \"Fee Item Library\" concept |\n| Easy to add variants (negotiated rates) | |\n| No combinatorial pricebook explosion | |\n| Supports centralized bulk updates via controlled propagation | |\n| Keeps fees revenue-only and separate from cost components | |\n\n## What Needs to Change\n\n1. Introduce `Fee` as a distinct item type in the Item List\n2. Fee items are revenue-only — no `unitCost`, no markup, no job costing impact\n3. Fee defaults per property — a property can have a default truck charge + service charge\n4. Pricebook UI — Fee tab only appears on pricebooks if the cost type supports it\n\n## Related Links\n\n- [PRD - Truck Fee / Default Fee Enhancements](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4296900616)\n- [Fee Configuration Options: Pricebook vs Property-Level](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4316692507)"
+        }
+      ]
+    },
+    "pricebook-separation": {
+      "tasks": [
+        {
+          "id": "bt_0",
+          "text": "UX for cost type selection on pricebook creation",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_1",
+          "text": "Update job creation to support 3 separate pricebook selectors",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_2",
+          "text": "Pricing resolution logic per cost type on job report",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_3",
+          "text": "Backward compat treatment for existing full pricebooks in the UI",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        }
+      ],
+      "notesEntries": [],
+      "specLinks": [],
+      "ddocEntries": [
+        {
+          "id": "dde_builtin",
+          "title": "Feature Brief",
+          "content": "# Pricebook Separation (Split by Cost Type) — Domain Docs\n\n## Problem\n\nToday, a single pricebook bundles **Labor + Materials + Equipment** pricing together, causing combinatorial explosion.\n\n> Service Logic example: 118 labor rate structures × 42 material markups = **4,956 pricebooks** required. Impossible to maintain.\n\n## Solution: One Pricebook Per Cost Type\n\nEach pricebook has exactly **one cost type**:\n\n| Cost Type | What it covers |\n|---|---|\n| **Material** | Parts, inventory items, purchased materials |\n| **Labor** | Labor rates, hour types, labor groups |\n| **Equipment** | Equipment rental, usage rates |\n\n> ⚠️ Multi-cost-type pricebooks will NOT be allowed under the new model. Existing \"full\" pricebooks remain backward compatible during migration.\n\n## Key Architectural Decisions\n\n### Cost Type Composition\n- Each new pricebook selects exactly 1 cost type on creation\n- Cost type cannot be changed after creation\n- Existing full pricebooks continue working (backward compatibility)\n\n### Job-Level Selection\n- When creating a job, user selects up to 3 pricebooks (one per cost type)\n- If a full pricebook is selected → populates labor and equipment fields too (backward compat)\n- Each entity resolves pricing from the matching cost-type pricebook\n\n### Pricing Resolution Logic\n\n```\nInventory Part added → resolve from Material pricebook\nLabor line added    → resolve from Labor pricebook\nEquipment added     → resolve from Equipment pricebook\n```\n\n### Inheritance Chain\n\n- Invoice created from a job → inherits all three pricebook IDs from the job\n- Invoice created from SA → inherits from SA → Customer → Company\n- Ad-hoc invoice → inherits from Customer → Company\n\n## What's Out of Scope (Phase 1)\n\n- Splitting out existing pricebooks into separate cost-type books\n- Archiving partial pricebooks\n- Multi-select vendor types in all reporting surfaces\n\n## Related Links\n\n- [PRD - Splitting Pricebook Components](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4153737329)"
+        }
+      ]
+    },
+    "pricebook-bulk-edits": {
+      "tasks": [
+        {
+          "id": "bt_0",
+          "text": "Design Pricebook List multi-select + bulk action trigger",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_1",
+          "text": "Design bulk edit panel (4 surfaces: material markup, labor rates, fixed price, equipment)",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_2",
+          "text": "Design confirmation step with affected pricebook count + names",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_3",
+          "text": "Design post-save summary (success / failure / skipped)",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_4",
+          "text": "Design in-context propagation prompt (after single pricebook save)",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        }
+      ],
+      "notesEntries": [],
+      "specLinks": [],
+      "ddocEntries": [
+        {
+          "id": "dde_builtin",
+          "title": "Feature Brief",
+          "content": "# Pricebook Bulk Edits — Domain Docs\n\n## Problem\n\nSmartCare manages **400+ pricebooks** across 15 operating companies. When contract terms or labor rates change:\n- A single contract amendment may affect **20–50 pricebooks**\n- A union rate increase affects **50+ pricebooks**\n- Commodity price changes (refrigerant, copper) may require updates **daily or weekly**\n- Today: each pricebook must be opened, edited, and saved individually — hours of work per cycle\n\n## Solution: Two Complementary Entry Points\n\n### Option A — Proactive Bulk Edit (Pricebook List)\nFor planned, top-down changes affecting many known pricebooks:\n1. Search/filter pricebooks by name or customer → checkbox multi-select\n2. Choose edit type: Material Markup / Labor Rates / Fixed Price Items / Equipment\n3. Configure the change in an editing panel (mirrors existing single-PB editor)\n4. Confirmation step: shows count + names of affected pricebooks, warns on skipped items\n5. Apply → post-save summary shows successes/failures\n\n### Option C — In-Context Propagation\nFor reactive changes discovered while editing a single pricebook:\n- User saves an edit to a markup tier, labor rate, or fixed price item\n- System prompts: \"Apply these changes to other price books?\"\n- User opens multi-select panel → chooses additional pricebooks → confirms\n\n> **Recommended: Both A and C** — they serve complementary use cases.\n\n## Four Edit Surfaces\n\n| Surface | Example Use Case |\n|---|---|\n| **Material markup tiers** | Spartan Nash contract: bump all markup tiers from 15% → 18% across 20 pricebooks |\n| **Labor rates** | Union rate increase: Chicago Local 507 journeyman $150 → $155 across 50+ pricebooks |\n| **Fixed price items** | Refrigerant price change: update fixed price across all pricebooks that carry this item |\n| **Equipment** | HVAC unit pricing update: update fixed price or markup across pricebooks |\n\n## Key Rules\n\n- ✅ Bulk edits apply **only** to explicitly selected pricebooks — no unintended updates\n- ✅ Permission-gated — not available to job reviewers or lower-privilege roles\n- ✅ If a selected pricebook doesn't have the targeted item → **skip + surface in post-save summary**\n- ✅ Confirmation step before applying\n- ❌ Not in scope: index cost, bulk pricebook creation/cloning, automated/scheduled updates\n\n## Success Metrics\n\n| Metric | Target |\n|---|---|\n| Time to apply rate change across 20 PBs | < 5 min (from ~60–90 min manual) |\n| Price books updated per bulk session | ≥ 10 on average |\n\n## Related Links\n\n- [PRD: Pricebook Bulk Edits](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4344709161)\n- [Draft PRD - Bulk Upsert for Pricebook](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4023386122)"
+        }
+      ]
+    },
+    "multiple-vendor-locations": {
+      "tasks": [
+        {
+          "id": "bt_0",
+          "text": "Expose vendor location selector in Bulk PO confirmation dialog",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_1",
+          "text": "Design vendor location management in unified Vendor Detail page",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_2",
+          "text": "Phase 2: auto-suggest vendor location by matching property state",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_0",
+          "text": "Multiple locations per vendor in production (IP-1002)",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_1",
+          "text": "Each location has billing address, shipping address, contact",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_2",
+          "text": "Vendor.defaultLocationId field implemented",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        }
+      ],
+      "notesEntries": [],
+      "specLinks": [],
+      "ddocEntries": [
+        {
+          "id": "dde_builtin",
+          "title": "Feature Brief",
+          "content": "# Multiple Vendor Locations — Domain Docs (IP-1002)\n\n## What It Is\n\nBuildOps supports multiple locations per vendor — in production since IP-1002. Each vendor location represents a physical branch with its own contact, billing address, and shipping address.\n\nThis is especially important for large national vendors (Trane, Carrier, Ferguson) that operate across multiple US states. The correct vendor location determines:\n- Who to contact for the order\n- Where the order ships from\n- Which bill-to address appears on the PO\n\n## Data Model\n\n```\nVendor\n  ├── defaultLocationId (FK → VendorLocation.id)\n  └── VendorLocation (1:N)\n        ├── id\n        ├── vendorId\n        ├── name (e.g. \"Ferguson Denver\", \"Ferguson Phoenix\")\n        ├── billingAddress\n        ├── shippingAddress\n        ├── contact (name, phone, email)\n        └── isDefault (bool)\n```\n\n## How It Drives Bulk PO Grouping\n\nBulk POs are split into separate POs when any of these three dimensions differ:\n\n```\nvendorId + vendorLocationId + shippingDestination → ONE PO\n```\n\n**Concrete example:** 10 maintenances, all using Ferguson as the filter vendor:\n\n| Maintenances | State | Vendor Location | Ships to | Result |\n|---|---|---|---|---|\n| 7 maintenances | Colorado | Ferguson Denver | CO warehouse | **1 PO** |\n| 3 maintenances | Arizona | Ferguson Phoenix | AZ warehouse | **1 PO** |\n| **Total** | | | | **2 POs** |\n\n## Phase 1 vs Phase 2\n\n**Phase 1 (current):**\n- Default vendor location used (`Vendor.defaultLocationId`) when no override set\n- User can override location in the Bulk PO confirmation dialog\n\n**Phase 2 (deferred):**\n- Auto-suggest the vendor location whose state matches the property's state\n- E.g., if maintenance is in Colorado → auto-suggest Ferguson Denver\n\n## Shipping Destination Options\n\n| Option | Typical Use |\n|---|---|\n| **Warehouse** | ⭐ Most common — deliver ahead of time, \"tagged and bagged\" for tech pickup |\n| Vendor Location | Pick up from vendor's branch |\n| Job / Project Site | Deliver directly to the property address |\n| Manually entered | One-off address |\n\n## Related Links\n\n- [IP-1002 Multiple Vendor Locations PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/3461316618)"
+        }
+      ]
+    }
+  },
+  "fh_custom_features": [],
+  "fh_hidden_builtins": [],
+  "fh_deleted_features": []
+}
+</script>
 </body>
 </html>
