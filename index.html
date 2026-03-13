@@ -6092,11 +6092,26 @@ function renderDeletedFeaturesSection() {
             <div class="deleted-feature-card-title">${escHtml(f.title)}</div>
             <div class="deleted-feature-card-meta">${f.status}${f.customer && f.customer !== 'TBD' ? ' · ' + escHtml(f.customer) : ''}</div>
           </div>
-          <button class="restore-btn" onclick="restoreDeletedFeature('${f.id}')">
-            <span class="material-symbols-rounded">undo</span> Restore
-          </button>
+          <div style="display:flex;gap:6px;flex-shrink:0;align-items:center">
+            <button class="restore-btn" onclick="restoreDeletedFeature('${f.id}')">
+              <span class="material-symbols-rounded">undo</span> Restore
+            </button>
+            <button class="q-icon-btn" title="Permanently delete" style="color:var(--red)" onclick="hardDeleteFeature('${f.id}')">
+              <span class="material-symbols-rounded">delete_forever</span>
+            </button>
+          </div>
         </div>`).join('')}
     </div>`;
+}
+
+async function hardDeleteFeature(featureId) {
+  if (!await showConfirm('Permanently delete this feature? This cannot be undone.')) return;
+  saveHiddenBuiltins(loadHiddenBuiltins().filter(id => id !== featureId));
+  saveDeletedFeatures(loadDeletedFeatures().filter(f => f.id !== featureId));
+  const state = loadState();
+  delete state[featureId];
+  saveState(state);
+  renderDeletedFeaturesSection();
 }
 
 function toggleDeletedFeaturesSection() {
