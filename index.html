@@ -3830,8 +3830,8 @@ function buildFeatureView(f) {
         </div>
       </div>
       ${f.isCustom ? `<div style="display:flex;gap:6px;flex-shrink:0">
-        <button class="btn" style="display:flex;align-items:center;gap:5px" onclick="openEditFeatureModal('${f.id}')">
-          <span class="material-symbols-rounded" style="font-size:15px">edit</span> Edit Info
+        <button class="q-icon-btn" title="Edit feature info" onclick="openEditFeatureModal('${f.id}')">
+          <span class="material-symbols-rounded">edit</span>
         </button>
         <button class="btn" style="border-color:var(--red);color:var(--red);display:flex;align-items:center;gap:5px" onclick="deleteCustomFeature('${f.id}')">
           <span class="material-symbols-rounded" style="font-size:15px">delete</span> Delete
@@ -3846,7 +3846,9 @@ function buildFeatureView(f) {
         <strong>Current Focus</strong>
         <span id="${f.id}_step_display">${currentStep}</span>
       </div>
-      <button class="btn" onclick="toggleStepEdit('${f.id}')">Edit</button>
+      <button class="q-icon-btn" title="Edit current focus" onclick="toggleStepEdit('${f.id}')">
+        <span class="material-symbols-rounded">edit</span>
+      </button>
     </div>
     <div id="${f.id}_step_editor" style="display:none;margin-bottom:20px;">
       <div class="current-step-wrapper">
@@ -4064,6 +4066,7 @@ function addTodo(featureId) {
 }
 
 function removeCustomTodo(featureId, i) {
+  if (!confirm('Delete this task?')) return;
   const items = (getFeatureState(featureId).customTodo || []).filter((_,j) => j !== i);
   updateFeatureState(featureId, { customTodo: items });
   renderTodoList(featureId); renderScheduleCards();
@@ -4128,6 +4131,7 @@ function addDone(featureId) {
 }
 
 function removeCustomDone(featureId, i) {
+  if (!confirm('Delete this completed item?')) return;
   const items = (getFeatureState(featureId).customDone || []).filter((_,j) => j !== i);
   updateFeatureState(featureId, { customDone: items });
   renderDoneList(featureId);
@@ -4327,6 +4331,7 @@ function renderQuestionsList(featureId) {
 }
 
 function deleteBaseQ(featureId, i) {
+  if (!confirm('Delete this question? You can restore it from the deleted section below.')) return;
   const del = { ...(getFeatureState(featureId).deletedBase || {}), [i]: true };
   updateFeatureState(featureId, { deletedBase: del });
   renderQuestionsList(featureId);
@@ -4366,6 +4371,7 @@ function saveAnswer(featureId, key, value) {
 }
 
 function deleteAnswer(featureId, key) {
+  if (!confirm('Delete this answer?')) return;
   delete _answerEditMode[`${featureId}_${key}`];
   const answers = { ...(getFeatureState(featureId).questionAnswers || {}) };
   delete answers[key];
@@ -4427,6 +4433,7 @@ function addQuestion(featureId) {
   renderQuestionsList(featureId);
 }
 function removeCustomQ(featureId, i) {
+  if (!confirm('Delete this question? You can restore it from the deleted section below.')) return;
   const st = getFeatureState(featureId);
   const items = st.customQuestions || [];
   const text = items[i];
@@ -4508,6 +4515,7 @@ function addQAttachment(featureId, key) {
 }
 
 function removeQAttachment(featureId, key, attachId) {
+  if (!confirm('Remove this attachment?')) return;
   const existing = getQAttachments(featureId);
   const updated = { ...existing, [key]: (existing[key] || []).filter(a => a.id !== attachId) };
   updateFeatureState(featureId, { qAttachments: updated });
@@ -4543,6 +4551,7 @@ function addDesignImg(id) {
   showToast();
 }
 function removeDesignImg(id, i) {
+  if (!confirm('Remove this image?')) return;
   const imgs = getDesignImgs(id);
   imgs.splice(i, 1);
   updateFeatureState(id, { dimgs: imgs });
@@ -4804,6 +4813,7 @@ function addCall(featureId) {
 }
 
 function removeCall(featureId, callId) {
+  if (!confirm('Delete this call? This cannot be undone.')) return;
   saveCalls(featureId, getCalls(featureId).filter(c => c.id !== callId));
   renderCallsList(featureId);
 }
@@ -4817,6 +4827,7 @@ function addCallLink(featureId, callId) {
 }
 
 function removeCallLink(featureId, callId, idx) {
+  if (!confirm('Remove this resource link?')) return;
   const calls = getCalls(featureId).map(c =>
     c.id === callId ? { ...c, links: (c.links || []).filter((_, i) => i !== idx) } : c
   );
@@ -5585,8 +5596,10 @@ function buildDKEntryCard(featureId, e) {
           onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('dk_ta_${featureId}_${e.id}')?.focus()}" />
       </div>
       <div class="dk-entry-header-acts" onclick="event.stopPropagation()">
-        <button class="btn" id="dk_editbtn_${featureId}_${e.id}"
-          onclick="openDKEdit('${featureId}','${e.id}')">Edit</button>
+        <button class="q-icon-btn" id="dk_editbtn_${featureId}_${e.id}" title="Edit entry"
+          onclick="openDKEdit('${featureId}','${e.id}')">
+          <span class="material-symbols-rounded">edit</span>
+        </button>
         <button class="remove-btn" title="Delete entry"
           onclick="removeDomainKnowledge('${featureId}','${e.id}')">
           <span class="material-symbols-rounded">delete</span>
@@ -5791,6 +5804,7 @@ function addCtxArrItem(featureId, field, inputId) {
 }
 
 function removeCtxArrItem(featureId, field, index) {
+  if (!confirm('Remove this item?')) return;
   const f = getAllFeatures().find(x => x.id === featureId);
   if (!f) return;
   setCtxField(featureId, field, getCtxArr(featureId, field, f[field] || []).filter((_, i) => i !== index));
@@ -5811,6 +5825,7 @@ function addCtxTeamMember(featureId) {
 }
 
 function removeCtxTeamMember(featureId, index) {
+  if (!confirm('Remove this team member?')) return;
   const f = getAllFeatures().find(x => x.id === featureId);
   if (!f) return;
   setCtxField(featureId, 'team', getCtxArr(featureId, 'team', f.team || []).filter((_, i) => i !== index));
@@ -5831,6 +5846,7 @@ function addCtxLink(featureId) {
 }
 
 function removeCtxLink(featureId, index) {
+  if (!confirm('Remove this link?')) return;
   const f = getAllFeatures().find(x => x.id === featureId);
   if (!f) return;
   setCtxField(featureId, 'links', getCtxArr(featureId, 'links', f.links || []).filter((_, i) => i !== index));
