@@ -4,58 +4,101 @@
 
 ---
 
-## Running the App
+## Setup
 
-Feature Context Hub runs as a local web app backed by a Node.js server that auto-saves your data to git.
+### What you need
 
-### Start the server
+- [Node.js](https://nodejs.org) v18 or later
+- [Git](https://git-scm.com)
+
+### First-time setup
+
+**1. Clone the repo**
 
 ```bash
+git clone https://github.com/YOUR_USERNAME/feature-tracker.git
+cd feature-tracker
+```
+
+**2. Start the server**
+
+```bash
+node server.js
+```
+
+You should see:
+```
+Feature Tracker running at http://localhost:3456
+Auto-sync will commit to git every 30 s after a change.
+```
+
+**3. Open the app**
+
+Open **http://localhost:3456** in your browser. Keep the terminal open while you work.
+
+### Daily workflow
+
+1. `node server.js` — run once at the start of your session
+2. Open **http://localhost:3456**
+3. Work normally — data syncs automatically every 30 seconds
+4. Before closing, confirm the sync indicator in the sidebar has turned green at least once
+
+### Restoring on a new machine
+
+```bash
+git clone https://github.com/YOUR_USERNAME/feature-tracker.git
 cd feature-tracker
 node server.js
 ```
 
-Then open **http://localhost:3456** in your browser. Keep the terminal open while you work.
+Open `http://localhost:3456` — your data loads automatically from the snapshot embedded in `index.html`.
 
-### What the server does
+---
 
-- Serves the app at `localhost:3456`
-- Every time you make a change, a 30-second timer starts. When it fires, the server embeds your full state into `index.html` and commits it to git. Rapid changes are batched — only one commit is made after you stop editing.
-- Optionally pushes to your remote (GitHub, etc.) if one is configured.
+## How Data is Saved
 
-### Sync indicator (sidebar footer)
+Data is stored in two places:
+
+1. **Browser localStorage** — live working state, updates immediately as you work
+2. **`index.html` embedded snapshot** — written by the server every 30 seconds after a change, committed to git
+
+Every field saves automatically:
+- Status, due date, current focus — on change
+- Notes — on every keystroke
+- Q&A answers, Domain Knowledge, Feature Brief — when you click away
+- Call fields — on change
+- Tasks — immediately on any action
+
+You do **not** need to click the sync button to save your work. Data is in localStorage from the moment you type. The sync button (↻) only triggers an early git commit if you don't want to wait 30 seconds.
+
+### What happens when you close the browser
+
+Your data stays in localStorage. When you reopen `http://localhost:3456`, it loads from localStorage. The embedded snapshot in `index.html` is the backup used only when localStorage is empty (e.g. on a new machine after cloning).
+
+---
+
+## Sync Indicator (Sidebar Footer)
 
 | Dot color | Meaning |
 |-----------|---------|
 | Grey | Server offline or idle |
-| Blue (pulsing) | Sync queued / in progress |
+| Blue (pulsing) | Sync in progress |
 | Green | Synced — shows last sync time |
 | Red | Sync failed |
 
-Click the **sync button** (↻) next to the indicator to force an immediate sync without waiting 30 seconds.
-
-### Restoring data on a new machine
-
-When you `git clone` the repo and open the app for the first time, your saved state is loaded from the snapshot embedded in `index.html` — no manual import needed. After that, localStorage takes over and the embedded snapshot updates with every auto-commit.
-
-### Recommended workflow
-
-1. `node server.js` — start once at the beginning of your session
-2. Open `http://localhost:3456`
-3. Work normally — data saves automatically every 30 seconds
-4. At the end of the day, confirm the sync indicator turned green at least once
+Click the **↻ sync button** to force an immediate git commit without waiting 30 seconds. This is optional — auto-sync handles it automatically.
 
 ---
 
 ## Navigation
 
-The left sidebar lists every feature with its current status badge. Click any feature to open it. At the top is **Schedule Overview**, a dashboard that shows all features at once.
+The left sidebar lists every feature with its current status badge. Click any feature to open it. At the top is **Schedule Overview**, a dashboard showing all features at once.
 
-### Sidebar footer icons
+### Sidebar footer
 
 | Icon | Action |
 |------|--------|
-| ↻ | Force sync to git now |
+| ↻ | Force sync to git now (optional) |
 | Sun/Moon | Toggle light / dark theme |
 
 ---
@@ -71,8 +114,6 @@ The landing page. Shows every feature as a card with:
 
 Click any card to jump to that feature's detail page.
 
-**Problem it solves:** When you are juggling 5–8 features simultaneously, it is easy to lose track of where each one stands. The overview gives you a weekly orientation in seconds — no need to open Jira, Confluence, or Slack to remember what you were doing.
-
 ---
 
 ## Adding a New Feature
@@ -82,8 +123,6 @@ Click the **+** button next to "Features" in the sidebar. Fill in:
 - Title, icon, status, customer, due date
 - Summary, current focus
 - Team members
-
-Custom features can be edited or deleted later. Built-in features (pre-loaded) are read-only in the modal but all their dynamic data is fully editable.
 
 ---
 
@@ -99,190 +138,127 @@ Below that are tabs, each covering a different dimension of the feature.
 
 ### Context
 
-A read-only reference card showing the core feature brief:
+A reference card showing the core feature brief:
 - **Summary** — one-paragraph problem statement
-- **Key Decisions** — bullet list of confirmed design/product decisions
+- **Key Decisions** — confirmed design/product decisions
 - **Constraints** — known limitations and out-of-scope items
-- **Links** — Jira tickets, PRDs, TDDs, Gong calls, design files
+- **Links** — Jira tickets, PRDs, Gong calls, design files
 - **Team** — PM, Eng, stakeholders with their roles
-
-**Problem it solves:** Prevents you from having to re-read the PRD or scroll Slack history every time you pick up a feature after a few days away.
 
 ---
 
 ### Domain Knowledge
 
-A personal, freeform notebook for domain context you have built up over time — things not in the PRD, edge cases, mental models, tax law nuances, integration quirks, etc.
+A personal notebook for context you have built up over time — edge cases, mental models, integration quirks, anything not in the PRD.
 
-- Click **+ Add** to create a new entry card
-- Give it a title and write markdown content
-- Entries are collapsible; click the title row to expand/collapse
-- Click the **edit icon** to modify content; click **Done** to save
+- Click **+ Add** to create a new entry
+- Entries are collapsible, editable, and deletable
 - Title autosaves when you click away
-- Click the **delete icon** to remove an entry (with confirmation)
-
-**Problem it solves:** Domain knowledge is usually scattered across Notion, personal notes, and memory. Keeping it here — next to the feature it belongs to — means you can do better call prep, write better design rationale, and onboard teammates faster.
 
 ---
 
-### Feature Brief (shown only when available)
+### Feature Brief
 
-Structured background context for features that have rich prior research — architecture decisions, data models, domain deep-dives.
+Structured background context — architecture decisions, data models, domain deep-dives.
 
 - Click **+ Add** to create a new entry
-- Entries are collapsible, editable, and deletable — same pattern as Domain Knowledge
-- Pre-loaded entries from the feature definition can also be edited or deleted
-- Available for: Avalara Tax, Index Cost, Bulk PO, Pricebook Fee, and other features with background material
+- Same collapsible/editable/deletable pattern as Domain Knowledge
 
 ---
 
 ### Calls
 
-Log and manage all calls related to a feature — customer discovery, internal syncs, design reviews, anything.
+Log all calls related to a feature — customer discovery, internal syncs, design reviews.
 
 #### Creating a call
 
-Click **+ Add** and choose Customer Call or Internal Call. In the modal, set:
-- **Call Name** — the primary identifier for this call
-- **Call Type** — Customer or Internal
-- **Call Status** — Scheduled / Completed / Action Items Pending
+Click **+ Add** and choose **Customer Call** or **Internal Call**. The call opens immediately in edit mode — no modal or popup. Fill in the fields directly:
 
-#### Call card header
+- **Call Name** — primary identifier
+- **Type** — Customer or Internal
+- **Category** — Customer Discovery, Design Review, Internal Sync, etc.
+- **Status** — Scheduled / Completed / Action Items Pending
+- **Date**, **Customer**, **Attendees**, **Notes Link**
+- **External Resources** — attach slides, recordings, or docs with a label and URL
 
-Shows the call type chip, status chip, associated customer, and call name. Status chips use distinct colors:
-- Blue = Scheduled
-- Green = Completed
-- Yellow = Action Items Pending
+Click the **edit icon** (pencil) on any existing call card to switch it to edit mode.
 
-#### Inside each call — three tabs:
+#### Call status chips
 
-**General Info**
-- Call name, associated customer, category, status, date, attendees
-- Notes link (URL to Confluence/Notion/Gong)
-- **External Resources** — attach slides, docs, recordings; add as many links as needed with a label + URL
+| Status | Color |
+|--------|-------|
+| Scheduled | Blue |
+| Completed | Green |
+| Action Items Pending | Yellow |
 
-**Call Prep**
-Structured pre-call preparation template:
-- Research Questions — knowledge gaps to fill
-- Interviewee Background — who you are talking to and why they were chosen
-- Warm-up Questions — rapport-building openers
-- Topic Questions — the main interview questions
-- Look For / Listen For — signals and patterns to watch for
+#### Inside each call — three tabs
 
-Use the **Copy prep prompt to Claude.ai** button to instantly generate a clipboard-ready prompt for AI-assisted prep.
+**General Info** — call details, attendees, resources
 
-**Post Meeting**
-- **Transcript** — paste the raw call transcript (Gong, Otter, manual notes)
-- **AI Summary** — generate a structured summary from the transcript using Claude
+**Call Prep** — structured pre-call preparation:
+- Research Questions, Interviewee Background, Warm-up Questions, Topic Questions, Look For / Listen For
+- Use **Copy prep prompt to Claude.ai** to generate AI-assisted prep
 
-**Problem it solves:** Call prep lives in random docs, transcripts stay in Gong, and action items get lost in Slack. Putting everything under one call card means you can prep, run, and debrief a call without leaving the tool — and your research compounds over time.
+**Post Meeting** — paste the transcript; generate an AI summary with Claude
 
 ---
 
 ### Q&A
 
-A structured question bank with tracked answers per feature.
+A question bank with tracked answers.
 
-- Built-in questions come from the feature definition (open design questions, unknowns)
-- Add your own custom questions with **+ Add**
-- Click **Add answer…** under any question to open the answer editor
-- Answers support **markdown** — use headers, bullets, bold, tables
-- Attach screenshots or URLs to any question for visual evidence
+- Add questions with **+ Add**
+- Answers support markdown
 - Mark questions as **Resolved** when answered; filter by open/resolved
-- Delete questions you have added yourself
-
-Answers autosave when you click away from the text area.
-
-**Problem it solves:** Design decisions are often driven by answers to specific questions — "Can a customer have multiple Avalara certificates?" — but the answer and the reasoning behind it end up buried in email threads. The Q&A tab keeps the question and its answer permanently linked, traceable, and findable.
 
 ---
 
 ### Design Spec
 
-Embeds the design spec file directly in the app.
+Links and embeds for your design spec.
 
-- For features with a pre-loaded spec, the spec displays as an embedded card
-- Click the **edit icon** to change the spec URL or content
-- Click the **delete icon** to remove the built-in spec (a Restore button appears if you want it back)
-- Add additional spec links with **+ Add**
+- Add spec links with **+ Add**
+- Edit or delete existing specs
 
 ---
 
 ### Design Files
 
-Manages links to Figma files, prototypes, or other design assets.
-- Add multiple design file links with labels using **+ Add**
-- Direct links open in a new tab
+Links to Figma files, prototypes, or other design assets.
+
+- Add links with **+ Add**
+- Links open in a new tab
 
 ---
 
 ### Notes
 
-A free-form scratchpad for anything that does not fit elsewhere — raw thoughts, Slack messages to follow up on, reminders. Autosaves as you type.
+A free-form scratchpad. Autosaves as you type.
 
 ---
 
 ### To Do
 
-A unified task list covering all work states for a feature — what still needs doing, what is finished, and what is on hold.
+A unified task list for all work states.
 
-#### Task statuses
+| Status | Meaning |
+|--------|---------|
+| To Do | Not started |
+| Done | Completed |
+| Postponed | Deferred — stores a reason |
 
-| Status | Icon | Meaning |
-|--------|------|---------|
-| To Do | Grey circle | Not started |
-| Done | Green checkmark | Completed |
-| Postponed | Yellow pause | Deferred; stores a reason |
-
-#### Actions per task
-
-- **To Do tasks:** mark done (✓), postpone (⏸), delete (if custom)
-- **Done tasks:** undo back to To Do, delete (if custom)
-- **Postponed tasks:** undo back to To Do, mark done directly, delete (if custom)
-
-When you postpone a task, an inline field opens for you to record the reason.
-
-#### Adding tasks
-
-Click **+ Add** or press Enter in the input field to add a custom task. Built-in tasks (pre-loaded from the feature definition) can be checked off or postponed but not deleted.
-
-#### Progress bar
-
-The progress bar on Schedule Overview counts `Done / (To Do + Done)`. Postponed tasks are excluded from both numerator and denominator so they do not drag down progress.
-
-**Problem it solves:** Jira tickets track engineering work, not design work. The To Do tab is your personal design backlog — specific enough to act on, always visible alongside the feature context.
+- Add tasks with **+ Add**
+- Postpone a task to record why it is blocked
+- Progress bar on Schedule Overview counts Done / (To Do + Done) — postponed tasks excluded
 
 ---
 
 ## Deleted Features
 
-Deleted features are listed in the **Deleted** section at the bottom of the sidebar rather than being permanently removed.
+Deleted features appear in the **Deleted** section at the bottom of the sidebar.
 
-- Click **Restore** to bring a feature back
-- Click the **delete forever icon** to permanently remove it — this cannot be undone (confirmation required)
-
----
-
-## Data & Persistence
-
-Data is stored in two places:
-
-1. **Browser localStorage** — live working state, updates on every keystroke
-2. **`index.html` embedded snapshot** — written by the git-sync server every 30 seconds, committed to git
-
-### Autosave
-
-Every field saves automatically:
-- Status, due date, current focus — save on change
-- Notes — save on every keystroke
-- Q&A answers — save when you click away (blur)
-- Domain knowledge / Feature Brief title and content — save when you click away
-- Call fields — save on change
-- Tasks — save immediately on any action
-
-### Backup
-
-Data is backed up automatically via git auto-sync. To restore data on a new machine, `git clone` the repo, run `node server.js`, and open the app — your state loads from the snapshot embedded in `index.html`.
+- **Restore** — brings the feature back
+- **Delete forever** — permanent removal (confirmation required)
 
 ---
 
@@ -290,22 +266,20 @@ Data is backed up automatically via git auto-sync. To restore data on a new mach
 
 | Status | Meaning |
 |--------|---------|
-| Discovery | Researching the problem; no design decisions made yet |
-| Design | Actively designing; spec in progress |
-| Dev | Handed off to engineering; providing design support |
-| QA | In testing; reviewing implementation |
+| Discovery | Researching the problem |
+| Design | Actively designing |
+| Dev | Handed off to engineering |
+| QA | In testing |
 | Done | Shipped or closed |
-
-Change status directly from the dropdown in the feature header. The sidebar badge and Schedule Overview card update immediately.
 
 ---
 
 ## Tips
 
-- **Start each session:** `node server.js` → open `http://localhost:3456` → check sync indicator turns green
-- **Start each week on Schedule Overview** — scan current focus and progress for all features, update anything stale
+- **Always enter data at localhost:3456**, not by editing `index.html` directly
+- **Start each session:** `node server.js` → open `http://localhost:3456`
 - **Use Current Focus as a daily intent** — one sentence: what specifically needs to happen today on this feature
 - **Log calls even before they happen** — create the call as Scheduled, fill in prep, paste the transcript after
-- **Use markdown in Q&A answers** — tables work well for comparing options; headers make long answers scannable
-- **Domain Knowledge is for things you learned, not things you were told** — if you had to figure it out, write it down here so you never have to figure it out again
-- **Postpone, don't delete** — if a task is blocked, postpone it with a reason rather than deleting so the context is preserved
+- **Domain Knowledge is for things you learned, not things you were told** — if you had to figure it out, write it down so you never have to again
+- **Postpone, don't delete** — if a task is blocked, postpone it with a reason so the context is preserved
+- **Check the sync indicator is green** before closing your browser at the end of the day
