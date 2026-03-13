@@ -53,7 +53,9 @@ function handleSync(req, res) {
       html = html.replace(/<script id="fh-seed" type="application\/json">[\s\S]*?<\/script>\n?/, '');
 
       // Inject seed tag just before </body>
-      const seedTag = `<script id="fh-seed" type="application/json">\n${JSON.stringify(state, null, 2)}\n</script>\n`;
+      // Sanitize: re-parse and re-serialize to escape any control characters
+      const cleanState = JSON.parse(JSON.stringify(state));
+      const seedTag = `<script id="fh-seed" type="application/json">\n${JSON.stringify(cleanState, null, 2)}\n</script>\n`;
       html = html.replace('</body>', seedTag + '</body>');
 
       fs.writeFileSync(INDEX, html, 'utf8');
