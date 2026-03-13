@@ -351,6 +351,10 @@
       <span class="material-symbols-rounded nav-icon">swap_horiz</span>
       <span class="nav-label">Status Workflow</span>
     </a>
+    <a class="nav-item" href="#faq" onclick="setActive(this)">
+      <span class="material-symbols-rounded nav-icon">help</span>
+      <span class="nav-label">Common Questions</span>
+    </a>
     <a class="nav-item" href="#tips" onclick="setActive(this)">
       <span class="material-symbols-rounded nav-icon">star</span>
       <span class="nav-label">Tips</span>
@@ -703,6 +707,23 @@ node server.js</code></pre>
   </div>
 
   <!-- TIPS -->
+  <div class="section" id="faq">
+    <h2 class="section-title">Common Questions</h2>
+    <div class="section-body">
+      <h3>Does the app need internet to work?</h3>
+      <p>No. The app runs entirely on your local machine. When you run <code>node server.js</code>, it starts a small local server and your browser connects to it through <code>localhost</code>. No internet connection is required.</p>
+      <h3>What is the terminal doing? Can I use other terminals while it&#39;s open?</h3>
+      <p>The terminal is just running the local server. As long as <code>node server.js</code> is running somewhere, the app works. You can freely use other terminals or work in other directories — that one just needs to stay open so the server keeps running.</p>
+      <h3>Where is my data stored?</h3>
+      <p>Your feature data is stored locally in the repo folder. The server periodically commits a snapshot to git automatically, so everything stays backed up. If you ever move to a new machine, clone the repo and run <code>node server.js</code> — your data loads automatically.</p>
+      <h3>Do I need to create a git branch?</h3>
+      <p>If you are just using the tool — adding tasks, notes, calls, domain knowledge — you can stay on <code>main</code>. No branch needed.</p>
+      <p>If you want to experiment with changing the app itself (modifying the UI, adding functionality), create your own branch so you can test things without affecting the working version.</p>
+      <h3>Will my changes affect the original repo?</h3>
+      <p>No. Since you cloned it, any changes you make only affect your local copy. The original repo would only change if someone pushed changes back to GitHub, which requires permissions.</p>
+    </div>
+  </div>
+
   <div class="section" id="tips">
     <h2 class="section-title">Tips</h2>
     <ul>
