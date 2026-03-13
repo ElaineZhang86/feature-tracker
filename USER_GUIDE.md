@@ -99,6 +99,34 @@ Click the **↻ sync button** to force an immediate git commit without waiting 3
 
 ---
 
+## Common Questions
+
+**Does the app need internet to work?**
+No. The app runs entirely on your local machine. When you run `node server.js`, it starts a small local server and your browser connects to it through `localhost`. No internet connection is required.
+
+---
+
+**What is the terminal doing? Can I use other terminals while it's open?**
+The terminal is just running the local server. As long as `node server.js` is running somewhere, the app works. You can freely use other terminals or work in other directories — that one just needs to stay open so the server keeps running.
+
+---
+
+**Where is my data stored?**
+Your feature data is stored locally in the repo folder. The server periodically commits a snapshot to git automatically, so everything stays backed up. If you ever move to a new machine, clone the repo and run `node server.js` — your data loads automatically.
+
+---
+
+**Do I need to create a git branch?**
+If you are just using the tool — adding tasks, notes, calls, domain knowledge — you can stay on `main`. No branch needed.
+
+If you want to experiment with changing the app itself (modifying the UI, adding functionality), create your own branch so you can test things without affecting the working version.
+
+---
+
+**Will my changes affect the original repo?**
+No. Since you cloned it, any changes you make only affect your local copy. The original repo would only change if someone pushed changes back to GitHub, which requires permissions.
+
+---
 ## Navigation
 
 The left sidebar lists every feature with its current status badge. Click any feature to open it. At the top is **Schedule Overview**, a dashboard showing all features at once.
@@ -329,34 +357,6 @@ Deleted features appear in the **Deleted** section at the bottom of the sidebar.
 ---
 
 
-## Common Questions
-
-**Does the app need internet to work?**
-No. The app runs entirely on your local machine. When you run `node server.js`, it starts a small local server and your browser connects to it through `localhost`. No internet connection is required.
-
----
-
-**What is the terminal doing? Can I use other terminals while it's open?**
-The terminal is just running the local server. As long as `node server.js` is running somewhere, the app works. You can freely use other terminals or work in other directories — that one just needs to stay open so the server keeps running.
-
----
-
-**Where is my data stored?**
-Your feature data is stored locally in the repo folder. The server periodically commits a snapshot to git automatically, so everything stays backed up. If you ever move to a new machine, clone the repo and run `node server.js` — your data loads automatically.
-
----
-
-**Do I need to create a git branch?**
-If you are just using the tool — adding tasks, notes, calls, domain knowledge — you can stay on `main`. No branch needed.
-
-If you want to experiment with changing the app itself (modifying the UI, adding functionality), create your own branch so you can test things without affecting the working version.
-
----
-
-**Will my changes affect the original repo?**
-No. Since you cloned it, any changes you make only affect your local copy. The original repo would only change if someone pushed changes back to GitHub, which requires permissions.
-
----
 ## Tips
 
 - **Always enter data at localhost:3456**, not by editing `index.html` directly
