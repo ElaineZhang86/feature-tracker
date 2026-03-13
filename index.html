@@ -6137,6 +6137,8 @@ function buildContextTabHtml(f) {
   const id = f.id;
   const summary   = getCtxSummary(id, f.summary);
   const decisions = getCtxArr(id, 'decisions', f.decisions || []);
+  const team      = getCtxArr(id, 'team',      f.team      || []);
+  const links     = getCtxArr(id, 'links',     f.links     || []);
 
   const summaryHtml = `<textarea class="editable-note" style="min-height:72px;margin-top:4px"
       placeholder="Describe this feature…"
@@ -6147,12 +6149,39 @@ function buildContextTabHtml(f) {
         `<span class="constraint-tag" style="display:inline-flex;align-items:center;gap:4px;font-size:12px">${escHtml(d)}<button class="remove-btn" style="width:18px;height:18px;flex-shrink:0" title="Remove" onclick="removeCtxArrItem('${id}','decisions',${i})"><span class="material-symbols-rounded" style="font-size:13px">close</span></button></span>`
       ).join('')}</div>`
     : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">No decisions recorded yet</p>`;
-
   const decisionsHtml = decChipsHtml + `
     <div class="add-item-row" style="padding-top:0;border-top:none">
       <input class="add-item-input" id="${id}_add_decision" placeholder="Add a key decision…"
         onkeydown="if(event.key==='Enter')addCtxArrItem('${id}','decisions','${id}_add_decision')" />
       <button class="btn btn-primary" onclick="addCtxArrItem('${id}','decisions','${id}_add_decision')">Add</button>
+    </div>`;
+
+  const teamChipsHtml = team.length
+    ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${team.map((p, i) =>
+        `<span class="constraint-tag" style="display:inline-flex;align-items:center;gap:4px;font-size:12px"><span class="avatar" style="width:18px;height:18px;font-size:9px;flex-shrink:0">${initials(p.name)}</span>${escHtml(p.name)}<span style="color:var(--text-dim)">· ${escHtml(p.role)}</span><button class="remove-btn" style="width:18px;height:18px;flex-shrink:0" title="Remove" onclick="removeCtxTeamMember('${id}',${i})"><span class="material-symbols-rounded" style="font-size:13px">close</span></button></span>`
+      ).join('')}</div>`
+    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">No team members yet</p>`;
+  const teamHtml = teamChipsHtml + `
+    <div class="add-item-row" style="padding-top:0;border-top:none">
+      <input class="add-item-input" id="${id}_add_team_name" placeholder="Name…" style="flex:1.5"
+        onkeydown="if(event.key==='Enter')addCtxTeamMember('${id}')" />
+      <input class="add-item-input" id="${id}_add_team_role" placeholder="Role…"
+        onkeydown="if(event.key==='Enter')addCtxTeamMember('${id}')" />
+      <button class="btn btn-primary" onclick="addCtxTeamMember('${id}')">Add</button>
+    </div>`;
+
+  const linkChipsHtml = links.length
+    ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${links.map((l, i) =>
+        `<span class="constraint-tag" style="display:inline-flex;align-items:center;gap:4px;font-size:12px"><a href="${escHtml(l.url)}" target="_blank" style="color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:3px"><span class="material-symbols-rounded" style="font-size:12px">open_in_new</span>${escHtml(l.label)}</a><button class="remove-btn" style="width:18px;height:18px;flex-shrink:0" title="Remove" onclick="removeCtxLink('${id}',${i})"><span class="material-symbols-rounded" style="font-size:13px">close</span></button></span>`
+      ).join('')}</div>`
+    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">No links added yet</p>`;
+  const linksHtml = linkChipsHtml + `
+    <div class="add-item-row" style="padding-top:0;border-top:none">
+      <input class="add-item-input" id="${id}_add_link_label" placeholder="Label…" style="flex:1"
+        onkeydown="if(event.key==='Enter')addCtxLink('${id}')" />
+      <input class="add-item-input" id="${id}_add_link_url" placeholder="https://…" style="flex:2"
+        onkeydown="if(event.key==='Enter')addCtxLink('${id}')" />
+      <button class="btn btn-primary" onclick="addCtxLink('${id}')">Add</button>
     </div>`;
 
   return `
@@ -6163,6 +6192,14 @@ function buildContextTabHtml(f) {
     <div class="context-card">
       <h3><span class="material-symbols-rounded ctx-icon">task_alt</span> Key Decisions</h3>
       ${decisionsHtml}
+    </div>
+    <div class="context-card">
+      <h3><span class="material-symbols-rounded ctx-icon">group</span> Team</h3>
+      ${teamHtml}
+    </div>
+    <div class="context-card">
+      <h3><span class="material-symbols-rounded ctx-icon">link</span> Links</h3>
+      ${linksHtml}
     </div>`;
 }
 
