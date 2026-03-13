@@ -60,20 +60,29 @@ function handleSync(req, res) {
 
       // Git commit + push
       gitExec('git add index.html');
-      const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
-      const msg = `chore: auto-sync state ${now}`;
-      gitExec(`git commit -m "${msg}"`);
 
+      // Check if there's actually something to commit
+      const diff = gitExec('git diff --cached --stat');
+      const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+      let committed = false;
       let pushed = false;
-      try {
-        gitExec('git push');
-        pushed = true;
-      } catch (e) {
-        // push is best-effort — remote may not be configured
-        console.warn('git push skipped:', e.message.split('\n')[0]);
+
+      if (diff) {
+        const msg = `chore: auto-sync state ${now}`;
+        gitExec(`git commit -m "${msg}"`);
+        committed = true;
+        try {
+          gitExec('git push');
+          pushed = true;
+        } catch (e) {
+          // push is best-effort — remote may not be configured
+          console.warn('git push skipped:', e.message.split('\n')[0]);
+        }
+      } else {
+        console.log('[git-sync] No changes to commit — state unchanged.');
       }
 
-      sendJSON(res, 200, { ok: true, pushed, timestamp: now });
+      sendJSON(res, 200, { ok: true, committed, pushed, timestamp: now });
     } catch (err) {
       console.error('Sync error:', err.message);
       sendJSON(res, 500, { ok: false, error: err.message });
