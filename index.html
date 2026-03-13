@@ -1771,7 +1771,18 @@
     gap: 10px;
     padding: 13px 18px 12px;
     border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    padding: 2px 18px 2px 14px;
+    min-height: 48px;
   }
+  .dk-entry-header:hover .dk-entry-title-input { color: var(--accent); }
+
+  .dk-expand-icon {
+    font-size: 18px; color: var(--text-dim); transition: transform .2s;
+    display: flex; align-items: center; flex-shrink: 0;
+  }
+  .dk-entry.expanded .dk-expand-icon { transform: rotate(180deg); }
 
   .dk-entry-title-input {
     flex: 1;
@@ -1798,7 +1809,9 @@
 
   .dk-entry-body {
     padding: 18px 20px 16px;
+    display: none;
   }
+  .dk-entry.expanded .dk-entry-body { display: block; }
 
   .dk-entry-content {
     width: 100%;
@@ -5444,6 +5457,7 @@ function getDomainKnowledge(featureId) {
 function addDomainKnowledge(featureId) {
   const id = Date.now().toString();
   const entries = getDomainKnowledge(featureId);
+  _dkOpen[featureId + '_' + id] = true; // open new entry by default
   updateFeatureState(featureId, { domainKnowledge: [...entries, { id, title: '', content: '' }] });
   renderDomainKnowledgeList(featureId);
   setTimeout(() => {
@@ -5510,19 +5524,33 @@ function cancelDKEdit(featureId, id) {
   if (rendered) rendered.style.display = 'block';
 }
 
+const _dkOpen = {};
+
+function toggleDKCollapse(featureId, id) {
+  const card = document.getElementById(`dk_card_${featureId}_${id}`);
+  if (!card) return;
+  const isExpanded = card.classList.contains('expanded');
+  card.classList.toggle('expanded', !isExpanded);
+  _dkOpen[featureId + '_' + id] = !isExpanded;
+}
+
 function buildDKEntryCard(featureId, e) {
   const hasContent = !!(e.content && e.content.trim());
+  const isExpanded = _dkOpen[featureId + '_' + e.id] !== false; // default expanded
   const renderedHtml = hasContent
     ? marked.parse(e.content)
     : '<p style="color:var(--text-dim);font-size:13px">No content yet. Click Edit to add.</p>';
   return `
-  <div class="dk-entry" id="dk_card_${featureId}_${e.id}">
-    <div class="dk-entry-header">
-      <input class="dk-entry-title-input"
-        value="${escHtml(e.title)}"
-        placeholder="Entry title…"
-        onblur="updateDKField('${featureId}','${e.id}','title',this.value)" />
-      <div class="dk-entry-header-acts">
+  <div class="context-card dk-entry${isExpanded ? ' expanded' : ''}" id="dk_card_${featureId}_${e.id}">
+    <div class="dk-entry-header" onclick="toggleDKCollapse('${featureId}','${e.id}')">
+      <div class="dk-entry-info" style="flex:1;min-width:0">
+        <input class="dk-entry-title-input"
+          value="${escHtml(e.title)}"
+          placeholder="Entry title…"
+          onclick="event.stopPropagation()"
+          onblur="updateDKField('${featureId}','${e.id}','title',this.value)" />
+      </div>
+      <div class="dk-entry-header-acts" onclick="event.stopPropagation()">
         <button class="btn" id="dk_editbtn_${featureId}_${e.id}"
           onclick="openDKEdit('${featureId}','${e.id}')">Edit</button>
         <button class="remove-btn" title="Delete entry"
@@ -5530,6 +5558,7 @@ function buildDKEntryCard(featureId, e) {
           <span class="material-symbols-rounded">delete</span>
         </button>
       </div>
+      <span class="material-symbols-rounded dk-expand-icon">expand_more</span>
     </div>
     <div class="dk-entry-body">
       <div id="dk_rendered_${featureId}_${e.id}" class="md-body">
