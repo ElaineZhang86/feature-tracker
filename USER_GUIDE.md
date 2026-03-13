@@ -235,7 +235,7 @@ Click **+ Add** and choose **Customer Call** or **Internal Call**. The call open
 - **Date**, **Customer**, **Attendees**, **Notes Link**
 - **External Resources** — attach slides, recordings, or docs with a label and URL
 
-Click the **edit icon** (pencil) on any existing call card to switch it to edit mode.
+Click the **edit icon** (pencil) on any existing call card to switch it to edit mode. When editing, click **Save** to confirm your changes or **Discard** to revert them. Discarding a brand new call removes it entirely.
 
 #### Call status chips
 
