@@ -163,9 +163,39 @@
     font-size: 11px;
     color: var(--text-dim);
     display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sidebar-footer-row {
+    display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+  }
+  .sync-indicator {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  .sync-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .sync-dot.syncing {
+    background: var(--blue, #3b82f6);
+    animation: sync-pulse 1s ease-in-out infinite;
+  }
+  .sync-dot.synced  { background: var(--green, #22c55e); }
+  .sync-dot.error   { background: var(--red, #ef4444); }
+  @keyframes sync-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
   }
 
   .theme-toggle {
@@ -2221,18 +2251,29 @@
     <div id="nav-features"></div>
   </nav>
   <div class="sidebar-footer">
-    <span>Updated: <span id="last-updated">—</span></span>
-    <div style="display:flex;gap:4px;align-items:center">
-      <button class="theme-toggle" onclick="exportData()" title="Export all data as JSON backup">
-        <span class="material-symbols-rounded">download</span>
+    <div class="sidebar-footer-row">
+      <div class="sync-indicator" id="sync-indicator">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-label">Not synced</span>
+      </div>
+      <button class="theme-toggle" onclick="manualSync()" id="sync-btn" title="Sync to git now" style="font-size:10px;width:auto;padding:0 7px;gap:4px">
+        <span class="material-symbols-rounded" style="font-size:14px">sync</span>
       </button>
-      <label class="theme-toggle" title="Import data from JSON backup" style="cursor:pointer;margin:0">
-        <span class="material-symbols-rounded">upload</span>
-        <input type="file" accept=".json" style="display:none" onchange="importData(event)">
-      </label>
-      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light / dark">
-        <span class="material-symbols-rounded" id="theme-icon">light_mode</span>
-      </button>
+    </div>
+    <div class="sidebar-footer-row">
+      <span>Updated: <span id="last-updated">—</span></span>
+      <div style="display:flex;gap:4px;align-items:center">
+        <button class="theme-toggle" onclick="exportData()" title="Export all data as JSON backup">
+          <span class="material-symbols-rounded">download</span>
+        </button>
+        <label class="theme-toggle" title="Import data from JSON backup" style="cursor:pointer;margin:0">
+          <span class="material-symbols-rounded">upload</span>
+          <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+        </label>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light / dark">
+          <span class="material-symbols-rounded" id="theme-icon">light_mode</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -3771,6 +3812,7 @@ function loadCustomFeatures() {
 
 function saveCustomFeatures(features) {
   localStorage.setItem('fh_custom_features', JSON.stringify(features));
+  if (typeof scheduleSyncToGit === 'function') scheduleSyncToGit();
 }
 
 function loadHiddenBuiltins() {
@@ -3779,6 +3821,7 @@ function loadHiddenBuiltins() {
 }
 function saveHiddenBuiltins(ids) {
   localStorage.setItem('fh_hidden_builtins', JSON.stringify(ids));
+  if (typeof scheduleSyncToGit === 'function') scheduleSyncToGit();
 }
 
 function getAllFeatures() {
@@ -3803,6 +3846,7 @@ function saveState(state) {
     month: 'short', day: 'numeric', year: 'numeric'
   });
   showToast();
+  if (typeof scheduleSyncToGit === 'function') scheduleSyncToGit();
 }
 
 let STATE = loadState();
@@ -6281,6 +6325,7 @@ function loadDeletedFeatures() {
 
 function saveDeletedFeatures(features) {
   localStorage.setItem('fh_deleted_features', JSON.stringify(features));
+  if (typeof scheduleSyncToGit === 'function') scheduleSyncToGit();
 }
 
 function restoreDeletedFeature(featureId) {
@@ -7360,7 +7405,122 @@ function init() {
   }
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// GIT SYNC
+// ══════════════════════════════════════════════════════════════════════════
+const GIT_SYNC_URL = 'http://localhost:3456/sync';
+const GIT_SYNC_DELAY = 30000; // 30 seconds debounce
+let _syncTimer = null;
+let _syncStatus = 'idle'; // idle | pending | syncing | synced | error
+let _lastSyncTime = null;
+let _gitSyncAvailable = false;
+
+// Seed localStorage from embedded <script id="fh-seed"> on fresh load
+function loadFromSeed() {
+  const seed = document.getElementById('fh-seed');
+  if (!seed) return;
+  try {
+    const data = JSON.parse(seed.textContent);
+    // Only seed if localStorage is empty for this app
+    const keys = ['fh_state', 'fh_custom_features', 'fh_hidden_builtins', 'fh_deleted_features'];
+    const hasAny = keys.some(k => localStorage.getItem(k) !== null);
+    if (hasAny) return; // user has local data — don't overwrite
+    if (data.fh_state)           localStorage.setItem('fh_state', JSON.stringify(data.fh_state));
+    if (data.fh_custom_features) localStorage.setItem('fh_custom_features', JSON.stringify(data.fh_custom_features));
+    if (data.fh_hidden_builtins) localStorage.setItem('fh_hidden_builtins', JSON.stringify(data.fh_hidden_builtins));
+    if (data.fh_deleted_features)localStorage.setItem('fh_deleted_features', JSON.stringify(data.fh_deleted_features));
+    console.log('[git-sync] Seeded localStorage from embedded snapshot.');
+  } catch(e) {
+    console.warn('[git-sync] Failed to parse fh-seed:', e);
+  }
+}
+
+function getFullState() {
+  return {
+    fh_state:            loadState(),
+    fh_custom_features:  loadCustomFeatures(),
+    fh_hidden_builtins:  loadHiddenBuiltins(),
+    fh_deleted_features: loadDeletedFeatures(),
+  };
+}
+
+function updateSyncIndicator() {
+  const dot   = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  if (!dot || !label) return;
+  dot.className = 'sync-dot';
+  if (_syncStatus === 'pending') {
+    dot.classList.add('syncing');
+    label.textContent = 'Sync queued…';
+  } else if (_syncStatus === 'syncing') {
+    dot.classList.add('syncing');
+    label.textContent = 'Syncing…';
+  } else if (_syncStatus === 'synced' && _lastSyncTime) {
+    dot.classList.add('synced');
+    const t = _lastSyncTime;
+    const hhmm = t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    label.textContent = `Synced ${hhmm}`;
+  } else if (_syncStatus === 'error') {
+    dot.classList.add('error');
+    label.textContent = 'Sync failed';
+  } else {
+    label.textContent = _gitSyncAvailable ? 'Idle' : 'Server offline';
+  }
+}
+
+async function syncToGit() {
+  _syncStatus = 'syncing';
+  updateSyncIndicator();
+  try {
+    const res = await fetch(GIT_SYNC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state: getFullState() }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    _lastSyncTime = new Date();
+    _syncStatus = 'synced';
+    _gitSyncAvailable = true;
+    console.log('[git-sync] Committed at', _lastSyncTime.toISOString());
+  } catch(e) {
+    _syncStatus = 'error';
+    _gitSyncAvailable = false;
+    console.warn('[git-sync] Sync failed:', e.message);
+  }
+  updateSyncIndicator();
+}
+
+function scheduleSyncToGit() {
+  if (!_gitSyncAvailable && _syncStatus === 'error') return; // stop retrying if server not running
+  clearTimeout(_syncTimer);
+  _syncStatus = 'pending';
+  updateSyncIndicator();
+  _syncTimer = setTimeout(syncToGit, GIT_SYNC_DELAY);
+}
+
+async function manualSync() {
+  clearTimeout(_syncTimer);
+  await syncToGit();
+}
+
+async function initGitSync() {
+  loadFromSeed();
+  // Probe server
+  try {
+    const res = await fetch(GIT_SYNC_URL.replace('/sync', '/'), { method: 'GET', signal: AbortSignal.timeout(2000) });
+    if (res.ok) {
+      _gitSyncAvailable = true;
+      _syncStatus = 'idle';
+    }
+  } catch {
+    _gitSyncAvailable = false;
+    _syncStatus = 'idle';
+  }
+  updateSyncIndicator();
+}
+
 init();
+initGitSync();
 
 // Close add-call dropdown when clicking outside
 document.addEventListener('click', () => {
