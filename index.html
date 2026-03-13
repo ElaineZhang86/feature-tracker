@@ -643,6 +643,44 @@
     line-height: 1.5;
   }
 
+  /* Unified task list */
+  .task-list { list-style:none; margin:0; }
+  .task-item {
+    display:flex; align-items:flex-start; gap:10px;
+    padding:8px 0; border-bottom:1px solid var(--border);
+  }
+  .task-item:last-child { border-bottom:none; }
+  .task-status-icon {
+    font-size:16px; margin-top:1px; flex-shrink:0;
+    transition: color .15s;
+  }
+  .task-status-icon.todo  { color: var(--text-dim); }
+  .task-status-icon.done  { color: var(--green); }
+  .task-status-icon.postponed { color: var(--yellow, #e6a817); }
+  .task-body { flex:1; min-width:0; }
+  .task-text {
+    font-size:13px; line-height:1.5; color:var(--text);
+  }
+  .task-text.done { text-decoration:line-through; color:var(--text-dim); }
+  .task-reason {
+    font-size:11px; color:var(--text-dim); margin-top:2px;
+    display:flex; align-items:center; gap:4px;
+  }
+  .task-actions { display:flex; gap:4px; flex-shrink:0; align-items:center; }
+  .task-section-header {
+    font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--text-dim); padding:10px 0 6px; margin-top:4px;
+  }
+  .task-section-header:first-child { margin-top:0; padding-top:0; }
+  .task-postpone-row {
+    display:flex; gap:6px; align-items:center; padding:6px 0 8px 26px;
+  }
+  .task-postpone-row input {
+    flex:1; font-size:12px; padding:4px 8px;
+    border:1px solid var(--border); border-radius:4px;
+    background:var(--surface2); color:var(--text);
+  }
+
   /* Questions */
   .question-card {
     background: var(--surface);
@@ -1225,7 +1263,7 @@
     width: 26px;
     height: 26px;
     background: none;
-    border: 1px solid transparent;
+    border: 1px solid var(--border);
     color: var(--text-dim);
     cursor: pointer;
     display: inline-flex;
@@ -3839,12 +3877,10 @@ function initials(name) {
 }
 
 function progressOf(feature) {
-  const custom = getFeatureState(feature.id).customTodo || [];
-  const total = feature.todo.length + custom.length;
-  if (!total) return 100;
-  const checked = getChecked(feature.id);
-  const done = [...feature.todo, ...custom].filter((_, i) => checked[i]).length;
-  return Math.round((done / total) * 100);
+  const tasks = getTasks(feature.id).filter(t => t.status !== 'postponed');
+  if (!tasks.length) return 100;
+  const done = tasks.filter(t => t.status === 'done').length;
+  return Math.round((done / tasks.length) * 100);
 }
 
 function showToast() {
@@ -3933,8 +3969,9 @@ function renderScheduleCards() {
     const status = getStatus(f);
     const due = getDue(f);
     const pct = progressOf(f);
-    const total = f.todo.length + (getFeatureState(f.id).customTodo || []).length;
-    const doneCount = Math.round(pct * total / 100);
+    const allTasks = getTasks(f.id);
+    const total = allTasks.filter(t => t.status !== 'postponed').length;
+    const doneCount = allTasks.filter(t => t.status === 'done').length;
     return `
     <div class="schedule-card" onclick="showFeature('${f.id}')">
       <div class="sc-top">
@@ -3992,7 +4029,7 @@ function buildFeatureView(f) {
         ${f.isCustom ? `<button class="q-icon-btn" title="Edit feature info" onclick="openEditFeatureModal('${f.id}')">
           <span class="material-symbols-rounded">edit</span>
         </button>` : ''}
-        <button class="q-icon-btn" title="Delete feature" style="color:var(--red)" onclick="deleteFeature('${f.id}')">
+        <button class="q-icon-btn del" title="Delete feature" onclick="deleteFeature('${f.id}')">
           <span class="material-symbols-rounded">delete</span>
         </button>
       </div>
@@ -4028,8 +4065,7 @@ function buildFeatureView(f) {
       <div class="tab" onclick="switchTab('${f.id}', 'spec', this)">Design Spec</div>
       <div class="tab" onclick="switchTab('${f.id}', 'design', this)">Design Files</div>
       <div class="tab" onclick="switchTab('${f.id}', 'notes', this)">Notes</div>
-      <div class="tab" onclick="switchTab('${f.id}', 'todo', this)">Next Tasks</div>
-      <div class="tab" onclick="switchTab('${f.id}', 'done', this)">Completed</div>
+      <div class="tab" onclick="switchTab('${f.id}', 'tasks', this)">To Do</div>
     </div>
 
     <!-- CONTEXT TAB -->
@@ -4037,14 +4073,9 @@ function buildFeatureView(f) {
       ${buildContextTabHtml(f)}
     </div>
 
-    <!-- TODO TAB -->
-    <div id="${f.id}_tab_todo" class="tab-panel">
-      <div id="${f.id}_todo_panel"></div>
-    </div>
-
-    <!-- DONE TAB -->
-    <div id="${f.id}_tab_done" class="tab-panel">
-      <div id="${f.id}_done_panel"></div>
+    <!-- TASKS TAB -->
+    <div id="${f.id}_tab_tasks" class="tab-panel">
+      <div id="${f.id}_tasks_panel"></div>
     </div>
 
     <!-- QUESTIONS TAB -->
@@ -4099,18 +4130,11 @@ function switchTab(featureId, tabName, el) {
   allTabs.forEach(t => t.classList.remove('active'));
   el.classList.add('active');
 
-  const panels = ['context','todo','done','questions','notes','design','spec','docs','ddocs','dknowledge','calls'];
+  const panels = ['context','tasks','questions','notes','design','spec','docs','ddocs','dknowledge','calls'];
   panels.forEach(p => {
     const panel = document.getElementById(`${featureId}_tab_${p}`);
     if (panel) panel.classList.toggle('active', p === tabName);
   });
-}
-
-function handleCheck(featureId, index, value) {
-  setChecked(featureId, index, value);
-  const label = document.querySelector(`label[for="${featureId}_todo_${index}"]`);
-  if (label) label.classList.toggle('done', value);
-  renderScheduleCards();
 }
 
 function handleNotes(featureId, value) {
@@ -4153,148 +4177,187 @@ function handleDueChange(featureId, val) {
   renderScheduleCards();
 }
 
-// ── TODO ──────────────────────────────────────────────────────
-const _todoFormActive = {};
-function renderTodoList(featureId) {
-  const f = getAllFeatures().find(x => x.id === featureId);
-  const panel = document.getElementById(`${featureId}_todo_panel`);
-  if (!f || !panel) return;
-  const checked = getChecked(featureId);
-  const custom = getFeatureState(featureId).customTodo || [];
-  const base = f.todo.map((item, i) => {
-    const done = !!checked[i];
-    return `<li class="check-item">
-      <input type="checkbox" id="${featureId}_td_${i}" ${done?'checked':''} onchange="handleCheck('${featureId}',${i},this.checked)"/>
-      <label class="check-label${done?' done':''}" for="${featureId}_td_${i}">${item}</label>
-    </li>`;
-  }).join('');
-  const offset = f.todo.length;
-  const extra = custom.map((item, i) => {
-    const idx = offset + i; const done = !!checked[idx];
-    return `<li class="check-item">
-      <input type="checkbox" id="${featureId}_td_${idx}" ${done?'checked':''} onchange="handleCheck('${featureId}',${idx},this.checked)"/>
-      <label class="check-label${done?' done':''}" for="${featureId}_td_${idx}">${item}</label>
-      <button class="remove-btn" title="Remove" onclick="removeCustomTodo('${featureId}',${i})"><span class="material-symbols-rounded">delete</span></button>
-    </li>`;
-  }).join('');
-  const items = base + extra;
+// ── UNIFIED TASK LIST ─────────────────────────────────────────
 
-  if (!items && !_todoFormActive[featureId]) {
+function getTasks(featureId) {
+  const state = getFeatureState(featureId);
+  if (state.tasks) return state.tasks;
+  // Migrate from old format
+  const f = getAllFeatures().find(x => x.id === featureId);
+  const checked = state.checked || {};
+  const customTodo = state.customTodo || [];
+  const customDone = state.customDone || [];
+  const tasks = [];
+  if (f && f.todo) {
+    f.todo.forEach((text, i) => tasks.push({
+      id: `bt_${i}`, text, status: checked[i] ? 'done' : 'todo', reason: '', builtin: true
+    }));
+  }
+  const offset = f ? f.todo.length : 0;
+  customTodo.forEach((text, i) => tasks.push({
+    id: `ct_${Date.now()}_${i}`, text, status: checked[offset + i] ? 'done' : 'todo', reason: '', builtin: false
+  }));
+  if (f && f.done) {
+    f.done.forEach((text, i) => tasks.push({
+      id: `bd_${i}`, text, status: 'done', reason: '', builtin: true
+    }));
+  }
+  customDone.forEach((text, i) => tasks.push({
+    id: `cd_${Date.now()}_${i}`, text, status: 'done', reason: '', builtin: false
+  }));
+  updateFeatureState(featureId, { tasks });
+  return tasks;
+}
+
+function saveTasks(featureId, tasks) {
+  updateFeatureState(featureId, { tasks });
+}
+
+function setTaskStatus(featureId, taskId, status, reason) {
+  saveTasks(featureId, getTasks(featureId).map(t =>
+    t.id === taskId ? { ...t, status, reason: reason || '' } : t
+  ));
+  renderTaskList(featureId);
+  renderScheduleCards();
+}
+
+const _postponeActive = {};
+
+function startPostpone(featureId, taskId) {
+  _postponeActive[featureId + '_' + taskId] = true;
+  renderTaskList(featureId);
+  setTimeout(() => {
+    const el = document.getElementById(`pp_input_${featureId}_${taskId}`);
+    if (el) el.focus();
+  }, 30);
+}
+
+function savePostpone(featureId, taskId) {
+  const el = document.getElementById(`pp_input_${featureId}_${taskId}`);
+  const reason = el ? el.value.trim() : '';
+  delete _postponeActive[featureId + '_' + taskId];
+  setTaskStatus(featureId, taskId, 'postponed', reason);
+}
+
+function cancelPostpone(featureId, taskId) {
+  delete _postponeActive[featureId + '_' + taskId];
+  renderTaskList(featureId);
+}
+
+function addTask(featureId) {
+  const inp = document.getElementById(`${featureId}_add_task`);
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  const tasks = getTasks(featureId);
+  tasks.push({ id: 'ct_' + Date.now(), text, status: 'todo', reason: '', builtin: false });
+  saveTasks(featureId, tasks);
+  inp.value = '';
+  renderTaskList(featureId);
+  renderScheduleCards();
+}
+
+async function removeTask(featureId, taskId) {
+  if (!await showConfirm('Delete this task?')) return;
+  saveTasks(featureId, getTasks(featureId).filter(t => t.id !== taskId));
+  renderTaskList(featureId);
+  renderScheduleCards();
+}
+
+function buildTaskItem(featureId, t) {
+  const isPP = !!_postponeActive[featureId + '_' + t.id];
+  const icons = { todo: 'radio_button_unchecked', done: 'check_circle', postponed: 'pause_circle' };
+  const postponeForm = isPP ? `
+    <div class="task-postpone-row">
+      <input id="pp_input_${featureId}_${t.id}" placeholder="Reason for postponing (optional)…"
+        onkeydown="if(event.key==='Enter')savePostpone('${featureId}','${t.id}');if(event.key==='Escape')cancelPostpone('${featureId}','${t.id}')" />
+      <button class="btn btn-primary" style="font-size:11px;padding:3px 10px" onclick="savePostpone('${featureId}','${t.id}')">Save</button>
+      <button class="btn" style="font-size:11px;padding:3px 10px" onclick="cancelPostpone('${featureId}','${t.id}')">Cancel</button>
+    </div>` : '';
+  const actions = t.status === 'todo' ? `
+      <button class="q-icon-btn" title="Mark done" onclick="setTaskStatus('${featureId}','${t.id}','done')">
+        <span class="material-symbols-rounded">check</span>
+      </button>
+      <button class="q-icon-btn" title="Postpone" onclick="startPostpone('${featureId}','${t.id}')">
+        <span class="material-symbols-rounded">pause_circle</span>
+      </button>
+      ${!t.builtin ? `<button class="remove-btn" title="Delete" onclick="removeTask('${featureId}','${t.id}')"><span class="material-symbols-rounded">delete</span></button>` : ''}
+    ` : t.status === 'done' ? `
+      <button class="q-icon-btn" title="Reset to To Do" onclick="setTaskStatus('${featureId}','${t.id}','todo')">
+        <span class="material-symbols-rounded">undo</span>
+      </button>
+      ${!t.builtin ? `<button class="remove-btn" title="Delete" onclick="removeTask('${featureId}','${t.id}')"><span class="material-symbols-rounded">delete</span></button>` : ''}
+    ` : `
+      <button class="q-icon-btn" title="Reset to To Do" onclick="setTaskStatus('${featureId}','${t.id}','todo')">
+        <span class="material-symbols-rounded">undo</span>
+      </button>
+      <button class="q-icon-btn" title="Mark done" onclick="setTaskStatus('${featureId}','${t.id}','done')">
+        <span class="material-symbols-rounded">check</span>
+      </button>
+      ${!t.builtin ? `<button class="remove-btn" title="Delete" onclick="removeTask('${featureId}','${t.id}')"><span class="material-symbols-rounded">delete</span></button>` : ''}
+    `;
+  return `
+    <li class="task-item">
+      <span class="material-symbols-rounded task-status-icon ${t.status}">${icons[t.status]}</span>
+      <div class="task-body">
+        <span class="task-text ${t.status === 'done' ? 'done' : ''}">${escHtml(t.text)}</span>
+        ${t.status === 'postponed' && t.reason ? `<div class="task-reason"><span class="material-symbols-rounded" style="font-size:11px">info</span>${escHtml(t.reason)}</div>` : ''}
+      </div>
+      <div class="task-actions">${actions}</div>
+    </li>
+    ${postponeForm}`;
+}
+
+function renderTaskList(featureId) {
+  const panel = document.getElementById(`${featureId}_tasks_panel`);
+  if (!panel) return;
+  const tasks = getTasks(featureId);
+  const todo = tasks.filter(t => t.status === 'todo');
+  const done = tasks.filter(t => t.status === 'done');
+  const postponed = tasks.filter(t => t.status === 'postponed');
+
+  if (!tasks.length) {
     panel.innerHTML = `
       <div class="context-card" style="text-align:center;padding:48px 20px">
         <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">pending_actions</span>
         <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No tasks yet.<br>Add what still needs to be designed or decided.</div>
-        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addTodo('${featureId}')">+ Add Task</button>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="document.getElementById('${featureId}_add_task').focus()">+ Add</button>
       </div>`;
     return;
   }
 
-  panel.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div>
-        <div style="font-size:14px;font-weight:600;color:var(--text)">Next Tasks</div>
-        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Design and decision tasks remaining</div>
-      </div>
-      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="document.getElementById('${featureId}_add_todo').focus()">
-        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Task
-      </button>
-    </div>
-    <div class="context-card">
-      <ul class="checklist" id="${featureId}_todo_list">${items}</ul>
-      <div class="add-item-row" style="margin-top:12px">
-        <input class="add-item-input" id="${featureId}_add_todo" placeholder="Add a task…"
-          onkeydown="if(event.key==='Enter')addTodo('${featureId}')" />
-        <button class="btn btn-primary" onclick="addTodo('${featureId}')">Add</button>
-      </div>
-    </div>`;
-}
-
-function addTodo(featureId) {
-  let inp = document.getElementById(`${featureId}_add_todo`);
-  if (!inp) {
-    _todoFormActive[featureId] = true;
-    renderTodoList(featureId);
-    inp = document.getElementById(`${featureId}_add_todo`);
-    if (inp) inp.focus();
-    return;
-  }
-  const text = inp.value.trim(); if (!text) return;
-  const items = [...(getFeatureState(featureId).customTodo || []), text];
-  updateFeatureState(featureId, { customTodo: items }); inp.value = '';
-  renderTodoList(featureId); renderScheduleCards();
-}
-
-async function removeCustomTodo(featureId, i) {
-  if (!await showConfirm('Delete this task?')) return;
-  const items = (getFeatureState(featureId).customTodo || []).filter((_,j) => j !== i);
-  updateFeatureState(featureId, { customTodo: items });
-  renderTodoList(featureId); renderScheduleCards();
-}
-
-// ── DONE ──────────────────────────────────────────────────────
-const _doneFormActive = {};
-function renderDoneList(featureId) {
-  const f = getAllFeatures().find(x => x.id === featureId);
-  const panel = document.getElementById(`${featureId}_done_panel`);
-  if (!f || !panel) return;
-  const custom = getFeatureState(featureId).customDone || [];
-  const base = f.done.map(d => `<li class="done-item"><span>${d}</span></li>`).join('');
-  const extra = custom.map((item, i) => `<li class="done-item" style="justify-content:space-between">
-    <span>${item}</span><button class="remove-btn" title="Remove" onclick="removeCustomDone('${featureId}',${i})"><span class="material-symbols-rounded">delete</span></button>
-  </li>`).join('');
-  const items = base + extra;
-
-  if (!items && !_doneFormActive[featureId]) {
-    panel.innerHTML = `
-      <div class="context-card" style="text-align:center;padding:48px 20px">
-        <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">check_circle</span>
-        <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Nothing completed yet.<br>Add items you've already finished to track progress.</div>
-        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addDone('${featureId}')">+ Add Item</button>
-      </div>`;
-    return;
-  }
+  const sectionHtml = (label, items) => !items.length ? '' : `
+    <div class="task-section-header">${label} · ${items.length}</div>
+    ${items.map(t => buildTaskItem(featureId, t)).join('')}`;
 
   panel.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <div>
-        <div style="font-size:14px;font-weight:600;color:var(--text)">Completed</div>
-        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Work already finished</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">To Do List</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Track design tasks, completed work, and postponed items</div>
       </div>
-      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="document.getElementById('${featureId}_add_done').focus()">
-        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Item
+      <button class="btn btn-primary" style="font-size:12px;padding:5px 12px;flex-shrink:0" onclick="document.getElementById('${featureId}_add_task').focus()">
+        + Add
       </button>
     </div>
     <div class="context-card">
-      <ul class="done-list" id="${featureId}_done_list">${items}</ul>
+      <ul class="task-list">
+        ${sectionHtml('To Do', todo)}
+        ${sectionHtml('Done', done)}
+        ${sectionHtml('Postponed', postponed)}
+      </ul>
       <div class="add-item-row" style="margin-top:12px">
-        <input class="add-item-input" id="${featureId}_add_done" placeholder="Add a completed item…"
-          onkeydown="if(event.key==='Enter')addDone('${featureId}')" />
-        <button class="btn btn-primary" onclick="addDone('${featureId}')">Add</button>
+        <input class="add-item-input" id="${featureId}_add_task" placeholder="Add a task…"
+          onkeydown="if(event.key==='Enter')addTask('${featureId}')" />
+        <button class="btn btn-primary" onclick="addTask('${featureId}')">Add</button>
       </div>
     </div>`;
 }
 
-function addDone(featureId) {
-  let inp = document.getElementById(`${featureId}_add_done`);
-  if (!inp) {
-    _doneFormActive[featureId] = true;
-    renderDoneList(featureId);
-    inp = document.getElementById(`${featureId}_add_done`);
-    if (inp) inp.focus();
-    return;
-  }
-  const text = inp.value.trim(); if (!text) return;
-  const items = [...(getFeatureState(featureId).customDone || []), text];
-  updateFeatureState(featureId, { customDone: items }); inp.value = '';
-  renderDoneList(featureId);
-}
+// Legacy stubs (kept for any remaining references during render init)
+function renderTodoList(featureId) { renderTaskList(featureId); }
+function renderDoneList(featureId) { renderTaskList(featureId); }
 
-async function removeCustomDone(featureId, i) {
-  if (!await showConfirm('Delete this completed item?')) return;
-  const items = (getFeatureState(featureId).customDone || []).filter((_,j) => j !== i);
-  updateFeatureState(featureId, { customDone: items });
-  renderDoneList(featureId);
-}
 
 // ── QUESTIONS ─────────────────────────────────────────────────
 function autoResizeQText(el) {
@@ -4463,7 +4526,7 @@ function renderQuestionsList(featureId) {
       <div class="context-card" style="text-align:center;padding:48px 20px">
         <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">help</span>
         <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No questions yet.<br>Add anything that still needs an answer.</div>
-        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addQuestion('${featureId}')">+ Add Question</button>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addQuestion('${featureId}')">+ Add</button>
       </div>
       ${deletedSection}`;
     setTimeout(() => panel.querySelectorAll('.q-text').forEach(autoResizeQText), 0);
@@ -4477,7 +4540,7 @@ function renderQuestionsList(featureId) {
         <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Open questions and answers</div>
       </div>
       <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="addQuestion('${featureId}')">
-        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Question
+        + Add
       </button>
     </div>
     <div id="${featureId}_q_list">${content}${deletedSection}</div>
@@ -4733,8 +4796,7 @@ function renderAllDesignImgs() {
 
 function renderAllSections() {
   getAllFeatures().forEach(f => {
-    renderTodoList(f.id);
-    renderDoneList(f.id);
+    renderTaskList(f.id);
     renderQuestionsList(f.id);
     renderCallsList(f.id);
     renderDomainKnowledgeList(f.id);
@@ -4748,7 +4810,7 @@ function renderAllSections() {
 //  DOCS RENDERING
 // ═══════════════════════════════════════════════════════════════
 function renderDocs() {
-  getAllFeatures().filter(f => f.hasDoc).forEach(f => {
+  getAllFeatures().filter(f => f.hasDoc && f.docLabel !== 'Feature Understanding').forEach(f => {
     const container = document.getElementById(`${f.id}_docs_view`);
     if (!container) return;
 
@@ -4799,19 +4861,216 @@ function renderDocs() {
   });
 }
 
-function renderDomainDocs() {
-  getAllFeatures().filter(f => f.hasDomainDoc).forEach(f => {
-    const container = document.getElementById(`${f.id}_ddocs_view`);
-    if (!container) return;
-    const rawEl = document.getElementById(`ddoc-${f.id}`);
-    const raw = getFeatureState(f.id).ddoc || (rawEl ? rawEl.textContent.trim() : null);
+// ── FEATURE BRIEF (ddoc entries) ────────────────────────────────
+
+function getDDEntries(featureId) {
+  const state = getFeatureState(featureId);
+  if (state.ddocEntries) return state.ddocEntries;
+  // Migrate old hasDomainDoc single-doc (ddoc-* script / state.ddoc)
+  if (!state.ddocDeleted) {
+    const rawEl = document.getElementById(`ddoc-${featureId}`);
+    const raw = state.ddoc !== undefined ? state.ddoc : (rawEl ? rawEl.textContent.trim() : null);
     if (raw) {
-      container.innerHTML = `
-        <div class="context-card">
-          <div class="md-body">${marked.parse(raw)}</div>
-        </div>`;
-    } else {
-      container.innerHTML = `<div class="doc-empty"><h3>No domain doc yet</h3><p>Add a <code>ddoc-${f.id}</code> script element with markdown content.</p></div>`;
+      const entries = [{ id: 'dde_builtin', title: 'Feature Brief', content: raw }];
+      updateFeatureState(featureId, { ddocEntries: entries });
+      return entries;
+    }
+  }
+  // Migrate old Feature Understanding single-doc (doc-* script / state.doc)
+  const docEl = document.getElementById(`doc-${featureId}`);
+  const rawDoc = state.doc !== undefined ? state.doc : (docEl ? docEl.textContent.trim() : null);
+  if (rawDoc) {
+    const entries = [{ id: 'dde_builtin', title: 'Feature Brief', content: rawDoc }];
+    updateFeatureState(featureId, { ddocEntries: entries });
+    return entries;
+  }
+  return [];
+}
+
+function saveDDEntries(featureId, entries) {
+  updateFeatureState(featureId, { ddocEntries: entries });
+}
+
+function _reRenderDD(featureId) {
+  const f = getAllFeatures().find(x => x.id === featureId);
+  if (!f) return;
+  const containerId = f.hasDomainDoc ? `${featureId}_ddocs_view` : `${featureId}_docs_view`;
+  _renderDDPanel(f, document.getElementById(containerId));
+}
+
+function addDDEntry(featureId) {
+  const id = 'dde_' + Date.now();
+  _ddOpen[featureId + '_' + id] = true;
+  saveDDEntries(featureId, [...getDDEntries(featureId), { id, title: '', content: '' }]);
+  _reRenderDD(featureId);
+  setTimeout(() => openDDEdit(featureId, id), 50);
+}
+
+async function removeDDEntry(featureId, id) {
+  if (!await showConfirm('Delete this entry?')) return;
+  saveDDEntries(featureId, getDDEntries(featureId).filter(e => e.id !== id));
+  _reRenderDD(featureId);
+}
+
+function updateDDField(featureId, id, field, value) {
+  saveDDEntries(featureId, getDDEntries(featureId).map(e =>
+    e.id === id ? { ...e, [field]: value } : e
+  ));
+}
+
+function openDDEdit(featureId, id) {
+  const card = document.getElementById(`dd_card_${featureId}_${id}`);
+  if (card && !card.classList.contains('expanded')) {
+    card.classList.add('expanded');
+    _ddOpen[featureId + '_' + id] = true;
+  }
+  const titleDisplay = document.getElementById(`dd_title_display_${featureId}_${id}`);
+  const titleInput   = document.getElementById(`dd_title_input_${featureId}_${id}`);
+  const rendered     = document.getElementById(`dd_rendered_${featureId}_${id}`);
+  const editor       = document.getElementById(`dd_editor_${featureId}_${id}`);
+  const editBtn      = document.getElementById(`dd_editbtn_${featureId}_${id}`);
+  const ta           = document.getElementById(`dd_ta_${featureId}_${id}`);
+  if (!editor) return;
+  if (titleDisplay) titleDisplay.style.display = 'none';
+  if (titleInput)   titleInput.style.display = '';
+  if (rendered)     rendered.style.display = 'none';
+  editor.style.display = 'block';
+  if (editBtn) editBtn.style.display = 'none';
+  if (titleInput && !titleInput.value.trim()) titleInput.focus();
+  else if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+}
+
+function saveDDEdit(featureId, id) {
+  const titleInput   = document.getElementById(`dd_title_input_${featureId}_${id}`);
+  const titleDisplay = document.getElementById(`dd_title_display_${featureId}_${id}`);
+  const ta           = document.getElementById(`dd_ta_${featureId}_${id}`);
+  const rendered     = document.getElementById(`dd_rendered_${featureId}_${id}`);
+  const editor       = document.getElementById(`dd_editor_${featureId}_${id}`);
+  const editBtn      = document.getElementById(`dd_editbtn_${featureId}_${id}`);
+  if (!ta) return;
+  const titleVal   = titleInput ? titleInput.value.trim() : '';
+  const contentVal = ta.value;
+  updateDDField(featureId, id, 'title', titleVal);
+  updateDDField(featureId, id, 'content', contentVal);
+  if (titleDisplay) {
+    titleDisplay.textContent = titleVal || 'Untitled entry';
+    titleDisplay.classList.toggle('empty', !titleVal);
+    titleDisplay.style.display = '';
+  }
+  if (titleInput) titleInput.style.display = 'none';
+  editor.style.display = 'none';
+  if (editBtn) editBtn.style.display = '';
+  rendered.innerHTML = contentVal.trim()
+    ? marked.parse(contentVal)
+    : '<p style="color:var(--text-dim);font-size:13px">No content yet. Click Edit to add.</p>';
+  rendered.style.display = 'block';
+}
+
+function cancelDDEdit(featureId, id) {
+  const entry        = getDDEntries(featureId).find(e => e.id === id);
+  const titleInput   = document.getElementById(`dd_title_input_${featureId}_${id}`);
+  const titleDisplay = document.getElementById(`dd_title_display_${featureId}_${id}`);
+  const ta           = document.getElementById(`dd_ta_${featureId}_${id}`);
+  const rendered     = document.getElementById(`dd_rendered_${featureId}_${id}`);
+  const editor       = document.getElementById(`dd_editor_${featureId}_${id}`);
+  const editBtn      = document.getElementById(`dd_editbtn_${featureId}_${id}`);
+  if (!editor) return;
+  if (entry) {
+    if (titleInput) titleInput.value = entry.title || '';
+    if (ta)         ta.value = entry.content || '';
+  }
+  if (titleDisplay) titleDisplay.style.display = '';
+  if (titleInput)   titleInput.style.display = 'none';
+  editor.style.display = 'none';
+  if (editBtn) editBtn.style.display = '';
+  if (rendered) rendered.style.display = 'block';
+}
+
+const _ddOpen = {};
+
+function toggleDDCollapse(featureId, id) {
+  const card = document.getElementById(`dd_card_${featureId}_${id}`);
+  if (!card) return;
+  const isExpanded = card.classList.contains('expanded');
+  card.classList.toggle('expanded', !isExpanded);
+  _ddOpen[featureId + '_' + id] = !isExpanded;
+}
+
+function buildDDEntryCard(featureId, e) {
+  const hasContent = !!(e.content && e.content.trim());
+  const isExpanded = _ddOpen[featureId + '_' + e.id] !== false;
+  const renderedHtml = hasContent
+    ? marked.parse(e.content)
+    : '<p style="color:var(--text-dim);font-size:13px">No content yet. Click Edit to add.</p>';
+  return `
+  <div class="context-card dk-entry${isExpanded ? ' expanded' : ''}" id="dd_card_${featureId}_${e.id}">
+    <div class="dk-entry-header" onclick="toggleDDCollapse('${featureId}','${e.id}')">
+      <div class="dk-entry-info" style="flex:1;min-width:0">
+        <span class="dk-entry-title-display${e.title ? '' : ' empty'}" id="dd_title_display_${featureId}_${e.id}">${escHtml(e.title) || 'Untitled entry'}</span>
+        <input class="dk-entry-title-input" id="dd_title_input_${featureId}_${e.id}"
+          style="display:none" value="${escHtml(e.title)}" placeholder="Entry title…"
+          onclick="event.stopPropagation()"
+          onblur="updateDDField('${featureId}','${e.id}','title',this.value.trim())"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('dd_ta_${featureId}_${e.id}')?.focus()}" />
+      </div>
+      <div class="dk-entry-header-acts" onclick="event.stopPropagation()">
+        <button class="q-icon-btn" id="dd_editbtn_${featureId}_${e.id}" title="Edit entry"
+          onclick="openDDEdit('${featureId}','${e.id}')">
+          <span class="material-symbols-rounded">edit</span>
+        </button>
+        <button class="remove-btn" title="Delete entry"
+          onclick="removeDDEntry('${featureId}','${e.id}')">
+          <span class="material-symbols-rounded">delete</span>
+        </button>
+      </div>
+      <span class="material-symbols-rounded dk-expand-icon">expand_more</span>
+    </div>
+    <div class="dk-entry-body">
+      <div id="dd_rendered_${featureId}_${e.id}" class="md-body">${renderedHtml}</div>
+      <div id="dd_editor_${featureId}_${e.id}" style="display:${hasContent ? 'none' : 'block'}">
+        <textarea class="dk-entry-content" id="dd_ta_${featureId}_${e.id}"
+          placeholder="Paste or type markdown content…">${escHtml(e.content)}</textarea>
+        <div class="dk-entry-actions">
+          <button class="btn btn-primary" onclick="saveDDEdit('${featureId}','${e.id}')">Save</button>
+          <button class="btn" onclick="cancelDDEdit('${featureId}','${e.id}')">${hasContent ? 'Cancel' : 'Discard'}</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function _renderDDPanel(f, container) {
+  if (!container) return;
+  const entries = getDDEntries(f.id);
+  if (!entries.length) {
+    container.innerHTML = `
+      <div class="context-card" style="text-align:center;padding:48px 20px">
+        <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">auto_stories</span>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No feature brief entries yet.<br>Add background context, architecture notes, or domain deep-dives.</div>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addDDEntry('${f.id}')">+ Add</button>
+      </div>`;
+    return;
+  }
+  container.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">Feature Brief</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Background context, architecture notes, and domain deep-dives</div>
+      </div>
+      <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0"
+        onclick="addDDEntry('${f.id}')">
+        + Add
+      </button>
+    </div>
+    ${entries.map(e => buildDDEntryCard(f.id, e)).join('')}`;
+}
+
+function renderDomainDocs() {
+  getAllFeatures().forEach(f => {
+    if (f.hasDomainDoc) {
+      _renderDDPanel(f, document.getElementById(`${f.id}_ddocs_view`));
+    } else if (f.hasDoc && f.docLabel === 'Feature Understanding') {
+      _renderDDPanel(f, document.getElementById(`${f.id}_docs_view`));
     }
   });
 }
@@ -5012,7 +5271,7 @@ function renderCallsList(featureId) {
     <div style="position:relative;display:inline-block">
       <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 14px"
         onclick="event.stopPropagation();toggleAddCallMenu('${featureId}')">
-        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Call
+        + Add
         <span class="material-symbols-rounded" style="font-size:14px;margin-left:2px;transition:transform .15s;${menuOpen ? 'transform:rotate(180deg)' : ''}">expand_more</span>
       </button>
       ${menuOpen ? `
@@ -5791,7 +6050,7 @@ function renderDomainKnowledgeList(featureId) {
       <div class="context-card" style="text-align:center;padding:48px 20px">
         <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">menu_book</span>
         <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No domain knowledge yet.<br>Capture context, research, or background knowledge.</div>
-        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addDomainKnowledge('${featureId}')">+ Add Entry</button>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addDomainKnowledge('${featureId}')">+ Add</button>
       </div>`;
     return;
   }
@@ -5803,7 +6062,7 @@ function renderDomainKnowledgeList(featureId) {
       </div>
       <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0"
         onclick="addDomainKnowledge('${featureId}')">
-        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Entry
+        + Add
       </button>
     </div>
     ${entries.map(e => buildDKEntryCard(featureId, e)).join('')}`;
@@ -6050,8 +6309,7 @@ function restoreDeletedFeature(featureId) {
 }
 
 function _afterRestoreFeature(f) {
-  renderTodoList(f.id);
-  renderDoneList(f.id);
+  renderTaskList(f.id);
   renderQuestionsList(f.id);
   renderCallsList(f.id);
   renderDomainKnowledgeList(f.id);
@@ -6096,7 +6354,7 @@ function renderDeletedFeaturesSection() {
             <button class="restore-btn" onclick="restoreDeletedFeature('${f.id}')">
               <span class="material-symbols-rounded">undo</span> Restore
             </button>
-            <button class="q-icon-btn" title="Permanently delete" style="color:var(--red)" onclick="hardDeleteFeature('${f.id}')">
+            <button class="q-icon-btn del" title="Permanently delete" onclick="hardDeleteFeature('${f.id}')">
               <span class="material-symbols-rounded">delete_forever</span>
             </button>
           </div>
@@ -6276,8 +6534,7 @@ function submitNewFeature() {
   const featureViews = document.getElementById('feature-views');
   featureViews.insertAdjacentHTML('beforeend', buildFeatureView(feature));
 
-  renderTodoList(feature.id);
-  renderDoneList(feature.id);
+  renderTaskList(feature.id);
   renderQuestionsList(feature.id);
   renderCallsList(feature.id);
   renderDomainKnowledgeList(feature.id);
@@ -6376,7 +6633,7 @@ function renderNotesTab(id) {
       <div class="context-card" style="text-align:center;padding:48px 20px">
         <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">sticky_note_2</span>
         <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No notes yet.<br>Capture meeting takeaways, decisions, or reminders.</div>
-        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addNoteEntry('${id}')">+ Add Note</button>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addNoteEntry('${id}')">+ Add</button>
       </div>`;
     return;
   }
@@ -6388,7 +6645,7 @@ function renderNotesTab(id) {
         <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Meeting takeaways, decisions, and reminders</div>
       </div>
       <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="addNoteEntry('${id}')">
-        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Note
+        + Add
       </button>
     </div>
     <div class="context-card">
@@ -6682,7 +6939,7 @@ function renderDesignTab(id) {
     panel.innerHTML = `<div class="context-card" style="text-align:center;padding:48px 20px">
       <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">palette</span>
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No design files yet.<br>Each file groups a Figma link, prototype, screenshots, and notes.</div>
-      <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addDesignFile('${id}')">+ Add Design File</button>
+      <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addDesignFile('${id}')">+ Add</button>
     </div>`;
     return;
   }
@@ -6699,7 +6956,7 @@ function renderDesignTab(id) {
         <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Each file groups a Figma link, prototype, screenshots, and notes</div>
       </div>
       <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="addDesignFile('${id}')">
-        <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Design File
+        + Add
       </button>
     </div>
     ${filesHtml}`;
@@ -6710,6 +6967,7 @@ function renderDesignTab(id) {
 // ═══════════════════════════════════════════════════════════════
 
 const _specEditMode = {};
+const _builtinSpecEditMode = {};
 
 function getSpecLinks(id) {
   const s = loadState()[id] || {};
@@ -6845,18 +7103,59 @@ function renderDesignSpecTab(id) {
 
   // Built-in design spec document (features with hasDoc + docLabel 'Design Spec')
   const hasBuiltinSpec = f && f.hasDoc && (f.docLabel === 'Design Spec' || !f.docLabel);
-  const builtinHtml = hasBuiltinSpec ? `<div class="context-card" style="margin-bottom:16px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <h3 style="margin-bottom:0"><span class="material-symbols-rounded ctx-icon">description</span> Spec Document</h3>
-      ${f.docSrc ? `<a href="${escHtml(f.docSrc)}" target="_blank" class="link-chip" style="font-size:11px">
-        <span class="material-symbols-rounded" style="font-size:12px">open_in_new</span> Open full screen
-      </a>` : ''}
-    </div>
-    ${f.docSrc
-      ? `<iframe src="${escHtml(f.docSrc)}" style="width:100%;height:80vh;border:1px solid var(--border);border-radius:var(--radius-sm);background:#fff;" title="${escHtml(f.title)} spec"></iframe>`
-      : `<div id="${escHtml('spc_builtin_' + id)}"></div>`
+  const _bsState = loadState()[id] || {};
+  let builtinHtml = '';
+  if (hasBuiltinSpec && _bsState.builtinSpecDeleted) {
+    builtinHtml = `<div class="context-card" style="text-align:center;padding:32px 20px;margin-bottom:16px">
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Built-in spec document has been removed.</div>
+      <button class="btn" style="font-size:12px;padding:5px 14px" onclick="restoreBuiltinSpec('${id}')">Restore</button>
+    </div>`;
+  } else if (hasBuiltinSpec && _builtinSpecEditMode[id]) {
+    const docSrcVal = _bsState.docSrcOverride !== undefined ? _bsState.docSrcOverride : (f.docSrc || '');
+    const rawEl = document.getElementById(`doc-${id}`);
+    const rawMd = _bsState.doc !== undefined ? _bsState.doc : (rawEl ? rawEl.textContent.trim() : '');
+    if (f.docSrc) {
+      builtinHtml = `<div class="context-card" style="margin-bottom:16px">
+        <div style="margin-bottom:10px;font-size:13px;font-weight:600;color:var(--text)">Edit Spec Document URL</div>
+        <input class="add-item-input" id="bs_url_${id}" value="${escHtml(docSrcVal)}" placeholder="https://…" style="width:100%;box-sizing:border-box" />
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-primary" onclick="saveBuiltinSpec('${id}')">Save</button>
+          <button class="btn" onclick="cancelBuiltinSpecEdit('${id}')">Cancel</button>
+        </div>
+      </div>`;
+    } else {
+      builtinHtml = `<div class="context-card" style="margin-bottom:16px">
+        <div style="margin-bottom:10px;font-size:13px;font-weight:600;color:var(--text)">Edit Spec Document</div>
+        <textarea class="dk-entry-content" id="bs_ta_${id}" placeholder="Paste or type markdown content…">${escHtml(rawMd)}</textarea>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-primary" onclick="saveBuiltinSpec('${id}')">Save</button>
+          <button class="btn" onclick="cancelBuiltinSpecEdit('${id}')">${rawMd ? 'Cancel' : 'Discard'}</button>
+        </div>
+      </div>`;
     }
-  </div>` : '';
+  } else if (hasBuiltinSpec) {
+    const docSrc = _bsState.docSrcOverride !== undefined ? _bsState.docSrcOverride : f.docSrc;
+    builtinHtml = `<div class="context-card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <h3 style="margin-bottom:0"><span class="material-symbols-rounded ctx-icon">description</span> Spec Document</h3>
+        <div style="display:flex;gap:4px;align-items:center">
+          ${docSrc ? `<a href="${escHtml(docSrc)}" target="_blank" class="link-chip" style="font-size:11px">
+            <span class="material-symbols-rounded" style="font-size:12px">open_in_new</span> Open full screen
+          </a>` : ''}
+          <button class="q-icon-btn" title="Edit" onclick="editBuiltinSpec('${id}')">
+            <span class="material-symbols-rounded">edit</span>
+          </button>
+          <button class="q-icon-btn del" title="Delete" onclick="deleteBuiltinSpec('${id}')">
+            <span class="material-symbols-rounded">delete</span>
+          </button>
+        </div>
+      </div>
+      ${docSrc
+        ? `<iframe src="${escHtml(docSrc)}" style="width:100%;height:80vh;border:1px solid var(--border);border-radius:var(--radius-sm);background:#fff;" title="${escHtml(f.title)} spec"></iframe>`
+        : `<div id="${escHtml('spc_builtin_' + id)}"></div>`
+      }
+    </div>`;
+  }
 
   const linksHtml = specLinks.map(lk => {
     const ek = id + '::' + lk.id;
@@ -6908,7 +7207,7 @@ function renderDesignSpecTab(id) {
     panel.innerHTML = `<div class="context-card" style="text-align:center;padding:48px 20px">
       <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">description</span>
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No spec links yet.<br>Supports GitHub files, Figma, Zeplin, Storybook…</div>
-      <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addSpecLink('${id}')">+ Add Spec Link</button>
+      <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addSpecLink('${id}')">+ Add</button>
     </div>`;
   } else {
     panel.innerHTML = `
@@ -6918,7 +7217,7 @@ function renderDesignSpecTab(id) {
           <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Link Figma, GitHub files, Zeplin, Storybook, or any spec document</div>
         </div>
         <button class="btn btn-primary" style="display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;flex-shrink:0" onclick="addSpecLink('${id}')">
-          <span class="material-symbols-rounded" style="font-size:14px">add</span> Add Link
+          + Add
         </button>
       </div>
       ${builtinHtml}
@@ -6942,6 +7241,46 @@ function renderDesignSpecTab(id) {
         : `<div style="font-size:13px;color:var(--text-dim);padding:8px 0">No spec document yet.</div>`;
     }
   }
+}
+
+function editBuiltinSpec(id) {
+  _builtinSpecEditMode[id] = true;
+  renderDesignSpecTab(id);
+  setTimeout(() => {
+    const el = document.getElementById(`bs_url_${id}`) || document.getElementById(`bs_ta_${id}`);
+    if (el) el.focus();
+  }, 30);
+}
+
+function saveBuiltinSpec(id) {
+  const f = getAllFeatures().find(x => x.id === id);
+  if (f && f.docSrc) {
+    const input = document.getElementById(`bs_url_${id}`);
+    updateFeatureState(id, { docSrcOverride: input ? input.value.trim() : '' });
+  } else {
+    const ta = document.getElementById(`bs_ta_${id}`);
+    updateFeatureState(id, { doc: ta ? ta.value : '' });
+  }
+  delete _builtinSpecEditMode[id];
+  renderDesignSpecTab(id);
+  showToast();
+}
+
+function cancelBuiltinSpecEdit(id) {
+  delete _builtinSpecEditMode[id];
+  renderDesignSpecTab(id);
+}
+
+async function deleteBuiltinSpec(id) {
+  if (!await showConfirm('Delete this spec document? You can restore it later.')) return;
+  updateFeatureState(id, { builtinSpecDeleted: true });
+  delete _builtinSpecEditMode[id];
+  renderDesignSpecTab(id);
+}
+
+function restoreBuiltinSpec(id) {
+  updateFeatureState(id, { builtinSpecDeleted: false });
+  renderDesignSpecTab(id);
 }
 
 // ═══════════════════════════════════════════════════════════════
