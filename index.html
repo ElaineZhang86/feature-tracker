@@ -3817,10 +3817,18 @@ function saveHiddenBuiltins(ids) {
 
 function getAllFeatures() {
   const hidden = loadHiddenBuiltins();
-  return [
-    ...FEATURES.filter(f => !hidden.includes(f.id)),
-    ...loadCustomFeatures()
-  ];
+  const state = loadState();
+  const builtins = FEATURES.filter(f => !hidden.includes(f.id)).map(f => {
+    const ov = state[f.id] || {};
+    return {
+      ...f,
+      title:    ov._title    ?? f.title,
+      icon:     ov._icon     ?? f.icon,
+      customer: ov._customer ?? f.customer,
+      summary:  ov._summary  ?? f.summary,
+    };
+  });
+  return [...builtins, ...loadCustomFeatures()];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4061,9 +4069,9 @@ function buildFeatureView(f) {
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0">
-        ${f.isCustom ? `<button class="q-icon-btn" title="Edit feature info" onclick="openEditFeatureModal('${f.id}')">
+        <button class="q-icon-btn" title="Edit feature info" onclick="openEditFeatureModal('${f.id}')">
           <span class="material-symbols-rounded">edit</span>
-        </button>` : ''}
+        </button>
         <button class="q-icon-btn del" title="Delete feature" onclick="deleteFeature('${f.id}')">
           <span class="material-symbols-rounded">delete</span>
         </button>
@@ -6451,7 +6459,7 @@ function openAddFeatureModal() {
 }
 
 function openEditFeatureModal(featureId) {
-  const f = loadCustomFeatures().find(x => x.id === featureId);
+  const f = getAllFeatures().find(x => x.id === featureId);
   if (!f) return;
   _afEditingId = featureId;
   document.getElementById('af-modal-title').textContent = 'Edit Feature Info';
@@ -6509,13 +6517,23 @@ function submitNewFeature() {
   const newSummary  = document.getElementById('af-summary').value.trim();
 
   if (_afEditingId) {
-    // ── EDIT MODE: update existing custom feature ──────────────
-    const custom = loadCustomFeatures().map(f => {
-      if (f.id !== _afEditingId) return f;
-      return { ...f, title: newTitle, icon: newIcon, status: newStatus,
-               customer: newCustomer, due: newDue, summary: newSummary };
-    });
-    saveCustomFeatures(custom);
+    // ── EDIT MODE ──────────────────────────────────────────────
+    const isCustom = loadCustomFeatures().some(f => f.id === _afEditingId);
+    if (isCustom) {
+      const custom = loadCustomFeatures().map(f => {
+        if (f.id !== _afEditingId) return f;
+        return { ...f, title: newTitle, icon: newIcon, status: newStatus,
+                 customer: newCustomer, due: newDue, summary: newSummary };
+      });
+      saveCustomFeatures(custom);
+    } else {
+      // Built-in: save overrides to state
+      updateFeatureState(_afEditingId, {
+        _title: newTitle, _icon: newIcon, _customer: newCustomer, _summary: newSummary,
+      });
+      handleStatusChange(_afEditingId, newStatus);
+      handleDueChange(_afEditingId, toIsoDate(newDue === 'TBD' ? '' : newDue));
+    }
 
     // Update the feature header in the DOM (icon, title, status select, meta row)
     const titleH2 = document.querySelector(`#view-${_afEditingId} .feature-title-block h2`);
