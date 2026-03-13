@@ -7538,8 +7538,6 @@ async function manualSync() {
 }
 
 async function initGitSync() {
-  loadFromSeed();
-  STATE = loadState(); // refresh in-memory STATE after seeding
   // Probe server
   try {
     const res = await fetch(GIT_SYNC_URL.replace('/sync', '/'), { method: 'GET', signal: AbortSignal.timeout(2000) });
@@ -7554,6 +7552,8 @@ async function initGitSync() {
   updateSyncIndicator();
 }
 
+loadFromSeed();
+STATE = loadState();
 init();
 initGitSync();
 
