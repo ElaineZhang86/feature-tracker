@@ -8467,9 +8467,54 @@ document.addEventListener('click', () => {
           "content": "# Multiple Vendor Locations — Domain Docs (IP-1002)\n\n## What It Is\n\nBuildOps supports multiple locations per vendor — in production since IP-1002. Each vendor location represents a physical branch with its own contact, billing address, and shipping address.\n\nThis is especially important for large national vendors (Trane, Carrier, Ferguson) that operate across multiple US states. The correct vendor location determines:\n- Who to contact for the order\n- Where the order ships from\n- Which bill-to address appears on the PO\n\n## Data Model\n\n```\nVendor\n  ├── defaultLocationId (FK → VendorLocation.id)\n  └── VendorLocation (1:N)\n        ├── id\n        ├── vendorId\n        ├── name (e.g. \"Ferguson Denver\", \"Ferguson Phoenix\")\n        ├── billingAddress\n        ├── shippingAddress\n        ├── contact (name, phone, email)\n        └── isDefault (bool)\n```\n\n## How It Drives Bulk PO Grouping\n\nBulk POs are split into separate POs when any of these three dimensions differ:\n\n```\nvendorId + vendorLocationId + shippingDestination → ONE PO\n```\n\n**Concrete example:** 10 maintenances, all using Ferguson as the filter vendor:\n\n| Maintenances | State | Vendor Location | Ships to | Result |\n|---|---|---|---|---|\n| 7 maintenances | Colorado | Ferguson Denver | CO warehouse | **1 PO** |\n| 3 maintenances | Arizona | Ferguson Phoenix | AZ warehouse | **1 PO** |\n| **Total** | | | | **2 POs** |\n\n## Phase 1 vs Phase 2\n\n**Phase 1 (current):**\n- Default vendor location used (`Vendor.defaultLocationId`) when no override set\n- User can override location in the Bulk PO confirmation dialog\n\n**Phase 2 (deferred):**\n- Auto-suggest the vendor location whose state matches the property's state\n- E.g., if maintenance is in Colorado → auto-suggest Ferguson Denver\n\n## Shipping Destination Options\n\n| Option | Typical Use |\n|---|---|\n| **Warehouse** | ⭐ Most common — deliver ahead of time, \"tagged and bagged\" for tech pickup |\n| Vendor Location | Pick up from vendor's branch |\n| Job / Project Site | Deliver directly to the property address |\n| Manually entered | One-off address |\n\n## Related Links\n\n- [IP-1002 Multiple Vendor Locations PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/3461316618)"
         }
       ]
+    },
+    "custom_1773442244486": {
+      "tasks": [],
+      "notesEntries": [
+        {
+          "id": "n1773442255434",
+          "text": "",
+          "createdAt": 1773442255434
+        }
+      ],
+      "specLinks": [],
+      "designFiles": [
+        {
+          "id": "df1773442257000",
+          "title": "",
+          "figmaUrl": "",
+          "figmaLabel": "",
+          "protoUrl": "",
+          "protoLabel": "",
+          "screenshots": [],
+          "notes": "",
+          "createdAt": 1773442257000
+        }
+      ]
     }
   },
-  "fh_custom_features": [],
+  "fh_custom_features": [
+    {
+      "id": "custom_1773442244486",
+      "icon": "warehouse",
+      "title": "My Own To Do List",
+      "status": "Discovery",
+      "hasDoc": false,
+      "hasDomainDoc": false,
+      "customer": "TBD",
+      "due": "TBD",
+      "team": [],
+      "currentFocus": "",
+      "summary": "",
+      "decisions": [],
+      "constraints": [],
+      "links": [],
+      "done": [],
+      "todo": [],
+      "questions": [],
+      "isCustom": true
+    }
+  ],
   "fh_hidden_builtins": [],
   "fh_deleted_features": []
 }
