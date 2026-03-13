@@ -5180,6 +5180,13 @@ const _callExpanded = {};
 const _callTypeTab = {};
 const _addCallOpen = {};
 const _callTab = {}; // 'info' | 'prep' | 'post' per call
+const _callEditMode = {};
+
+function toggleCallEditMode(featureId, callId) {
+  const key = featureId + '_' + callId;
+  _callEditMode[key] = !_callEditMode[key];
+  renderCallsList(featureId);
+}
 
 function setCallTab(featureId, callId, tab) {
   _callTab[featureId + '_' + callId] = tab;
@@ -5473,6 +5480,7 @@ function buildCallCard(featureId, call) {
   const customer = call.customer || call.label || '';
   const dateDisplay = call.date ? fmtDate(toIsoDate(call.date)) : '';
   const activeTab = _callTab[featureId + '_' + call.id] || 'info';
+  const isEditing = !!_callEditMode[featureId + '_' + call.id];
 
   const customerCatLabels = {
     discovery: 'Discovery', validation: 'Validation', 'solution-review': 'Solution Review',
@@ -5518,6 +5526,10 @@ function buildCallCard(featureId, call) {
         onclick="setCallTab('${featureId}','${call.id}','prep')">Call Prep</button>
       <button class="call-inner-tab${activeTab === 'post' ? ' active' : ''}"
         onclick="setCallTab('${featureId}','${call.id}','post')">Post Meeting</button>
+      <button class="btn${isEditing ? ' btn-primary' : ''}" style="margin-left:auto;font-size:11px;padding:3px 12px;flex-shrink:0"
+        onclick="event.stopPropagation();toggleCallEditMode('${featureId}','${call.id}')">
+        ${isEditing ? 'Done' : 'Edit'}
+      </button>
     </div>`;
 
   // ── General Info tab ──
