@@ -6135,80 +6135,24 @@ function setCtxField(id, key, value) {
 
 function buildContextTabHtml(f) {
   const id = f.id;
-  const summary     = getCtxSummary(id, f.summary);
-  const decisions   = getCtxArr(id, 'decisions',   f.decisions   || []);
-  const constraints = getCtxArr(id, 'constraints', f.constraints || []);
-  const team        = getCtxArr(id, 'team',        f.team        || []);
-  const links       = getCtxArr(id, 'links',       f.links       || []);
+  const summary   = getCtxSummary(id, f.summary);
+  const decisions = getCtxArr(id, 'decisions', f.decisions || []);
 
-  // Summary
   const summaryHtml = `<textarea class="editable-note" style="min-height:72px;margin-top:4px"
       placeholder="Describe this feature…"
       onblur="setCtxField('${id}','summary',this.value)">${escHtml(summary)}</textarea>`;
 
-  // Decisions
-  const decItemsHtml = decisions.length
-    ? `<ul class="decision-list">${decisions.map((d, i) => `
-        <li style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
-          <span style="flex:1">${escHtml(d)}</span>
-          <button class="remove-btn" title="Remove" onclick="removeCtxArrItem('${id}','decisions',${i})"><span class="material-symbols-rounded">delete</span></button>
-        </li>`).join('')}</ul>`
-    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:10px">No decisions recorded yet</p>`;
-  const decisionsHtml = decItemsHtml + `
-    <div class="add-item-row" style="padding-top:8px">
+  const decChipsHtml = decisions.length
+    ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${decisions.map((d, i) =>
+        `<span class="constraint-tag" style="display:inline-flex;align-items:center;gap:4px;font-size:12px">${escHtml(d)}<button class="remove-btn" style="width:18px;height:18px;flex-shrink:0" title="Remove" onclick="removeCtxArrItem('${id}','decisions',${i})"><span class="material-symbols-rounded" style="font-size:13px">close</span></button></span>`
+      ).join('')}</div>`
+    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">No decisions recorded yet</p>`;
+
+  const decisionsHtml = decChipsHtml + `
+    <div class="add-item-row" style="padding-top:0;border-top:none">
       <input class="add-item-input" id="${id}_add_decision" placeholder="Add a key decision…"
         onkeydown="if(event.key==='Enter')addCtxArrItem('${id}','decisions','${id}_add_decision')" />
       <button class="btn btn-primary" onclick="addCtxArrItem('${id}','decisions','${id}_add_decision')">Add</button>
-    </div>`;
-
-  // Constraints
-  const conItemsHtml = constraints.length
-    ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">${constraints.map((c, i) =>
-        `<span class="constraint-tag" style="display:inline-flex;align-items:center;gap:4px">${escHtml(c)}<button style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:0;display:flex;align-items:center" onclick="removeCtxArrItem('${id}','constraints',${i})" title="Remove"><span class="material-symbols-rounded" style="font-size:13px">close</span></button></span>`
-      ).join('')}</div>`
-    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:10px">None noted</p>`;
-  const constraintsHtml = conItemsHtml + `
-    <div class="add-item-row" style="padding-top:0;border-top:none">
-      <input class="add-item-input" id="${id}_add_constraint" placeholder="Add a constraint or non-goal…"
-        onkeydown="if(event.key==='Enter')addCtxArrItem('${id}','constraints','${id}_add_constraint')" />
-      <button class="btn btn-primary" onclick="addCtxArrItem('${id}','constraints','${id}_add_constraint')">Add</button>
-    </div>`;
-
-  // Team
-  const teamItemsHtml = team.length
-    ? `<div class="team-row" style="margin-bottom:10px">${team.map((p, i) => `
-        <div class="team-person">
-          <div class="avatar">${initials(p.name)}</div>
-          ${escHtml(p.name)} <span style="color:var(--text-dim)">· ${escHtml(p.role)}</span>
-          <button class="remove-btn" title="Remove" onclick="removeCtxTeamMember('${id}',${i})"><span class="material-symbols-rounded">close</span></button>
-        </div>`).join('')}</div>`
-    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:10px">No team members yet</p>`;
-  const teamHtml = teamItemsHtml + `
-    <div class="add-item-row" style="padding-top:0;border-top:none">
-      <input class="add-item-input" id="${id}_add_team_name" placeholder="Name…" style="flex:1.5"
-        onkeydown="if(event.key==='Enter')addCtxTeamMember('${id}')" />
-      <input class="add-item-input" id="${id}_add_team_role" placeholder="Role…"
-        onkeydown="if(event.key==='Enter')addCtxTeamMember('${id}')" />
-      <button class="btn btn-primary" onclick="addCtxTeamMember('${id}')">Add</button>
-    </div>`;
-
-  // Links
-  const linkItemsHtml = links.length
-    ? `<div class="links-grid" style="margin-bottom:10px">${links.map((l, i) => `
-        <div style="display:flex;align-items:center;gap:5px">
-          <a class="link-chip" href="${escHtml(l.url)}" target="_blank">
-            <span class="material-symbols-rounded" style="font-size:12px">open_in_new</span>${escHtml(l.label)}
-          </a>
-          <button class="remove-btn" title="Remove" onclick="removeCtxLink('${id}',${i})"><span class="material-symbols-rounded">close</span></button>
-        </div>`).join('')}</div>`
-    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:10px">No links added yet</p>`;
-  const linksHtml = linkItemsHtml + `
-    <div style="display:flex;gap:6px;align-items:center;margin-top:2px">
-      <input class="add-item-input" id="${id}_add_link_label" placeholder="Label…" style="flex:1"
-        onkeydown="if(event.key==='Enter')addCtxLink('${id}')" />
-      <input class="add-item-input" id="${id}_add_link_url" placeholder="https://…" style="flex:2"
-        onkeydown="if(event.key==='Enter')addCtxLink('${id}')" />
-      <button class="btn btn-primary" onclick="addCtxLink('${id}')">Add</button>
     </div>`;
 
   return `
@@ -6219,18 +6163,6 @@ function buildContextTabHtml(f) {
     <div class="context-card">
       <h3><span class="material-symbols-rounded ctx-icon">task_alt</span> Key Decisions</h3>
       ${decisionsHtml}
-    </div>
-    <div class="context-card">
-      <h3><span class="material-symbols-rounded ctx-icon">block</span> Constraints &amp; Non-goals</h3>
-      ${constraintsHtml}
-    </div>
-    <div class="context-card">
-      <h3><span class="material-symbols-rounded ctx-icon">group</span> Team</h3>
-      ${teamHtml}
-    </div>
-    <div class="context-card">
-      <h3><span class="material-symbols-rounded ctx-icon">link</span> Links</h3>
-      ${linksHtml}
     </div>`;
 }
 
