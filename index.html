@@ -1796,9 +1796,19 @@
     outline: none;
     padding: 2px 4px;
     transition: border-color .15s;
+    white-space: normal;
+    word-break: break-word;
+    cursor: text;
+    min-width: 0;
   }
 
-  .dk-entry-title-input:focus { border-bottom-color: var(--accent); }
+  .dk-entry-title-input:focus { border-bottom-color: var(--accent); outline: none; }
+  .dk-entry-title-input:empty:before {
+    content: attr(data-placeholder);
+    color: var(--text-dim);
+    font-weight: 400;
+    pointer-events: none;
+  }
 
   .dk-entry-header-acts {
     display: flex;
@@ -5544,11 +5554,13 @@ function buildDKEntryCard(featureId, e) {
   <div class="context-card dk-entry${isExpanded ? ' expanded' : ''}" id="dk_card_${featureId}_${e.id}">
     <div class="dk-entry-header" onclick="toggleDKCollapse('${featureId}','${e.id}')">
       <div class="dk-entry-info" style="flex:1;min-width:0">
-        <input class="dk-entry-title-input"
-          value="${escHtml(e.title)}"
-          placeholder="Entry title…"
+        <div class="dk-entry-title-input"
+          contenteditable="true"
+          data-placeholder="Entry title…"
           onclick="event.stopPropagation()"
-          onblur="updateDKField('${featureId}','${e.id}','title',this.value)" />
+          onblur="updateDKField('${featureId}','${e.id}','title',this.innerText.trim())"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+        >${escHtml(e.title)}</div>
       </div>
       <div class="dk-entry-header-acts" onclick="event.stopPropagation()">
         <button class="btn" id="dk_editbtn_${featureId}_${e.id}"
