@@ -103,12 +103,39 @@ Click the **↻ sync button** to force an immediate git commit without waiting 3
 
 The left sidebar lists every feature with its current status badge. Click any feature to open it. At the top is **Schedule Overview**, a dashboard showing all features at once.
 
+### Sidebar header
+
+Your name and role appear below the app title. Click them to edit. On first launch you will be prompted to enter them.
+
 ### Sidebar footer
 
 | Icon | Action |
 |------|--------|
 | ↻ | Force sync to git now (optional) |
-| Sun/Moon | Toggle light / dark theme |
+| ⚙ | Open Settings |
+
+The theme toggle (sun/moon) is in the sidebar header, next to the app title.
+
+---
+
+## Your Identity
+
+On first launch, a welcome modal asks for your name and role. These appear in the sidebar header so you always know whose workspace this is.
+
+- **Edit at any time** — click your name in the sidebar, or go to **Settings → Account**
+- Name is required; role is optional
+
+---
+
+## Settings
+
+Click the **⚙ icon** in the sidebar footer to open Settings.
+
+| Section | What you can do |
+|---------|----------------|
+| Account | Update your name and role |
+| Help | Open the User Guide |
+| Appearance | Toggle light / dark theme |
 
 ---
 
@@ -132,6 +159,24 @@ Click the **+** button next to "Features" in the sidebar. Fill in:
 - Title, icon, status, customer, due date
 - Summary, current focus
 - Team members
+
+To add a feature from a file exported by someone else, click the **upload icon** next to the + button and select a `.json` export file.
+
+---
+
+## Exporting and Importing Features
+
+Features can be exported as self-contained JSON files and imported into any other Feature Hub instance — useful for sharing context with teammates or backing up individual features.
+
+### Export
+
+Open a feature and click the **download icon** (↓) in the top-right of the feature header. A file named `feature-<title>.json` is saved to your downloads folder.
+
+### Import
+
+Click the **upload icon** (↑) next to the "Features" label in the sidebar. Select a `.json` export file. The feature is added to your workspace with a new ID — your existing features are not affected.
+
+> Exported files contain the full feature definition and all associated state: tasks, calls, Q&A, notes, domain knowledge, and design files.
 
 ---
 
@@ -292,3 +337,4 @@ Deleted features appear in the **Deleted** section at the bottom of the sidebar.
 - **Domain Knowledge is for things you learned, not things you were told** — if you had to figure it out, write it down so you never have to again
 - **Postpone, don't delete** — if a task is blocked, postpone it with a reason so the context is preserved
 - **Check the sync indicator is green** before closing your browser at the end of the day
+- **Export before you hand off** — share a feature's full context with a teammate as a single file
