@@ -4,6 +4,14 @@
 
 ---
 
+## How to Open the App
+
+> **Important:** Always open the app at **http://localhost:3456** — never by double-clicking `index.html`.
+>
+> Double-clicking the file opens it as `file://` which has completely separate storage from `localhost`. Your data will not show up there.
+
+---
+
 ## Setup
 
 ### What you need
@@ -38,10 +46,11 @@ Open **http://localhost:3456** in your browser. Keep the terminal open while you
 
 ### Daily workflow
 
-1. `node server.js` — run once at the start of your session
-2. Open **http://localhost:3456**
-3. Work normally — data syncs automatically every 30 seconds
-4. Before closing, confirm the sync indicator in the sidebar has turned green at least once
+1. Open Terminal, `cd` into the `feature-tracker` folder
+2. Run `node server.js`
+3. Open **http://localhost:3456** in your browser
+4. Work normally — data syncs automatically every 30 seconds
+5. Before closing, confirm the sync indicator in the sidebar has turned green at least once
 
 ### Restoring on a new machine
 
