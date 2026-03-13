@@ -2138,6 +2138,25 @@
 
 <div id="toast">Saved</div>
 
+<!-- DELETE CONFIRMATION MODAL -->
+<div id="confirm-modal" style="display:none" class="add-feature-overlay">
+  <div class="add-feature-box" style="width:min(380px,94vw)">
+    <div class="add-feature-head">
+      <strong>Delete Confirmation</strong>
+      <button class="q-icon-btn" onclick="_confirmResolve(false)" title="Close">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+    <div class="add-feature-body" style="padding:20px 24px">
+      <p id="confirm-modal-msg" style="font-size:14px;color:var(--text-muted);line-height:1.6;margin:0"></p>
+    </div>
+    <div class="add-feature-footer" style="justify-content:flex-end;gap:8px">
+      <button class="btn" onclick="_confirmResolve(false)">Cancel</button>
+      <button class="btn" style="background:var(--red);border-color:var(--red);color:#fff" onclick="_confirmResolve(true)">Delete</button>
+    </div>
+  </div>
+</div>
+
 <!-- ADD FEATURE MODAL -->
 <div id="add-feature-modal" style="display:none" class="add-feature-overlay" onclick="if(event.target===this)closeAddFeatureModal()">
   <div class="add-feature-box">
@@ -3733,6 +3752,19 @@ function showToast() {
   t._timer = setTimeout(() => t.classList.remove('show'), 1800);
 }
 
+// ── CONFIRM MODAL ──────────────────────────────────────────────
+let _confirmResolve = () => {};
+function showConfirm(message) {
+  return new Promise(resolve => {
+    document.getElementById('confirm-modal-msg').textContent = message;
+    document.getElementById('confirm-modal').style.display = 'flex';
+    _confirmResolve = (result) => {
+      document.getElementById('confirm-modal').style.display = 'none';
+      resolve(result);
+    };
+  });
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  VIEW SWITCHING
 // ═══════════════════════════════════════════════════════════════
@@ -4065,8 +4097,8 @@ function addTodo(featureId) {
   renderTodoList(featureId); renderScheduleCards();
 }
 
-function removeCustomTodo(featureId, i) {
-  if (!confirm('Delete this task?')) return;
+async function removeCustomTodo(featureId, i) {
+  if (!await showConfirm('Delete this task?')) return;
   const items = (getFeatureState(featureId).customTodo || []).filter((_,j) => j !== i);
   updateFeatureState(featureId, { customTodo: items });
   renderTodoList(featureId); renderScheduleCards();
@@ -4130,8 +4162,8 @@ function addDone(featureId) {
   renderDoneList(featureId);
 }
 
-function removeCustomDone(featureId, i) {
-  if (!confirm('Delete this completed item?')) return;
+async function removeCustomDone(featureId, i) {
+  if (!await showConfirm('Delete this completed item?')) return;
   const items = (getFeatureState(featureId).customDone || []).filter((_,j) => j !== i);
   updateFeatureState(featureId, { customDone: items });
   renderDoneList(featureId);
@@ -4330,8 +4362,8 @@ function renderQuestionsList(featureId) {
   setTimeout(() => panel.querySelectorAll('.q-text').forEach(autoResizeQText), 0);
 }
 
-function deleteBaseQ(featureId, i) {
-  if (!confirm('Delete this question? You can restore it from the deleted section below.')) return;
+async function deleteBaseQ(featureId, i) {
+  if (!await showConfirm('Delete this question? You can restore it from the deleted section below.')) return;
   const del = { ...(getFeatureState(featureId).deletedBase || {}), [i]: true };
   updateFeatureState(featureId, { deletedBase: del });
   renderQuestionsList(featureId);
@@ -4370,8 +4402,8 @@ function saveAnswer(featureId, key, value) {
   updateFeatureState(featureId, { questionAnswers: answers });
 }
 
-function deleteAnswer(featureId, key) {
-  if (!confirm('Delete this answer?')) return;
+async function deleteAnswer(featureId, key) {
+  if (!await showConfirm('Delete this answer?')) return;
   delete _answerEditMode[`${featureId}_${key}`];
   const answers = { ...(getFeatureState(featureId).questionAnswers || {}) };
   delete answers[key];
@@ -4432,8 +4464,8 @@ function addQuestion(featureId) {
   updateFeatureState(featureId, { customQuestions: items }); inp.value = '';
   renderQuestionsList(featureId);
 }
-function removeCustomQ(featureId, i) {
-  if (!confirm('Delete this question? You can restore it from the deleted section below.')) return;
+async function removeCustomQ(featureId, i) {
+  if (!await showConfirm('Delete this question? You can restore it from the deleted section below.')) return;
   const st = getFeatureState(featureId);
   const items = st.customQuestions || [];
   const text = items[i];
@@ -4514,8 +4546,8 @@ function addQAttachment(featureId, key) {
   renderQuestionsList(featureId);
 }
 
-function removeQAttachment(featureId, key, attachId) {
-  if (!confirm('Remove this attachment?')) return;
+async function removeQAttachment(featureId, key, attachId) {
+  if (!await showConfirm('Remove this attachment?')) return;
   const existing = getQAttachments(featureId);
   const updated = { ...existing, [key]: (existing[key] || []).filter(a => a.id !== attachId) };
   updateFeatureState(featureId, { qAttachments: updated });
@@ -4550,8 +4582,8 @@ function addDesignImg(id) {
   renderDesignImgs(id);
   showToast();
 }
-function removeDesignImg(id, i) {
-  if (!confirm('Remove this image?')) return;
+async function removeDesignImg(id, i) {
+  if (!await showConfirm('Remove this image?')) return;
   const imgs = getDesignImgs(id);
   imgs.splice(i, 1);
   updateFeatureState(id, { dimgs: imgs });
@@ -4812,8 +4844,8 @@ function addCall(featureId) {
   renderCallsList(featureId);
 }
 
-function removeCall(featureId, callId) {
-  if (!confirm('Delete this call? This cannot be undone.')) return;
+async function removeCall(featureId, callId) {
+  if (!await showConfirm('Delete this call? This cannot be undone.')) return;
   saveCalls(featureId, getCalls(featureId).filter(c => c.id !== callId));
   renderCallsList(featureId);
 }
@@ -4826,8 +4858,8 @@ function addCallLink(featureId, callId) {
   renderCallsList(featureId);
 }
 
-function removeCallLink(featureId, callId, idx) {
-  if (!confirm('Remove this resource link?')) return;
+async function removeCallLink(featureId, callId, idx) {
+  if (!await showConfirm('Remove this resource link?')) return;
   const calls = getCalls(featureId).map(c =>
     c.id === callId ? { ...c, links: (c.links || []).filter((_, i) => i !== idx) } : c
   );
@@ -5482,8 +5514,8 @@ function addDomainKnowledge(featureId) {
   setTimeout(() => openDKEdit(featureId, id), 50);
 }
 
-function removeDomainKnowledge(featureId, id) {
-  if (!confirm('Delete this entry?')) return;
+async function removeDomainKnowledge(featureId, id) {
+  if (!await showConfirm('Delete this entry?')) return;
   const entries = getDomainKnowledge(featureId).filter(e => e.id !== id);
   updateFeatureState(featureId, { domainKnowledge: entries });
   renderDomainKnowledgeList(featureId);
@@ -5803,8 +5835,8 @@ function addCtxArrItem(featureId, field, inputId) {
   renderContextTab(featureId);
 }
 
-function removeCtxArrItem(featureId, field, index) {
-  if (!confirm('Remove this item?')) return;
+async function removeCtxArrItem(featureId, field, index) {
+  if (!await showConfirm('Remove this item?')) return;
   const f = getAllFeatures().find(x => x.id === featureId);
   if (!f) return;
   setCtxField(featureId, field, getCtxArr(featureId, field, f[field] || []).filter((_, i) => i !== index));
@@ -5824,8 +5856,8 @@ function addCtxTeamMember(featureId) {
   renderContextTab(featureId);
 }
 
-function removeCtxTeamMember(featureId, index) {
-  if (!confirm('Remove this team member?')) return;
+async function removeCtxTeamMember(featureId, index) {
+  if (!await showConfirm('Remove this team member?')) return;
   const f = getAllFeatures().find(x => x.id === featureId);
   if (!f) return;
   setCtxField(featureId, 'team', getCtxArr(featureId, 'team', f.team || []).filter((_, i) => i !== index));
@@ -5845,8 +5877,8 @@ function addCtxLink(featureId) {
   renderContextTab(featureId);
 }
 
-function removeCtxLink(featureId, index) {
-  if (!confirm('Remove this link?')) return;
+async function removeCtxLink(featureId, index) {
+  if (!await showConfirm('Remove this link?')) return;
   const f = getAllFeatures().find(x => x.id === featureId);
   if (!f) return;
   setCtxField(featureId, 'links', getCtxArr(featureId, 'links', f.links || []).filter((_, i) => i !== index));
@@ -6097,8 +6129,8 @@ function submitNewFeature() {
   setTimeout(() => showFeature(feature.id), 50);
 }
 
-function deleteCustomFeature(featureId) {
-  if (!confirm('Delete this feature? You can restore it later from the Schedule Overview.')) return;
+async function deleteCustomFeature(featureId) {
+  if (!await showConfirm('Delete this feature? You can restore it later from the Schedule Overview.')) return;
 
   const custom = loadCustomFeatures();
   const feature = custom.find(f => f.id === featureId);
@@ -6237,8 +6269,8 @@ function cancelNoteEdit(id, noteId) {
   renderNotesTab(id);
 }
 
-function deleteNoteEntry(id, noteId) {
-  if (!confirm('Delete this note?')) return;
+async function deleteNoteEntry(id, noteId) {
+  if (!await showConfirm('Delete this note?')) return;
   saveNoteEntries(id, getNoteEntries(id).filter(n => n.id !== noteId));
   delete _noteEditMode[id + '::' + noteId];
   renderNotesTab(id);
@@ -6311,8 +6343,8 @@ function cancelDesignFile(id, dfId) {
   renderDesignTab(id);
 }
 
-function deleteDesignFile(id, dfId) {
-  if (!confirm('Delete this design file?')) return;
+async function deleteDesignFile(id, dfId) {
+  if (!await showConfirm('Delete this design file?')) return;
   saveDesignFiles(id, getDesignFiles(id).filter(x => x.id !== dfId));
   delete _designFileEditMode[id + '::' + dfId];
   renderDesignTab(id);
@@ -6360,8 +6392,8 @@ function handleDesignFilePaste(event, id, dfId) {
   event.preventDefault();
 }
 
-function deleteDesignFileScreenshot(id, dfId, scId) {
-  if (!confirm('Remove this screenshot?')) return;
+async function deleteDesignFileScreenshot(id, dfId, scId) {
+  if (!await showConfirm('Remove this screenshot?')) return;
   const files = getDesignFiles(id);
   const idx = files.findIndex(x => x.id === dfId);
   if (idx === -1) return;
@@ -6629,8 +6661,8 @@ function cancelSpecLink(id, linkId) {
   renderDesignSpecTab(id);
 }
 
-function deleteSpecLink(id, linkId) {
-  if (!confirm('Remove this spec link?')) return;
+async function deleteSpecLink(id, linkId) {
+  if (!await showConfirm('Remove this spec link?')) return;
   saveSpecLinks(id, getSpecLinks(id).filter(lk => lk.id !== linkId));
   delete _specEditMode[id + '::' + linkId];
   renderDesignSpecTab(id);
