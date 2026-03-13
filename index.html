@@ -3645,8 +3645,20 @@ function saveCustomFeatures(features) {
   localStorage.setItem('fh_custom_features', JSON.stringify(features));
 }
 
+function loadHiddenBuiltins() {
+  try { return JSON.parse(localStorage.getItem('fh_hidden_builtins') || '[]'); }
+  catch { return []; }
+}
+function saveHiddenBuiltins(ids) {
+  localStorage.setItem('fh_hidden_builtins', JSON.stringify(ids));
+}
+
 function getAllFeatures() {
-  return [...FEATURES, ...loadCustomFeatures()];
+  const hidden = loadHiddenBuiltins();
+  return [
+    ...FEATURES.filter(f => !hidden.includes(f.id)),
+    ...loadCustomFeatures()
+  ];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -3861,14 +3873,14 @@ function buildFeatureView(f) {
             onchange="handleDueChange('${f.id}', this.value)" /></span>
         </div>
       </div>
-      ${f.isCustom ? `<div style="display:flex;gap:6px;flex-shrink:0">
-        <button class="q-icon-btn" title="Edit feature info" onclick="openEditFeatureModal('${f.id}')">
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        ${f.isCustom ? `<button class="q-icon-btn" title="Edit feature info" onclick="openEditFeatureModal('${f.id}')">
           <span class="material-symbols-rounded">edit</span>
+        </button>` : ''}
+        <button class="q-icon-btn" title="Delete feature" style="color:var(--red)" onclick="deleteFeature('${f.id}')">
+          <span class="material-symbols-rounded">delete</span>
         </button>
-        <button class="btn" style="border-color:var(--red);color:var(--red);display:flex;align-items:center;gap:5px" onclick="deleteCustomFeature('${f.id}')">
-          <span class="material-symbols-rounded" style="font-size:15px">delete</span> Delete
-        </button>
-      </div>` : ''}
+      </div>
     </div>
 
     <!-- CURRENT FOCUS RIBBON -->
@@ -5898,6 +5910,17 @@ function saveDeletedFeatures(features) {
 }
 
 function restoreDeletedFeature(featureId) {
+  // Check if it's a hidden built-in
+  const builtin = FEATURES.find(f => f.id === featureId);
+  if (builtin) {
+    saveHiddenBuiltins(loadHiddenBuiltins().filter(id => id !== featureId));
+    const featureViews = document.getElementById('feature-views');
+    featureViews.insertAdjacentHTML('beforeend', buildFeatureView(builtin));
+    _afterRestoreFeature(builtin);
+    return;
+  }
+
+  // Custom feature restore
   const deleted = loadDeletedFeatures();
   const feature = deleted.find(f => f.id === featureId);
   if (!feature) return;
@@ -5906,37 +5929,50 @@ function restoreDeletedFeature(featureId) {
   saveCustomFeatures([...loadCustomFeatures(), clean]);
   saveDeletedFeatures(deleted.filter(f => f.id !== featureId));
 
-  // Add feature view to DOM
   const featureViews = document.getElementById('feature-views');
   featureViews.insertAdjacentHTML('beforeend', buildFeatureView(clean));
-  renderTodoList(clean.id);
-  renderDoneList(clean.id);
-  renderQuestionsList(clean.id);
-  renderCallsList(clean.id);
-  renderDomainKnowledgeList(clean.id);
-  renderNotesTab(clean.id);
-  renderDesignTab(clean.id);
-  renderDesignSpecTab(clean.id);
+  _afterRestoreFeature(clean);
+}
 
+function _afterRestoreFeature(f) {
+  renderTodoList(f.id);
+  renderDoneList(f.id);
+  renderQuestionsList(f.id);
+  renderCallsList(f.id);
+  renderDomainKnowledgeList(f.id);
+  renderNotesTab(f.id);
+  renderDesignTab(f.id);
+  renderDesignSpecTab(f.id);
   renderSidebar();
   renderScheduleCards();
   renderDeletedFeaturesSection();
-  setTimeout(() => showFeature(clean.id), 50);
+  setTimeout(() => showFeature(f.id), 50);
 }
 
 function renderDeletedFeaturesSection() {
   const section = document.getElementById('deleted-features-section');
   if (!section) return;
-  const deleted = loadDeletedFeatures();
-  if (!deleted.length) { section.innerHTML = ''; return; }
+
+  // Combine deleted custom features + hidden built-ins
+  const deletedCustom = loadDeletedFeatures();
+  const hiddenBuiltins = loadHiddenBuiltins()
+    .map(id => FEATURES.find(f => f.id === id))
+    .filter(Boolean);
+  const all = [
+    ...hiddenBuiltins.map(f => ({ ...f, _builtin: true })),
+    ...deletedCustom
+  ];
+
+  if (!all.length) { section.innerHTML = ''; return; }
+
   section.innerHTML = `
     <div style="margin-top:24px">
       <button class="deleted-q-toggle" id="deleted-feat-btn" onclick="toggleDeletedFeaturesSection()" style="width:100%">
         <span class="material-symbols-rounded">expand_more</span>
-        ${deleted.length} deleted feature${deleted.length !== 1 ? 's' : ''} — click to restore
+        ${all.length} deleted feature${all.length !== 1 ? 's' : ''} — click to restore
       </button>
       <div id="deleted-feat-list" style="display:none;margin-top:8px">
-        ${deleted.map(f => `
+        ${all.map(f => `
           <div class="deleted-q-item" style="opacity:1">
             <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
               <span class="material-symbols-rounded" style="font-size:18px;color:var(--text-dim);flex-shrink:0">${f.icon}</span>
@@ -6129,29 +6165,34 @@ function submitNewFeature() {
   setTimeout(() => showFeature(feature.id), 50);
 }
 
-async function deleteCustomFeature(featureId) {
+async function deleteFeature(featureId) {
   if (!await showConfirm('Delete this feature? You can restore it later from the Schedule Overview.')) return;
 
   const custom = loadCustomFeatures();
-  const feature = custom.find(f => f.id === featureId);
-  if (!feature) return;
+  const customFeature = custom.find(f => f.id === featureId);
 
-  // Move to deleted list (soft delete)
-  saveCustomFeatures(custom.filter(f => f.id !== featureId));
-  saveDeletedFeatures([...loadDeletedFeatures(), { ...feature, deletedAt: Date.now() }]);
+  if (customFeature) {
+    // Custom feature: move to deleted list
+    saveCustomFeatures(custom.filter(f => f.id !== featureId));
+    saveDeletedFeatures([...loadDeletedFeatures(), { ...customFeature, deletedAt: Date.now() }]);
+  } else {
+    // Built-in feature: just hide it by ID
+    const hidden = loadHiddenBuiltins();
+    if (!hidden.includes(featureId)) saveHiddenBuiltins([...hidden, featureId]);
+  }
 
-  // Remove feature view from DOM
+  // Remove feature view from DOM and navigate back to schedule
   const view = document.getElementById('view-' + featureId);
   if (view) view.remove();
-
-  // Navigate back to schedule
-  const scheduleNav = document.querySelector('[data-view="schedule"]');
-  showView('schedule', scheduleNav);
+  showView('schedule', document.querySelector('[data-view="schedule"]'));
 
   renderSidebar();
   renderScheduleCards();
   renderDeletedFeaturesSection();
 }
+
+// Keep old name as alias for any legacy references
+const deleteCustomFeature = deleteFeature;
 
 // ═══════════════════════════════════════════════════════════════
 //  NOTES TAB
