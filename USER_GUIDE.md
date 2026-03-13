@@ -4,13 +4,58 @@
 
 ---
 
+## Running the App
+
+Feature Context Hub runs as a local web app backed by a Node.js server that auto-saves your data to git.
+
+### Start the server
+
+```bash
+cd feature-tracker
+node server.js
+```
+
+Then open **http://localhost:3456** in your browser. Keep the terminal open while you work.
+
+### What the server does
+
+- Serves the app at `localhost:3456`
+- Every time you make a change, a 30-second timer starts. When it fires, the server embeds your full state into `index.html` and commits it to git. Rapid changes are batched — only one commit is made after you stop editing.
+- Optionally pushes to your remote (GitHub, etc.) if one is configured.
+
+### Sync indicator (sidebar footer)
+
+| Dot color | Meaning |
+|-----------|---------|
+| Grey | Server offline or idle |
+| Blue (pulsing) | Sync queued / in progress |
+| Green | Synced — shows last sync time |
+| Red | Sync failed |
+
+Click the **sync button** (↻) next to the indicator to force an immediate sync without waiting 30 seconds.
+
+### Restoring data on a new machine
+
+When you `git clone` the repo and open the app for the first time, your saved state is loaded from the snapshot embedded in `index.html` — no manual import needed. After that, localStorage takes over and the embedded snapshot updates with every auto-commit.
+
+### Recommended workflow
+
+1. `node server.js` — start once at the beginning of your session
+2. Open `http://localhost:3456`
+3. Work normally — data saves automatically every 30 seconds
+4. At the end of the day, confirm the sync indicator turned green at least once
+
+---
+
 ## Navigation
 
 The left sidebar lists every feature with its current status badge. Click any feature to open it. At the top is **Schedule Overview**, a dashboard that shows all features at once.
 
 ### Sidebar footer icons
+
 | Icon | Action |
 |------|--------|
+| ↻ | Force sync to git now |
 | Download | Export all data as a JSON backup file |
 | Upload | Import a previously exported backup (replaces current data) |
 | Sun/Moon | Toggle light / dark theme |
@@ -24,7 +69,7 @@ The landing page. Shows every feature as a card with:
 - **Status badge** (Discovery / Design / Dev / QA / Done)
 - **Customer** and **due date**
 - **Current Focus** — what you are actively working on right now
-- **Progress bar** — percentage of Next Tasks checked off
+- **Progress bar** — percentage of To Do tasks marked Done (postponed tasks excluded)
 
 Click any card to jump to that feature's detail page.
 
@@ -55,6 +100,7 @@ Below that are tabs, each covering a different dimension of the feature.
 ## Tabs
 
 ### Context
+
 A read-only reference card showing the core feature brief:
 - **Summary** — one-paragraph problem statement
 - **Key Decisions** — bullet list of confirmed design/product decisions
@@ -67,33 +113,44 @@ A read-only reference card showing the core feature brief:
 ---
 
 ### Domain Knowledge
+
 A personal, freeform notebook for domain context you have built up over time — things not in the PRD, edge cases, mental models, tax law nuances, integration quirks, etc.
 
-- Click **+ Add Entry** to create a new card
+- Click **+ Add** to create a new entry card
 - Give it a title and write markdown content
 - Entries are collapsible; click the title row to expand/collapse
-- Click **Edit** to modify content; click **Done** to save
+- Click the **edit icon** to modify content; click **Done** to save
 - Title autosaves when you click away
+- Click the **delete icon** to remove an entry (with confirmation)
 
-**Problem it solves:** Domain knowledge is usually scattered across Notion, personal notes, and memory. Keeping it here — next to the feature it belongs to — means you can do a better call prep, write better design rationale, and onboard teammates faster.
+**Problem it solves:** Domain knowledge is usually scattered across Notion, personal notes, and memory. Keeping it here — next to the feature it belongs to — means you can do better call prep, write better design rationale, and onboard teammates faster.
 
 ---
 
 ### Feature Brief (shown only when available)
-A longer, structured technical document embedded directly in the app. Covers domain deep-dives, architecture decisions, data models, and background research. Read-only. Available for Avalara Tax, Index Cost, Bulk PO, Pricebook Fee, and other features with rich background material.
+
+Structured background context for features that have rich prior research — architecture decisions, data models, domain deep-dives.
+
+- Click **+ Add** to create a new entry
+- Entries are collapsible, editable, and deletable — same pattern as Domain Knowledge
+- Pre-loaded entries from the feature definition can also be edited or deleted
+- Available for: Avalara Tax, Index Cost, Bulk PO, Pricebook Fee, and other features with background material
 
 ---
 
 ### Calls
+
 Log and manage all calls related to a feature — customer discovery, internal syncs, design reviews, anything.
 
 #### Creating a call
-Click **+ Add Call** (Customer Call or Internal Call). In the modal, set:
+
+Click **+ Add** and choose Customer Call or Internal Call. In the modal, set:
 - **Call Name** — the primary identifier for this call
 - **Call Type** — Customer or Internal
 - **Call Status** — Scheduled / Completed / Action Items Pending
 
 #### Call card header
+
 Shows the call type chip, status chip, associated customer, and call name. Status chips use distinct colors:
 - Blue = Scheduled
 - Green = Completed
@@ -125,10 +182,11 @@ Use the **Copy prep prompt to Claude.ai** button to instantly generate a clipboa
 ---
 
 ### Q&A
+
 A structured question bank with tracked answers per feature.
 
 - Built-in questions come from the feature definition (open design questions, unknowns)
-- Add your own custom questions with **+ Add Question**
+- Add your own custom questions with **+ Add**
 - Click **Add answer…** under any question to open the answer editor
 - Answers support **markdown** — use headers, bullets, bold, tables
 - Attach screenshots or URLs to any question for visual evidence
@@ -142,61 +200,95 @@ Answers autosave when you click away from the text area.
 ---
 
 ### Design Spec
-Embeds the design spec file (HTML or iframe) directly in the app. Available for features with an attached design spec.
+
+Embeds the design spec file directly in the app.
+
+- For features with a pre-loaded spec, the spec displays as an embedded card
+- Click the **edit icon** to change the spec URL or content
+- Click the **delete icon** to remove the built-in spec (a Restore button appears if you want it back)
+- Add additional spec links with **+ Add**
 
 ---
 
 ### Design Files
+
 Manages links to Figma files, prototypes, or other design assets.
-- Add multiple design file links with labels
+- Add multiple design file links with labels using **+ Add**
 - Direct links open in a new tab
 
 ---
 
 ### Notes
+
 A free-form scratchpad for anything that does not fit elsewhere — raw thoughts, Slack messages to follow up on, reminders. Autosaves as you type.
 
 ---
 
-### Next Tasks
-A checklist of design and decision tasks still to complete.
+### To Do
 
-- Pre-loaded tasks come from the feature definition
-- Add your own with the **+ Add Task** button or by pressing Enter in the input field
-- Check off tasks as you complete them — the progress bar on Schedule Overview updates instantly
-- Custom tasks can be deleted; built-in tasks can be checked off but not deleted
+A unified task list covering all work states for a feature — what still needs doing, what is finished, and what is on hold.
 
-**Problem it solves:** Jira tickets track engineering work, not design work. The tasks tab is your personal design backlog — specific enough to act on, always visible alongside the feature context.
+#### Task statuses
+
+| Status | Icon | Meaning |
+|--------|------|---------|
+| To Do | Grey circle | Not started |
+| Done | Green checkmark | Completed |
+| Postponed | Yellow pause | Deferred; stores a reason |
+
+#### Actions per task
+
+- **To Do tasks:** mark done (✓), postpone (⏸), delete (if custom)
+- **Done tasks:** undo back to To Do, delete (if custom)
+- **Postponed tasks:** undo back to To Do, mark done directly, delete (if custom)
+
+When you postpone a task, an inline field opens for you to record the reason.
+
+#### Adding tasks
+
+Click **+ Add** or press Enter in the input field to add a custom task. Built-in tasks (pre-loaded from the feature definition) can be checked off or postponed but not deleted.
+
+#### Progress bar
+
+The progress bar on Schedule Overview counts `Done / (To Do + Done)`. Postponed tasks are excluded from both numerator and denominator so they do not drag down progress.
+
+**Problem it solves:** Jira tickets track engineering work, not design work. The To Do tab is your personal design backlog — specific enough to act on, always visible alongside the feature context.
 
 ---
 
-### Completed
-A running log of work already done.
+## Deleted Features
 
-- Pre-loaded entries from the feature definition
-- Add your own milestones (discovery calls finished, specs shared, alignment reached)
-- Provides a quick history of what has already been decided or built
+Deleted features are listed in the **Deleted** section at the bottom of the sidebar rather than being permanently removed.
+
+- Click **Restore** to bring a feature back
+- Click the **delete forever icon** to permanently remove it — this cannot be undone (confirmation required)
 
 ---
 
 ## Data & Persistence
 
-All data is stored in your browser's **localStorage**. Nothing is sent to a server.
+Data is stored in two places:
+
+1. **Browser localStorage** — live working state, updates on every keystroke
+2. **`index.html` embedded snapshot** — written by the git-sync server every 30 seconds, committed to git
 
 ### Autosave
+
 Every field saves automatically:
 - Status, due date, current focus — save on change
 - Notes — save on every keystroke
-- Q&A answers — save when you click away (blur) and when you click Save
-- Domain knowledge title and content — save when you click away
+- Q&A answers — save when you click away (blur)
+- Domain knowledge / Feature Brief title and content — save when you click away
 - Call fields — save on change
+- Tasks — save immediately on any action
 
-### Export / Import (backup)
-Use the **download icon** in the sidebar footer to export all data as a timestamped JSON file (e.g. `feature-hub-backup-2026-03-12.json`). Keep this file somewhere safe (Google Drive, Desktop).
+### Export / Import (manual backup)
+
+Use the **download icon** in the sidebar footer to export all data as a timestamped JSON file (e.g. `feature-hub-backup-2026-03-13.json`).
 
 Use the **upload icon** to restore from a backup. You will be asked to confirm before data is replaced.
 
-**Recommendation:** Export after any significant session — after logging a call, answering several questions, or adding domain knowledge entries. localStorage can be cleared by browser updates, Chrome profile resets, or private browsing sessions.
+**Recommendation:** The git auto-sync handles regular backups. Manual export is useful before switching machines without a git remote, or before a risky bulk edit.
 
 ---
 
@@ -216,9 +308,10 @@ Change status directly from the dropdown in the feature header. The sidebar badg
 
 ## Tips
 
+- **Start each session:** `node server.js` → open `http://localhost:3456` → check sync indicator turns green
 - **Start each week on Schedule Overview** — scan current focus and progress for all features, update anything stale
 - **Use Current Focus as a daily intent** — one sentence: what specifically needs to happen today on this feature
 - **Log calls even before they happen** — create the call as Scheduled, fill in prep, paste the transcript after
-- **Export before major Chrome updates or switching machines**
 - **Use markdown in Q&A answers** — tables work well for comparing options; headers make long answers scannable
 - **Domain Knowledge is for things you learned, not things you were told** — if you had to figure it out, write it down here so you never have to figure it out again
+- **Postpone, don't delete** — if a task is blocked, postpone it with a reason rather than deleting so the context is preserved
