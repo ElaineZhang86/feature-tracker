@@ -6145,9 +6145,11 @@ function buildContextTabHtml(f) {
       onblur="setCtxField('${id}','summary',this.value)">${escHtml(summary)}</textarea>`;
 
   const decChipsHtml = decisions.length
-    ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${decisions.map((d, i) =>
-        `<span class="constraint-tag" style="display:inline-flex;align-items:center;gap:4px;font-size:12px">${escHtml(d)}<button class="remove-btn" style="width:18px;height:18px;flex-shrink:0" title="Remove" onclick="removeCtxArrItem('${id}','decisions',${i})"><span class="material-symbols-rounded" style="font-size:13px">close</span></button></span>`
-      ).join('')}</div>`
+    ? `<ul class="decision-list">${decisions.map((d, i) => `
+        <li style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
+          <span style="flex:1">${escHtml(d)}</span>
+          <button class="remove-btn" style="flex-shrink:0" title="Remove" onclick="removeCtxArrItem('${id}','decisions',${i})"><span class="material-symbols-rounded">close</span></button>
+        </li>`).join('')}</ul>`
     : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">No decisions recorded yet</p>`;
   const decisionsHtml = decChipsHtml + `
     <div class="add-item-row" style="padding-top:0;border-top:none">
