@@ -859,6 +859,51 @@
   .restore-btn .material-symbols-rounded { font-size: 13px; }
   .restore-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+  /* Deleted features section */
+  .deleted-features-section {
+    margin-top: 36px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .deleted-features-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+  .deleted-feature-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    opacity: .7;
+    transition: opacity .15s;
+  }
+  .deleted-feature-card:hover { opacity: 1; }
+  .deleted-feature-card-info { flex: 1; min-width: 0; }
+  .deleted-feature-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .deleted-feature-card-meta {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
   .q-attach-img-wrap { position: relative; display: inline-block; margin-top: 4px; }
   .q-attach-img { max-width: 100%; max-height: 180px; border-radius: var(--radius-sm); border: 1px solid var(--border); display: block; cursor: pointer; }
 
@@ -6023,7 +6068,6 @@ function renderDeletedFeaturesSection() {
   const section = document.getElementById('deleted-features-section');
   if (!section) return;
 
-  // Combine deleted custom features + hidden built-ins
   const deletedCustom = loadDeletedFeatures();
   const hiddenBuiltins = loadHiddenBuiltins()
     .map(id => FEATURES.find(f => f.id === id))
@@ -6036,24 +6080,22 @@ function renderDeletedFeaturesSection() {
   if (!all.length) { section.innerHTML = ''; return; }
 
   section.innerHTML = `
-    <div style="margin-top:24px">
-      <button class="deleted-q-toggle" id="deleted-feat-btn" onclick="toggleDeletedFeaturesSection()" style="width:100%">
-        <span class="material-symbols-rounded">expand_more</span>
-        ${all.length} deleted feature${all.length !== 1 ? 's' : ''} — click to restore
-      </button>
-      <div id="deleted-feat-list" style="display:none;margin-top:8px">
-        ${all.map(f => `
-          <div class="deleted-q-item" style="opacity:1">
-            <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
-              <span class="material-symbols-rounded" style="font-size:18px;color:var(--text-dim);flex-shrink:0">${f.icon}</span>
-              <span class="deleted-q-text" style="text-decoration:none;color:var(--text-muted)">${escHtml(f.title)}</span>
-              <span class="badge ${STATUS_BADGE[f.status] || 'badge-done'}" style="opacity:.6;flex-shrink:0">${f.status}</span>
-            </div>
-            <button class="restore-btn" onclick="restoreDeletedFeature('${f.id}')">
-              <span class="material-symbols-rounded">undo</span> Restore
-            </button>
-          </div>`).join('')}
+    <div class="deleted-features-section">
+      <div class="deleted-features-heading">
+        <span class="material-symbols-rounded" style="font-size:15px">delete</span>
+        Deleted Features
       </div>
+      ${all.map(f => `
+        <div class="deleted-feature-card">
+          <span class="material-symbols-rounded" style="font-size:20px;color:var(--text-dim);flex-shrink:0">${f.icon}</span>
+          <div class="deleted-feature-card-info">
+            <div class="deleted-feature-card-title">${escHtml(f.title)}</div>
+            <div class="deleted-feature-card-meta">${f.status}${f.customer && f.customer !== 'TBD' ? ' · ' + escHtml(f.customer) : ''}</div>
+          </div>
+          <button class="restore-btn" onclick="restoreDeletedFeature('${f.id}')">
+            <span class="material-symbols-rounded">undo</span> Restore
+          </button>
+        </div>`).join('')}
     </div>`;
 }
 
@@ -6259,14 +6301,6 @@ async function deleteFeature(featureId) {
   renderScheduleCards();
   renderDeletedFeaturesSection();
 
-  // Auto-expand the deleted section and show undo toast
-  const list = document.getElementById('deleted-feat-list');
-  const btn = document.getElementById('deleted-feat-btn');
-  if (list) list.style.display = 'block';
-  if (btn) {
-    const icon = btn.querySelector('.material-symbols-rounded');
-    if (icon) icon.style.transform = 'rotate(180deg)';
-  }
   showUndoToast(featureTitle, featureId);
 }
 
