@@ -1784,30 +1784,28 @@
   }
   .dk-entry.expanded .dk-expand-icon { transform: rotate(180deg); }
 
+  .dk-entry-title-display {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: normal;
+    word-break: break-word;
+    padding: 2px 4px;
+  }
+  .dk-entry-title-display.empty { color: var(--text-dim); font-weight: 400; }
+
   .dk-entry-title-input {
-    flex: 1;
-    background: none;
-    border: none;
-    border-bottom: 1px dashed transparent;
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
     color: var(--text);
     font-size: 14px;
     font-weight: 600;
     font-family: inherit;
     outline: none;
-    padding: 2px 4px;
+    padding: 5px 8px;
     transition: border-color .15s;
-    white-space: normal;
-    word-break: break-word;
-    cursor: text;
-    min-width: 0;
-  }
-
-  .dk-entry-title-input:focus { border-bottom-color: var(--accent); outline: none; }
-  .dk-entry-title-input:empty:before {
-    content: attr(data-placeholder);
-    color: var(--text-dim);
-    font-weight: 400;
-    pointer-events: none;
   }
 
   .dk-entry-header-acts {
@@ -5467,13 +5465,10 @@ function getDomainKnowledge(featureId) {
 function addDomainKnowledge(featureId) {
   const id = Date.now().toString();
   const entries = getDomainKnowledge(featureId);
-  _dkOpen[featureId + '_' + id] = true; // open new entry by default
+  _dkOpen[featureId + '_' + id] = true;
   updateFeatureState(featureId, { domainKnowledge: [...entries, { id, title: '', content: '' }] });
   renderDomainKnowledgeList(featureId);
-  setTimeout(() => {
-    const ta = document.getElementById(`dk_ta_${featureId}_${id}`);
-    if (ta) ta.focus();
-  }, 50);
+  setTimeout(() => openDKEdit(featureId, id), 50);
 }
 
 function removeDomainKnowledge(featureId, id) {
@@ -5491,44 +5486,71 @@ function updateDKField(featureId, id, field, value) {
 }
 
 function openDKEdit(featureId, id) {
-  const rendered = document.getElementById(`dk_rendered_${featureId}_${id}`);
-  const editor   = document.getElementById(`dk_editor_${featureId}_${id}`);
-  const editBtn  = document.getElementById(`dk_editbtn_${featureId}_${id}`);
-  const ta       = document.getElementById(`dk_ta_${featureId}_${id}`);
+  // Expand the card if collapsed
+  const card = document.getElementById(`dk_card_${featureId}_${id}`);
+  if (card && !card.classList.contains('expanded')) {
+    card.classList.add('expanded');
+    _dkOpen[featureId + '_' + id] = true;
+  }
+  const titleDisplay = document.getElementById(`dk_title_display_${featureId}_${id}`);
+  const titleInput   = document.getElementById(`dk_title_input_${featureId}_${id}`);
+  const rendered     = document.getElementById(`dk_rendered_${featureId}_${id}`);
+  const editor       = document.getElementById(`dk_editor_${featureId}_${id}`);
+  const editBtn      = document.getElementById(`dk_editbtn_${featureId}_${id}`);
+  const ta           = document.getElementById(`dk_ta_${featureId}_${id}`);
   if (!editor) return;
-  if (rendered) rendered.style.display = 'none';
+  if (titleDisplay) titleDisplay.style.display = 'none';
+  if (titleInput)   titleInput.style.display = '';
+  if (rendered)     rendered.style.display = 'none';
   editor.style.display = 'block';
   if (editBtn) editBtn.style.display = 'none';
-  if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  // Focus title if empty, otherwise content
+  if (titleInput && !titleInput.value.trim()) titleInput.focus();
+  else if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
 }
 
 function saveDKEdit(featureId, id) {
-  const ta       = document.getElementById(`dk_ta_${featureId}_${id}`);
-  const rendered = document.getElementById(`dk_rendered_${featureId}_${id}`);
-  const editor   = document.getElementById(`dk_editor_${featureId}_${id}`);
-  const editBtn  = document.getElementById(`dk_editbtn_${featureId}_${id}`);
+  const titleInput   = document.getElementById(`dk_title_input_${featureId}_${id}`);
+  const titleDisplay = document.getElementById(`dk_title_display_${featureId}_${id}`);
+  const ta           = document.getElementById(`dk_ta_${featureId}_${id}`);
+  const rendered     = document.getElementById(`dk_rendered_${featureId}_${id}`);
+  const editor       = document.getElementById(`dk_editor_${featureId}_${id}`);
+  const editBtn      = document.getElementById(`dk_editbtn_${featureId}_${id}`);
   if (!ta) return;
-  const val = ta.value;
-  updateDKField(featureId, id, 'content', val);
+  const titleVal   = titleInput ? titleInput.value.trim() : '';
+  const contentVal = ta.value;
+  updateDKField(featureId, id, 'title', titleVal);
+  updateDKField(featureId, id, 'content', contentVal);
+  // Update title display
+  if (titleDisplay) {
+    titleDisplay.textContent = titleVal || 'Untitled entry';
+    titleDisplay.classList.toggle('empty', !titleVal);
+    titleDisplay.style.display = '';
+  }
+  if (titleInput) titleInput.style.display = 'none';
   editor.style.display = 'none';
   if (editBtn) editBtn.style.display = '';
-  if (val.trim()) {
-    rendered.innerHTML = marked.parse(val);
-    rendered.style.display = 'block';
-  } else {
-    rendered.innerHTML = '<p style="color:var(--text-dim);font-size:13px">No content yet. Click Edit to add.</p>';
-    rendered.style.display = 'block';
-  }
+  rendered.innerHTML = contentVal.trim()
+    ? marked.parse(contentVal)
+    : '<p style="color:var(--text-dim);font-size:13px">No content yet. Click Edit to add.</p>';
+  rendered.style.display = 'block';
 }
 
 function cancelDKEdit(featureId, id) {
-  const entry    = getDomainKnowledge(featureId).find(e => e.id === id);
-  const ta       = document.getElementById(`dk_ta_${featureId}_${id}`);
-  const rendered = document.getElementById(`dk_rendered_${featureId}_${id}`);
-  const editor   = document.getElementById(`dk_editor_${featureId}_${id}`);
-  const editBtn  = document.getElementById(`dk_editbtn_${featureId}_${id}`);
+  const entry        = getDomainKnowledge(featureId).find(e => e.id === id);
+  const titleInput   = document.getElementById(`dk_title_input_${featureId}_${id}`);
+  const titleDisplay = document.getElementById(`dk_title_display_${featureId}_${id}`);
+  const ta           = document.getElementById(`dk_ta_${featureId}_${id}`);
+  const rendered     = document.getElementById(`dk_rendered_${featureId}_${id}`);
+  const editor       = document.getElementById(`dk_editor_${featureId}_${id}`);
+  const editBtn      = document.getElementById(`dk_editbtn_${featureId}_${id}`);
   if (!editor) return;
-  if (ta && entry) ta.value = entry.content || '';
+  if (entry) {
+    if (titleInput)   titleInput.value = entry.title || '';
+    if (ta)           ta.value = entry.content || '';
+  }
+  if (titleDisplay) titleDisplay.style.display = '';
+  if (titleInput)   titleInput.style.display = 'none';
   editor.style.display = 'none';
   if (editBtn) editBtn.style.display = '';
   if (rendered) rendered.style.display = 'block';
@@ -5554,13 +5576,13 @@ function buildDKEntryCard(featureId, e) {
   <div class="context-card dk-entry${isExpanded ? ' expanded' : ''}" id="dk_card_${featureId}_${e.id}">
     <div class="dk-entry-header" onclick="toggleDKCollapse('${featureId}','${e.id}')">
       <div class="dk-entry-info" style="flex:1;min-width:0">
-        <div class="dk-entry-title-input"
-          contenteditable="true"
-          data-placeholder="Entry title…"
+        <span class="dk-entry-title-display${e.title ? '' : ' empty'}" id="dk_title_display_${featureId}_${e.id}">${escHtml(e.title) || 'Untitled entry'}</span>
+        <input class="dk-entry-title-input" id="dk_title_input_${featureId}_${e.id}"
+          style="display:none"
+          value="${escHtml(e.title)}"
+          placeholder="Entry title…"
           onclick="event.stopPropagation()"
-          onblur="updateDKField('${featureId}','${e.id}','title',this.innerText.trim())"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
-        >${escHtml(e.title)}</div>
+          onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('dk_ta_${featureId}_${e.id}')?.focus()}" />
       </div>
       <div class="dk-entry-header-acts" onclick="event.stopPropagation()">
         <button class="btn" id="dk_editbtn_${featureId}_${e.id}"
