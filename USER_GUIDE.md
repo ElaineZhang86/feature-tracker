@@ -56,8 +56,6 @@ The left sidebar lists every feature with its current status badge. Click any fe
 | Icon | Action |
 |------|--------|
 | ↻ | Force sync to git now |
-| Download | Export all data as a JSON backup file |
-| Upload | Import a previously exported backup (replaces current data) |
 | Sun/Moon | Toggle light / dark theme |
 
 ---
@@ -282,13 +280,9 @@ Every field saves automatically:
 - Call fields — save on change
 - Tasks — save immediately on any action
 
-### Export / Import (manual backup)
+### Backup
 
-Use the **download icon** in the sidebar footer to export all data as a timestamped JSON file (e.g. `feature-hub-backup-2026-03-13.json`).
-
-Use the **upload icon** to restore from a backup. You will be asked to confirm before data is replaced.
-
-**Recommendation:** The git auto-sync handles regular backups. Manual export is useful before switching machines without a git remote, or before a risky bulk edit.
+Data is backed up automatically via git auto-sync. To restore data on a new machine, `git clone` the repo, run `node server.js`, and open the app — your state loads from the snapshot embedded in `index.html`.
 
 ---
 
