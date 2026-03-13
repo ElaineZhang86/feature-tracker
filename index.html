@@ -5533,7 +5533,7 @@ function buildCallCard(featureId, call) {
     </div>`;
 
   // ── General Info tab ──
-  const infoPanel = activeTab !== 'info' ? '' : `
+  const infoEditHtml = `
     <div class="call-detail-row">
       <input class="call-detail-input" placeholder="Call name…" value="${escHtml(call.callName || '')}"
         onblur="updateCallField('${featureId}','${call.id}','callName',this.value);renderCallsList('${featureId}')" style="flex:2" />
@@ -5590,14 +5590,41 @@ function buildCallCard(featureId, call) {
     <div class="call-divider"></div>
     ${resourcesHtml}`;
 
+  const infoViewHtml = `
+    <div style="display:flex;flex-direction:column;gap:10px;padding:4px 0 12px">
+      ${callName ? `<div><div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Call Name</div><div style="font-size:13px;color:var(--text)">${escHtml(callName)}</div></div>` : ''}
+      ${customer ? `<div><div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Customer</div><div style="font-size:13px;color:var(--text)">${escHtml(customer)}</div></div>` : ''}
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div><div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Status</div><span class="call-status-chip ${status}">${statusLabels[status] || status}</span></div>
+        ${dateDisplay ? `<div><div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Date</div><div style="font-size:13px;color:var(--text)">${escHtml(dateDisplay)}</div></div>` : ''}
+        <div><div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Type</div><div style="font-size:13px;color:var(--text)">${callType === 'customer' ? 'Customer' : 'Internal'}</div></div>
+      </div>
+      ${call.attendees ? `<div><div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Attendees</div><div style="font-size:13px;color:var(--text)">${escHtml(call.attendees)}</div></div>` : ''}
+      ${callType === 'internal' && call.departments ? `<div><div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Departments</div><div style="font-size:13px;color:var(--text)">${escHtml(call.departments)}</div></div>` : ''}
+      ${notesLink ? `<div><a href="${escHtml(notesLink)}" target="_blank" class="link-chip">↗ Notes / Recording</a></div>` : ''}
+      ${links.filter(l => l.url).length ? `<div><div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Resources</div><div style="display:flex;flex-wrap:wrap;gap:6px">${links.filter(l=>l.url).map(l=>`<a href="${escHtml(l.url)}" target="_blank" class="link-chip">${escHtml(l.label||l.url)}</a>`).join('')}</div></div>` : ''}
+    </div>`;
+
+  const infoPanel = activeTab !== 'info' ? '' : isEditing ? infoEditHtml : infoViewHtml;
+
   // ── Call Prep tab ──
-  const prepPanel = activeTab !== 'prep' ? '' : buildPrepTabContent(featureId, call);
+  const prepViewHtml = `
+    ${call.prepResearchQs ? `<div class="prep-section"><div class="prep-section-head"><span class="material-symbols-rounded" style="font-size:15px;color:var(--accent)">quiz</span><span class="prep-section-title">Research Questions</span></div><div class="md-body">${marked.parse(call.prepResearchQs)}</div></div>` : ''}
+    ${(call.prepWhoTalking||call.prepCompanySegment||call.prepTenure||call.prepUsageIndicators||call.prepTypesOfWork) ? `<div class="prep-section"><div class="prep-section-head"><span class="material-symbols-rounded" style="font-size:15px;color:var(--accent)">person_search</span><span class="prep-section-title">Interviewee Background</span></div><div style="display:flex;flex-direction:column;gap:8px">${[['Who',call.prepWhoTalking],['Company &amp; Segment',call.prepCompanySegment],['Tenure',call.prepTenure],['Usage Indicators',call.prepUsageIndicators],['Types of Work',call.prepTypesOfWork]].filter(([,v])=>v).map(([l,v])=>`<div><div style="font-size:11px;font-weight:600;color:var(--text-dim);margin-bottom:2px">${l}</div><div style="font-size:13px;color:var(--text)">${escHtml(v)}</div></div>`).join('')}</div></div>` : ''}
+    ${call.prepWarmUpQs ? `<div class="prep-section"><div class="prep-section-head"><span class="material-symbols-rounded" style="font-size:15px;color:var(--accent)">wb_sunny</span><span class="prep-section-title">Warm-up Questions</span></div><div class="md-body">${marked.parse(call.prepWarmUpQs)}</div></div>` : ''}
+    ${call.prepTopicQs ? `<div class="prep-section"><div class="prep-section-head"><span class="material-symbols-rounded" style="font-size:15px;color:var(--accent)">chat_bubble</span><span class="prep-section-title">Topic Questions</span></div><div class="md-body">${marked.parse(call.prepTopicQs)}</div></div>` : ''}
+    ${call.prepListenFor ? `<div class="prep-section"><div class="prep-section-head"><span class="material-symbols-rounded" style="font-size:15px;color:var(--accent)">hearing</span><span class="prep-section-title">Look For / Listen For</span></div><div class="md-body">${marked.parse(call.prepListenFor)}</div></div>` : ''}
+    ${!call.prepResearchQs&&!call.prepWhoTalking&&!call.prepCompanySegment&&!call.prepTenure&&!call.prepUsageIndicators&&!call.prepTypesOfWork&&!call.prepWarmUpQs&&!call.prepTopicQs&&!call.prepListenFor ? '<div style="font-size:13px;color:var(--text-dim);padding:16px 0">No prep notes yet. Click Edit to add.</div>' : ''}
+    <div style="padding:14px 22px 18px;border-top:1px solid var(--border)">
+      <button class="generate-btn" onclick="copyCallPrepPrompt('${featureId}','${call.id}',this)">
+        <span class="material-symbols-rounded" style="font-size:13px">auto_awesome</span> Copy prep prompt → Claude.ai
+      </button>
+    </div>`;
+
+  const prepPanel = activeTab !== 'prep' ? '' : isEditing ? buildPrepTabContent(featureId, call) : prepViewHtml;
 
   // ── Post Meeting tab ──
-  const postPanel = activeTab !== 'post' ? '' : `
-    <div class="call-section-label">Transcript</div>
-    <textarea class="call-transcript" placeholder="Paste the raw transcript here…"
-      onblur="updateCallField('${featureId}','${call.id}','transcript',this.value)">${escHtml(call.transcript || '')}</textarea>
+  const summarySection = `
     <div class="summary-section">
       <div class="summary-actions">
         <div class="call-section-label" style="margin-bottom:0">AI Summary</div>
@@ -5622,6 +5649,18 @@ function buildCallCard(featureId, call) {
         style="display:${hasSummary ? 'none' : 'block'}"
         onblur="saveSummaryFromBlur('${featureId}','${call.id}')">${escHtml(call.summary || '')}</textarea>
     </div>`;
+
+  const postEditHtml = `
+    <div class="call-section-label">Transcript</div>
+    <textarea class="call-transcript" placeholder="Paste the raw transcript here…"
+      onblur="updateCallField('${featureId}','${call.id}','transcript',this.value)">${escHtml(call.transcript || '')}</textarea>
+    ${summarySection}`;
+
+  const postViewHtml = `
+    ${call.transcript ? `<div class="call-section-label">Transcript</div><div style="font-size:12px;color:var(--text-muted);white-space:pre-wrap;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;line-height:1.6;max-height:280px;overflow-y:auto;margin-bottom:16px">${escHtml(call.transcript)}</div>` : ''}
+    ${summarySection}`;
+
+  const postPanel = activeTab !== 'post' ? '' : isEditing ? postEditHtml : postViewHtml;
 
   const detailsHtml = isExpanded ? `
     <div class="call-entry-details">
