@@ -4649,7 +4649,7 @@ function renderQuestionsList(featureId) {
           <button class="btn btn-primary" style="font-size:12px;padding:5px 12px"
             onclick="saveAnswerFromEditor('${featureId}','${key}')">Save</button>
           <button class="btn" style="font-size:12px;padding:5px 12px"
-            onclick="closeAnswerEdit('${featureId}','${key}')">${ans ? 'Cancel' : 'Discard'}</button>
+            onclick="closeAnswerEdit('${featureId}','${key}')">Cancel</button>
         </div>
       </div>`;
     }
@@ -4769,10 +4769,12 @@ function renderQuestionsList(featureId) {
 
   if (!content && !_qFormActive[featureId]) {
     panel.innerHTML = `
-      <div class="context-card" style="text-align:center;padding:48px 20px">
-        <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">help</span>
-        <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No questions yet.<br>Add anything that still needs an answer.</div>
-        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="addQuestion('${featureId}')">+ Add</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text)">Q&amp;A</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Open questions and answers</div>
+        </div>
+        <button class="btn btn-primary" style="font-size:12px;padding:5px 12px;flex-shrink:0" onclick="openQAAdd('${featureId}')">+ Add</button>
       </div>
       ${deletedSection}`;
     setTimeout(() => panel.querySelectorAll('.q-text').forEach(autoResizeQText), 0);
@@ -4886,6 +4888,33 @@ function unresolveQ(featureId, type, i) {
   const r = { ...(getFeatureState(featureId)[key] || {}) }; delete r[i];
   updateFeatureState(featureId, { [key]: r }); renderQuestionsList(featureId);
 }
+function openQAAdd(featureId) {
+  const panel = document.getElementById(`${featureId}_q_panel`);
+  if (!panel) return;
+  panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">Q&amp;A</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Open questions and answers</div>
+      </div>
+      <button class="btn btn-primary" style="font-size:12px;padding:5px 12px;flex-shrink:0" onclick="openQAAdd('${featureId}')">+ Add</button>
+    </div>
+    <div class="context-card">
+      <div class="add-item-row" style="border-top:none;margin-top:0;padding-top:0">
+        <input class="add-item-input" id="${featureId}_add_q" placeholder="Add a question…"
+          onkeydown="if(event.key==='Enter')addQuestion('${featureId}')" />
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-primary" style="font-size:12px;padding:4px 14px" onclick="addQuestion('${featureId}')">Add</button>
+        <button class="btn" style="font-size:12px;padding:4px 14px" onclick="renderQuestionsList('${featureId}')">Cancel</button>
+      </div>
+    </div>`;
+  setTimeout(() => {
+    const inp = document.getElementById(`${featureId}_add_q`);
+    if (inp) inp.focus();
+  }, 50);
+}
+
 function addQuestion(featureId) {
   let inp = document.getElementById(`${featureId}_add_q`);
   if (!inp) {
@@ -5283,7 +5312,7 @@ function buildDDEntryCard(featureId, e) {
           placeholder="Paste or type markdown content…">${escHtml(e.content)}</textarea>
         <div class="dk-entry-actions">
           <button class="btn btn-primary" onclick="saveDDEdit('${featureId}','${e.id}')">Save</button>
-          <button class="btn" onclick="cancelDDEdit('${featureId}','${e.id}')">${hasContent ? 'Cancel' : 'Discard'}</button>
+          <button class="btn" onclick="cancelDDEdit('${featureId}','${e.id}')">Cancel</button>
         </div>
       </div>
     </div>
@@ -5941,7 +5970,7 @@ function buildCallCard(featureId, call) {
   const callEditActions = isEditing ? `
     <div class="dk-entry-actions" style="padding:12px 22px 16px;border-top:1px solid var(--border)">
       <button class="btn btn-primary" onclick="saveCallEdit('${featureId}','${call.id}')">Save</button>
-      <button class="btn" onclick="discardCallEdit('${featureId}','${call.id}')">${_callIsNew[featureId+'_'+call.id] ? 'Discard' : 'Cancel'}</button>
+      <button class="btn" onclick="discardCallEdit('${featureId}','${call.id}')">Cancel</button>
     </div>` : '';
 
   const detailsHtml = isExpanded ? `
@@ -6410,7 +6439,7 @@ function buildDKEntryCard(featureId, e) {
           placeholder="Paste or type markdown content…">${escHtml(e.content)}</textarea>
         <div class="dk-entry-actions">
           <button class="btn btn-primary" onclick="saveDKEdit('${featureId}','${e.id}')">Save</button>
-          <button class="btn" onclick="cancelDKEdit('${featureId}','${e.id}')">${hasContent ? 'Cancel' : 'Discard'}</button>
+          <button class="btn" onclick="cancelDKEdit('${featureId}','${e.id}')">Cancel</button>
         </div>
       </div>
     </div>
@@ -7487,7 +7516,7 @@ function renderDesignSpecTab(id) {
         <textarea class="dk-entry-content" id="bs_ta_${id}" placeholder="Paste or type markdown content…">${escHtml(rawMd)}</textarea>
         <div style="display:flex;gap:8px;margin-top:10px">
           <button class="btn btn-primary" onclick="saveBuiltinSpec('${id}')">Save</button>
-          <button class="btn" onclick="cancelBuiltinSpecEdit('${id}')">${rawMd ? 'Cancel' : 'Discard'}</button>
+          <button class="btn" onclick="cancelBuiltinSpecEdit('${id}')">Cancel</button>
         </div>
       </div>`;
     }
