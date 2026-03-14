@@ -62,6 +62,17 @@ node server.js
 
 Open `http://localhost:3456` — your data loads automatically from the snapshot embedded in `index.html`.
 
+### Getting updates
+
+> **Note:** When new features or fixes are published, pull them into your existing clone — no need to re-clone.
+>
+> ```bash
+> git pull
+> node server.js
+> ```
+>
+> Your data is not affected. The pull only updates the app code. The app will also show a banner at the top when an update is available.
+
 ---
 
 ## How Data is Saved

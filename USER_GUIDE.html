@@ -437,6 +437,14 @@ cd feature-tracker
 node server.js</code></pre>
     <p>Open <code>http://localhost:3456</code> — your data loads automatically from the snapshot in <code>index.html</code>.</p>
 
+    <div style="background:color-mix(in srgb,#6366f1 8%,var(--surface,#f8f8f8));border-left:4px solid #6366f1;border-radius:6px;padding:14px 18px;margin-top:16px">
+      <p style="margin:0 0 8px;font-weight:600;color:#6366f1">Getting updates</p>
+      <p style="margin:0 0 10px">When new features or fixes are published, pull them into your existing clone — no need to re-clone.</p>
+      <pre style="background:var(--code-bg,#1e1e2e);color:#cdd6f4;border-radius:6px;padding:10px 14px;font-size:13px;margin:0 0 10px;overflow-x:auto">git pull
+node server.js</pre>
+      <p style="margin:0;font-size:13px;color:var(--text-muted,#6b7280)">Your data is not affected — the pull only updates the app code. The app will also show a banner at the top when an update is available.</p>
+    </div>
+
     <h3>How data is saved</h3>
     <p>Data is stored in two places:</p>
     <ul>

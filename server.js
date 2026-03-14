@@ -92,6 +92,20 @@ function handleSync(req, res) {
   });
 }
 
+
+// ── /api/check-update GET handler ─────────────────────────────────────────
+function handleCheckUpdate(req, res) {
+  try {
+    gitExec('git fetch --quiet');
+    const local  = gitExec('git rev-parse HEAD');
+    const remote = gitExec('git rev-parse @{u}');
+    sendJSON(res, 200, { hasUpdate: local !== remote });
+  } catch (e) {
+    // No remote, no internet, or no upstream — silently report no update
+    sendJSON(res, 200, { hasUpdate: false });
+  }
+}
+
 // ── HTTP server ────────────────────────────────────────────────────────────
 const server = http.createServer((req, res) => {
   // CORS for same-machine requests
@@ -102,6 +116,9 @@ const server = http.createServer((req, res) => {
   if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
 
   if (req.method === 'POST' && req.url === '/sync') return handleSync(req, res);
+  if (req.method === 'GET' && req.url === '/api/check-update') return handleCheckUpdate(req, res);
+
+
 
   // Serve static files
   let filePath = path.join(DIR, req.url === '/' ? 'index.html' : req.url);

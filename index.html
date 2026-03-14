@@ -72,6 +72,28 @@
     overflow: hidden;
   }
 
+
+  /* ── UPDATE BANNER ───────────────────────────────── */
+  .update-banner {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    margin: -32px -40px 28px;
+    padding: 11px 40px;
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    font-size: 13px;
+    color: var(--text);
+  }
+  .update-banner code {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-size: 12px;
+    font-family: ui-monospace, 'SF Mono', monospace;
+  }
+
   /* ── SIDEBAR ─────────────────────────────────── */
   #sidebar {
     width: 260px;
@@ -2399,7 +2421,18 @@
 <!-- ═══════════════════════════════ MAIN ══════════════════════════════════ -->
 <div id="main">
 
-  <!-- SCHEDULE VIEW -->
+  <!-- UPDATE BANNER -->
+<div id="update-banner" class="update-banner">
+  <span class="material-symbols-rounded" style="font-size:18px;color:var(--accent);flex-shrink:0">new_releases</span>
+  <div style="flex:1">
+    <strong>App update available</strong> — run <code>git pull</code> in your terminal, then restart <code>node server.js</code> to get the latest version.
+  </div>
+  <button class="q-icon-btn" onclick="document.getElementById('update-banner').style.display='none'" title="Dismiss">
+    <span class="material-symbols-rounded" style="font-size:16px">close</span>
+  </button>
+</div>
+
+<!-- SCHEDULE VIEW -->
   <div id="view-schedule" class="view active">
     <div class="schedule-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px">
       <div>
@@ -8144,6 +8177,18 @@ async function manualSync() {
   await syncToGit();
 }
 
+
+async function checkForUpdate() {
+  try {
+    const res  = await fetch(GIT_SYNC_URL.replace('/sync', '/api/check-update'), { signal: AbortSignal.timeout(8000) });
+    const data = await res.json();
+    if (data.hasUpdate) {
+      const banner = document.getElementById('update-banner');
+      if (banner) banner.style.display = 'flex';
+    }
+  } catch { /* offline or no remote — ignore */ }
+}
+
 async function initGitSync() {
   // Probe server
   try {
@@ -8151,6 +8196,7 @@ async function initGitSync() {
     if (res.ok) {
       _gitSyncAvailable = true;
       _syncStatus = 'idle';
+      checkForUpdate();
     }
   } catch {
     _gitSyncAvailable = false;
