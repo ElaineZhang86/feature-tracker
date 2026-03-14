@@ -4101,6 +4101,7 @@ function showView(id, navEl) {
 }
 
 function showFeature(id) {
+  if (_dragJustEnded) return;
   const navEl = document.querySelector(`[data-feature="${id}"]`);
   showView(id, navEl);
   renderScheduleCards(); // refresh progress
@@ -4203,18 +4204,22 @@ function renderScheduleTimeline() {
 
 let _dragId = null;
 let _dragOverId = null;
+let _dragJustEnded = false;
 
 function attachDragHandlers(container, selector) {
   container.addEventListener('dragstart', e => {
     const el = e.target.closest(selector);
     if (!el) return;
     _dragId = el.dataset.id;
+    _dragJustEnded = false;
     setTimeout(() => el.classList.add('dragging'), 0);
   });
   container.addEventListener('dragend', e => {
     container.querySelectorAll('.dragging, .drag-over').forEach(x => x.classList.remove('dragging', 'drag-over'));
     _dragId = null;
     _dragOverId = null;
+    _dragJustEnded = true;
+    setTimeout(() => { _dragJustEnded = false; }, 200);
   });
   container.addEventListener('dragover', e => {
     e.preventDefault();
@@ -4234,7 +4239,8 @@ function attachDragHandlers(container, selector) {
     const to = ids.indexOf(_dragOverId);
     if (from === -1 || to === -1) return;
     ids.splice(from, 1);
-    ids.splice(to, 0, _dragId);
+    const insertAt = from < to ? to - 1 : to;
+    ids.splice(insertAt, 0, _dragId);
     saveFeatureOrder(ids);
     renderScheduleCards();
   });
