@@ -398,6 +398,102 @@
     color: var(--text-dim);
   }
 
+
+  /* ── SCHEDULE VIEW TOGGLE ─────────────────────── */
+  .schedule-view-toggle {
+    display: flex;
+    gap: 2px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    flex-shrink: 0;
+  }
+  .schedule-view-btn {
+    background: none;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+  }
+  .schedule-view-btn:hover { background: var(--border); color: var(--text); }
+  .schedule-view-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+  .schedule-view-btn .material-symbols-rounded { font-size: 15px; }
+
+  /* ── LIST VIEW ────────────────────────────────── */
+  .schedule-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 40px; }
+  .sl-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto auto 100px 80px 28px;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .sl-row:hover { border-color: var(--accent); }
+  .sl-icon { font-size: 16px; color: var(--text-muted); }
+  .sl-title { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sl-customer { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sl-due { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+  .sl-progress-wrap { display: flex; align-items: center; gap: 6px; }
+  .sl-progress { flex: 1; margin-top: 0; }
+  .sl-pct { font-size: 11px; color: var(--text-dim); width: 28px; text-align: right; flex-shrink: 0; }
+  .sl-focus-icon { color: var(--text-dim); font-size: 16px; cursor: default; }
+
+  /* ── TIMELINE (KANBAN) VIEW ───────────────────── */
+  .schedule-timeline { display: flex; gap: 12px; margin-bottom: 40px; overflow-x: auto; padding-bottom: 8px; align-items: flex-start; }
+  .tl-lane {
+    flex: 0 0 220px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .tl-lane-header {
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .tl-lane-count {
+    background: var(--border);
+    border-radius: 99px;
+    padding: 1px 7px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+  .tl-lane-body { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .tl-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .tl-card:hover { border-color: var(--accent); }
+  .tl-card-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 6px; line-height: 1.4; }
+  .tl-card-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+  .tl-card-due { font-size: 11px; color: var(--text-dim); }
+  .tl-empty { font-size: 12px; color: var(--text-dim); text-align: center; padding: 16px 0; }
+
   /* ── FEATURE DETAIL ───────────────────────────── */
   .feature-header {
     display: flex;
@@ -2260,16 +2356,29 @@
 
   <!-- SCHEDULE VIEW -->
   <div id="view-schedule" class="view active">
-    <div class="schedule-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+    <div class="schedule-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px">
       <div>
         <h2>Schedule Overview</h2>
         <p>All active features at a glance. Click a card to dive into the details.</p>
       </div>
-      <button class="btn btn-primary" style="white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:5px" onclick="openAddFeatureModal()">
-        <span class="material-symbols-rounded" style="font-size:16px">add</span> Add Feature
-      </button>
+      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap">
+        <div class="schedule-view-toggle">
+          <button class="schedule-view-btn active" id="svb-cards" onclick="setScheduleView('cards')" title="Card view">
+            <span class="material-symbols-rounded">grid_view</span> Cards
+          </button>
+          <button class="schedule-view-btn" id="svb-list" onclick="setScheduleView('list')" title="List view">
+            <span class="material-symbols-rounded">view_list</span> List
+          </button>
+          <button class="schedule-view-btn" id="svb-timeline" onclick="setScheduleView('timeline')" title="Timeline view">
+            <span class="material-symbols-rounded">view_kanban</span> Timeline
+          </button>
+        </div>
+        <button class="btn btn-primary" style="white-space:nowrap;display:flex;align-items:center;gap:5px" onclick="openAddFeatureModal()">
+          <span class="material-symbols-rounded" style="font-size:16px">add</span> Add Feature
+        </button>
+      </div>
     </div>
-    <div class="schedule-grid" id="schedule-grid"></div>
+    <div id="schedule-grid"></div>
     <div id="deleted-features-section"></div>
   </div>
 
@@ -3990,8 +4099,86 @@ function renderSidebar() {
 // ═══════════════════════════════════════════════════════════════
 //  RENDER SCHEDULE CARDS
 // ═══════════════════════════════════════════════════════════════
-function renderScheduleCards() {
+let _scheduleView = localStorage.getItem('fh_schedule_view') || 'cards';
+
+function setScheduleView(view) {
+  _scheduleView = view;
+  localStorage.setItem('fh_schedule_view', view);
+  ['cards','list','timeline'].forEach(v => {
+    const btn = document.getElementById('svb-' + v);
+    if (btn) btn.classList.toggle('active', v === view);
+  });
+  renderScheduleCards();
+}
+
+function renderScheduleList() {
   const grid = document.getElementById('schedule-grid');
+  const features = getAllFeatures();
+  if (!features.length) { grid.innerHTML = ''; return; }
+  grid.innerHTML = '<div class="schedule-list">' + features.map(f => {
+    const status = getStatus(f);
+    const due = getDue(f);
+    const pct = progressOf(f);
+    const allTasks = getTasks(f.id);
+    const total = allTasks.filter(t => t.status !== 'postponed').length;
+    const doneCount = allTasks.filter(t => t.status === 'done').length;
+    const focus = getCurrentStep(f.id, f.currentFocus);
+    return `
+    <div class="sl-row" onclick="showFeature('${f.id}')">
+      <span class="material-symbols-rounded sl-icon">${f.icon}</span>
+      <div class="sl-title">${f.title}</div>
+      <span class="badge ${STATUS_BADGE[status] || 'badge-done'}">${status}</span>
+      <div class="sl-customer">${f.customer !== 'TBD' ? f.customer : ''}</div>
+      <div class="sl-due">Due: ${due}</div>
+      <div class="sl-progress-wrap">
+        <div class="progress-bar sl-progress"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <span class="sl-pct">${pct}%</span>
+      </div>
+      <span class="material-symbols-rounded sl-focus-icon" title="${focus}">info</span>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function renderScheduleTimeline() {
+  const grid = document.getElementById('schedule-grid');
+  const features = getAllFeatures();
+  const statuses = ['Discovery', 'Design', 'Dev', 'QA', 'Done'];
+  const laneColors = { Discovery: 'var(--purple)', Design: 'var(--accent)', Dev: 'var(--blue)', QA: 'var(--yellow)', Done: 'var(--green)' };
+  grid.innerHTML = '<div class="schedule-timeline">' + statuses.map(s => {
+    const items = features.filter(f => getStatus(f) === s);
+    return `
+    <div class="tl-lane">
+      <div class="tl-lane-header" style="color:${laneColors[s]}">
+        ${s}
+        <span class="tl-lane-count">${items.length}</span>
+      </div>
+      <div class="tl-lane-body">
+        ${items.length ? items.map(f => {
+          const due = getDue(f);
+          const pct = progressOf(f);
+          return `
+        <div class="tl-card" onclick="showFeature('${f.id}')">
+          <div class="tl-card-title"><span class="material-symbols-rounded" style="font-size:13px;vertical-align:middle;margin-right:4px;opacity:.7">${f.icon}</span>${f.title}</div>
+          ${f.customer !== 'TBD' ? `<div class="tl-card-meta">${f.customer}</div>` : ''}
+          <div class="tl-card-due">Due: ${due}</div>
+          <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" style="width:${pct}%"></div></div>
+        </div>`;
+        }).join('') : '<div class="tl-empty">No features</div>'}
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function renderScheduleCards() {
+  // Sync toggle button state
+  ['cards','list','timeline'].forEach(v => {
+    const btn = document.getElementById('svb-' + v);
+    if (btn) btn.classList.toggle('active', v === _scheduleView);
+  });
+  if (_scheduleView === 'list') return renderScheduleList();
+  if (_scheduleView === 'timeline') return renderScheduleTimeline();
+  const grid = document.getElementById('schedule-grid');
+  grid.className = 'schedule-grid';
   grid.innerHTML = getAllFeatures().map(f => {
     const status = getStatus(f);
     const due = getDue(f);
@@ -8474,7 +8661,13 @@ document.addEventListener('click', () => {
     },
     "custom_1773442244486": {
       "tasks": [],
-      "notesEntries": [],
+      "notesEntries": [
+        {
+          "id": "n1773442255434",
+          "text": "",
+          "createdAt": 1773442255434
+        }
+      ],
       "specLinks": [],
       "designFiles": [
         {
@@ -8489,6 +8682,11 @@ document.addEventListener('click', () => {
           "createdAt": 1773442257000
         }
       ]
+    },
+    "custom_1773511895391": {
+      "tasks": [],
+      "notesEntries": [],
+      "specLinks": []
     }
   },
   "fh_custom_features": [
@@ -8501,6 +8699,26 @@ document.addEventListener('click', () => {
       "hasDomainDoc": false,
       "customer": "TBD",
       "due": "TBD",
+      "team": [],
+      "currentFocus": "",
+      "summary": "",
+      "decisions": [],
+      "constraints": [],
+      "links": [],
+      "done": [],
+      "todo": [],
+      "questions": [],
+      "isCustom": true
+    },
+    {
+      "id": "custom_1773511895391",
+      "icon": "person_add",
+      "title": "Interview - Debbie",
+      "status": "Discovery",
+      "hasDoc": false,
+      "hasDomainDoc": false,
+      "customer": "TBD",
+      "due": "Mar 16, 2026",
       "team": [],
       "currentFocus": "",
       "summary": "",
