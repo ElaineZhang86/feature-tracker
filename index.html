@@ -4113,6 +4113,7 @@ function setScheduleView(view) {
 
 function renderScheduleList() {
   const grid = document.getElementById('schedule-grid');
+  grid.className = '';
   const features = getAllFeatures();
   if (!features.length) { grid.innerHTML = ''; return; }
   grid.innerHTML = '<div class="schedule-list">' + features.map(f => {
@@ -4141,6 +4142,7 @@ function renderScheduleList() {
 
 function renderScheduleTimeline() {
   const grid = document.getElementById('schedule-grid');
+  grid.className = '';
   const features = getAllFeatures();
   const statuses = ['Discovery', 'Design', 'Dev', 'QA', 'Done'];
   const laneColors = { Discovery: 'var(--purple)', Design: 'var(--accent)', Dev: 'var(--blue)', QA: 'var(--yellow)', Done: 'var(--green)' };
