@@ -2070,18 +2070,14 @@
   .dk-entry-title-display.empty { color: var(--text-dim); font-weight: 400; }
 
   .dk-entry-title-input {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--accent);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-size: 14px;
-    font-weight: 600;
-    font-family: inherit;
-    outline: none;
-    padding: 5px 8px;
-    transition: border-color .15s;
+    width: 100%; box-sizing: border-box;
+    font-size: 13px; font-weight: 600;
+    border: none; border-bottom: 1px solid var(--border);
+    background: transparent; color: var(--text);
+    padding: 4px 0; margin-bottom: 8px; outline: none; font-family: inherit;
   }
+  .dk-entry-title-input:focus { border-bottom-color: var(--accent); }
+  .dk-entry-title-input::placeholder { color: var(--text-dim); font-weight: 400; }
 
   .dk-entry-header-acts {
     display: flex;
@@ -7443,6 +7439,7 @@ function _designFileEditFormHtml(id, df) {
       </div>
       <div>
         <label style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">Notes</label>
+        ${mdToolbar(`df_notes_${id}_${df.id}`)}
         <textarea class="editable-note" id="df_notes_${id}_${df.id}" style="min-height:80px" placeholder="Design notes, decisions, observations…">${escHtml(df.notes)}</textarea>
       </div>
       <div style="display:flex;gap:6px">
