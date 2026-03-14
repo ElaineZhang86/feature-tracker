@@ -64,14 +64,20 @@ Open `http://localhost:3456` — your data loads automatically from the snapshot
 
 ### Getting updates
 
-> **Note:** When new features or fixes are published, pull them into your existing clone — no need to re-clone.
->
-> ```bash
-> git pull
-> node server.js
-> ```
->
-> Your data is not affected. The pull only updates the app code. The app will also show a banner at the top when an update is available.
+When new features or fixes are published, you do not need to re-clone. Pull the latest code into your existing folder and restart the server:
+
+```bash
+git pull
+node server.js
+```
+
+Your data is not affected — the pull only updates the app code.
+
+**In-app update notification:** When an update is available, a banner automatically appears at the top of the app (above Schedule Overview):
+
+> ⬆ **App update available** — run `git pull` in your terminal, then restart `node server.js` to get the latest version.
+
+The banner only appears when the server is running and detects that the remote has newer commits than your local copy. Click × to dismiss it. It does not appear if you are already up to date.
 
 ---
 

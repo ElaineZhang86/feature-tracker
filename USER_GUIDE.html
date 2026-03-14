@@ -439,10 +439,17 @@ node server.js</code></pre>
 
     <div style="background:color-mix(in srgb,#6366f1 8%,var(--surface,#f8f8f8));border-left:4px solid #6366f1;border-radius:6px;padding:14px 18px;margin-top:16px">
       <p style="margin:0 0 8px;font-weight:600;color:#6366f1">Getting updates</p>
-      <p style="margin:0 0 10px">When new features or fixes are published, pull them into your existing clone — no need to re-clone.</p>
+      <p style="margin:0 0 10px">When new features or fixes are published, you do not need to re-clone. Pull the latest code into your existing folder and restart the server:</p>
       <pre style="background:var(--code-bg,#1e1e2e);color:#cdd6f4;border-radius:6px;padding:10px 14px;font-size:13px;margin:0 0 10px;overflow-x:auto">git pull
 node server.js</pre>
-      <p style="margin:0;font-size:13px;color:var(--text-muted,#6b7280)">Your data is not affected — the pull only updates the app code. The app will also show a banner at the top when an update is available.</p>
+      <p style="margin:0 0 10px;font-size:13px">Your data is not affected — the pull only updates the app code.</p>
+      <p style="margin:0 0 6px;font-weight:600;font-size:13px">In-app update notification</p>
+      <p style="margin:0 0 8px;font-size:13px">When an update is available, a banner automatically appears at the top of the app (above Schedule Overview):</p>
+      <div style="background:color-mix(in srgb,#6366f1 12%,var(--surface,#f0f0ff));border:1px solid color-mix(in srgb,#6366f1 30%,transparent);border-radius:6px;padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:18px">🆕</span>
+        <span><strong>App update available</strong> — run <code style="background:rgba(0,0,0,.07);border-radius:3px;padding:1px 5px;font-size:12px">git pull</code> in your terminal, then restart <code style="background:rgba(0,0,0,.07);border-radius:3px;padding:1px 5px;font-size:12px">node server.js</code> to get the latest version.</span>
+      </div>
+      <p style="margin:0;font-size:13px;color:var(--text-muted,#6b7280)">The banner only appears when the server is running and detects that the remote has newer commits. Click × to dismiss it. It will not appear if you are already up to date.</p>
     </div>
 
     <h3>How data is saved</h3>
