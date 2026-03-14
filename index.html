@@ -428,28 +428,30 @@
   .schedule-view-btn .material-symbols-rounded { font-size: 15px; }
 
   /* ── LIST VIEW ────────────────────────────────── */
-  .schedule-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 40px; }
-  .sl-row {
-    display: grid;
-    grid-template-columns: 28px 1fr auto auto 100px 80px 28px;
-    align-items: center;
-    gap: 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    cursor: pointer;
-    transition: border-color .15s;
+  .schedule-list { display: flex; flex-direction: column; margin-bottom: 40px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .sl-cols { display: grid; grid-template-columns: 32px 1fr 100px 160px 110px 140px; align-items: center; gap: 0; }
+  .sl-header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 14px;
   }
-  .sl-row:hover { border-color: var(--accent); }
+  .sl-header-cell { font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: .04em; }
+  .sl-row {
+    padding: 11px 14px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background .12s;
+  }
+  .sl-row:last-child { border-bottom: none; }
+  .sl-row:hover { background: var(--surface2); }
   .sl-icon { font-size: 16px; color: var(--text-muted); }
-  .sl-title { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .sl-customer { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sl-title { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 12px; }
+  .sl-customer { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 12px; }
   .sl-due { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
-  .sl-progress-wrap { display: flex; align-items: center; gap: 6px; }
+  .sl-progress-wrap { display: flex; align-items: center; gap: 6px; padding-right: 4px; }
   .sl-progress { flex: 1; margin-top: 0; }
-  .sl-pct { font-size: 11px; color: var(--text-dim); width: 28px; text-align: right; flex-shrink: 0; }
-  .sl-focus-icon { color: var(--text-dim); font-size: 16px; cursor: default; }
+  .sl-pct { font-size: 11px; color: var(--text-dim); width: 30px; text-align: right; flex-shrink: 0; }
 
   /* ── TIMELINE (KANBAN) VIEW ───────────────────── */
   .schedule-timeline { display: flex; gap: 12px; margin-bottom: 40px; overflow-x: auto; padding-bottom: 8px; align-items: flex-start; }
@@ -4116,28 +4118,33 @@ function renderScheduleList() {
   grid.className = '';
   const features = getAllFeatures();
   if (!features.length) { grid.innerHTML = ''; return; }
-  grid.innerHTML = '<div class="schedule-list">' + features.map(f => {
+  const header = `
+    <div class="sl-cols sl-header">
+      <div class="sl-header-cell"></div>
+      <div class="sl-header-cell">Feature</div>
+      <div class="sl-header-cell">Status</div>
+      <div class="sl-header-cell">Customer</div>
+      <div class="sl-header-cell">Due Date</div>
+      <div class="sl-header-cell">Progress</div>
+    </div>`;
+  const rows = features.map(f => {
     const status = getStatus(f);
     const due = getDue(f);
     const pct = progressOf(f);
-    const allTasks = getTasks(f.id);
-    const total = allTasks.filter(t => t.status !== 'postponed').length;
-    const doneCount = allTasks.filter(t => t.status === 'done').length;
-    const focus = getCurrentStep(f.id, f.currentFocus);
     return `
-    <div class="sl-row" onclick="showFeature('${f.id}')">
+    <div class="sl-cols sl-row" onclick="showFeature('${f.id}')">
       <span class="material-symbols-rounded sl-icon">${f.icon}</span>
-      <div class="sl-title">${f.title}</div>
-      <span class="badge ${STATUS_BADGE[status] || 'badge-done'}">${status}</span>
-      <div class="sl-customer">${f.customer !== 'TBD' ? f.customer : ''}</div>
-      <div class="sl-due">Due: ${due}</div>
+      <div class="sl-title">${escHtml(f.title)}</div>
+      <div><span class="badge ${STATUS_BADGE[status] || 'badge-done'}">${status}</span></div>
+      <div class="sl-customer">${escHtml(f.customer !== 'TBD' ? f.customer : '')}</div>
+      <div class="sl-due">${due}</div>
       <div class="sl-progress-wrap">
         <div class="progress-bar sl-progress"><div class="progress-fill" style="width:${pct}%"></div></div>
         <span class="sl-pct">${pct}%</span>
       </div>
-      <span class="material-symbols-rounded sl-focus-icon" title="${focus}">info</span>
     </div>`;
-  }).join('') + '</div>';
+  }).join('');
+  grid.innerHTML = '<div class="schedule-list">' + header + rows + '</div>';
 }
 
 function renderScheduleTimeline() {
