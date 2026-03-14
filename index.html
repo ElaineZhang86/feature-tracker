@@ -4467,11 +4467,21 @@ function openTaskAdd(featureId) {
   const panel = document.getElementById(`${featureId}_tasks_panel`);
   if (!panel) return;
   panel.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">To Do List</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Track design tasks, completed work, and postponed items</div>
+      </div>
+      <button class="btn btn-primary" style="font-size:12px;padding:5px 12px;flex-shrink:0" onclick="openTaskAdd('${featureId}')">+ Add</button>
+    </div>
     <div class="context-card">
       <div class="add-item-row">
         <input class="add-item-input" id="${featureId}_add_task" placeholder="Add a task…"
           onkeydown="if(event.key==='Enter')addTask('${featureId}')" />
-        <button class="btn btn-primary" onclick="addTask('${featureId}')">Add</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-primary" style="font-size:12px;padding:4px 14px" onclick="addTask('${featureId}')">Add</button>
+        <button class="btn" style="font-size:12px;padding:4px 14px" onclick="renderTaskList('${featureId}')">Cancel</button>
       </div>
     </div>`;
   setTimeout(() => {
