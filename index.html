@@ -1288,6 +1288,36 @@
     margin: 24px 0;
   }
 
+  /* ── MARKDOWN TOOLBAR ─────────────────────────── */
+  .md-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    padding: 4px 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    flex-wrap: wrap;
+  }
+  .md-tb-btn {
+    background: none;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 7px;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-family: inherit;
+    line-height: 1;
+    transition: background .12s, color .12s;
+  }
+  .md-tb-btn:hover { background: var(--border); color: var(--text); }
+  .md-tb-sep { width: 1px; height: 14px; background: var(--border); margin: 0 3px; flex-shrink: 0; }
+  .md-toolbar + textarea { border-radius: 0 0 var(--radius-sm) var(--radius-sm) !important; border-top: none !important; }
+
   .doc-toolbar {
     display: flex;
     align-items: center;
@@ -4717,6 +4747,7 @@ function renderQuestionsList(featureId) {
         <div class="q-answer-header" style="margin-bottom:6px">
           <span class="q-answer-label"><span class="material-symbols-rounded" style="font-size:12px">question_answer</span> Answer</span>
         </div>
+        ${mdToolbar(`qa_input_${featureId}_${key}`)}
         <textarea class="q-answer-input" id="qa_input_${featureId}_${key}"
           placeholder="Type your answer… (markdown supported)"
           onblur="saveAnswer('${featureId}','${key}',this.value)"
@@ -6023,10 +6054,12 @@ function buildCallCard(featureId, call) {
       </div>
       <div id="summary_rendered_${call.id}" class="summary-rendered md-body"
         style="display:${hasSummary ? 'block' : 'none'}">${hasSummary ? marked.parse(call.summary) : ''}</div>
-      <textarea class="call-summary" id="summary_ta_${call.id}"
-        placeholder="Paste a summary here, or use the button above to generate one via Claude.ai…"
-        style="display:${hasSummary ? 'none' : 'block'}"
-        onblur="saveSummaryFromBlur('${featureId}','${call.id}')">${escHtml(call.summary || '')}</textarea>
+      <div id="summary_edit_wrap_${call.id}" style="display:${hasSummary ? 'none' : 'block'}">
+        ${mdToolbar(`summary_ta_${call.id}`)}
+        <textarea class="call-summary" id="summary_ta_${call.id}"
+          placeholder="Paste a summary here, or use the button above to generate one via Claude.ai…"
+          onblur="saveSummaryFromBlur('${featureId}','${call.id}')">${escHtml(call.summary || '')}</textarea>
+      </div>
     </div>`;
 
   const postEditHtml = `
@@ -6257,22 +6290,23 @@ function saveSummaryFromBlur(featureId, callId) {
 function toggleSummaryEdit(featureId, callId) {
   if (_summaryBlurLock[callId]) { _summaryBlurLock[callId] = false; return; }
   const ta = document.getElementById(`summary_ta_${callId}`);
+  const wrap = document.getElementById(`summary_edit_wrap_${callId}`);
   const rendered = document.getElementById(`summary_rendered_${callId}`);
   const editBtn = document.getElementById(`edit_summary_btn_${callId}`);
   if (!ta) return;
 
-  const isEditing = ta.style.display !== 'none';
+  const isEditing = wrap ? wrap.style.display !== 'none' : ta.style.display !== 'none';
   if (isEditing) {
     // Save and switch to rendered
     const val = ta.value;
     updateCallField(featureId, callId, 'summary', val);
     if (rendered) { rendered.innerHTML = marked.parse(val); rendered.style.display = 'block'; }
-    ta.style.display = 'none';
+    if (wrap) wrap.style.display = 'none'; else ta.style.display = 'none';
     if (editBtn) editBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size:13px">edit</span> Edit';
   } else {
     // Switch to edit mode
     if (rendered) rendered.style.display = 'none';
-    ta.style.display = 'block';
+    if (wrap) wrap.style.display = 'block'; else ta.style.display = 'block';
     ta.focus();
     if (editBtn) editBtn.innerHTML = '<span class="material-symbols-rounded" style="font-size:13px">check</span> Done';
   }
@@ -7058,6 +7092,61 @@ function getNoteEntries(id) {
 
 function saveNoteEntries(id, v) { updateFeatureState(id, { notesEntries: v }); }
 
+// ── MARKDOWN TOOLBAR ─────────────────────────────────────────
+function mdToolbar(taId) {
+  return `<div class="md-toolbar">
+    <button type="button" class="md-tb-btn" title="Bold" onclick="mdFormat('${taId}','bold')"><b>B</b></button>
+    <button type="button" class="md-tb-btn" title="Italic" onclick="mdFormat('${taId}','italic')"><i>I</i></button>
+    <span class="md-tb-sep"></span>
+    <button type="button" class="md-tb-btn" title="Heading 2" onclick="mdFormat('${taId}','h2')">H2</button>
+    <button type="button" class="md-tb-btn" title="Heading 3" onclick="mdFormat('${taId}','h3')">H3</button>
+    <span class="md-tb-sep"></span>
+    <button type="button" class="md-tb-btn" title="Bullet list" onclick="mdFormat('${taId}','ul')"><span class="material-symbols-rounded" style="font-size:14px;vertical-align:middle">format_list_bulleted</span></button>
+    <button type="button" class="md-tb-btn" title="Numbered list" onclick="mdFormat('${taId}','ol')"><span class="material-symbols-rounded" style="font-size:14px;vertical-align:middle">format_list_numbered</span></button>
+    <span class="md-tb-sep"></span>
+    <button type="button" class="md-tb-btn" title="Inline code" onclick="mdFormat('${taId}','code')"><code style="font-size:11px">&lt;/&gt;</code></button>
+  </div>`;
+}
+
+function mdFormat(taId, action) {
+  const ta = document.getElementById(taId);
+  if (!ta) return;
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  const sel = ta.value.substring(start, end);
+  const before = ta.value.substring(0, start);
+  const after = ta.value.substring(end);
+  let result, selectStart, selectEnd;
+  if (action === 'bold') {
+    const inner = sel || 'bold text';
+    result = `**${inner}**`;
+    selectStart = before.length + 2; selectEnd = selectStart + inner.length;
+  } else if (action === 'italic') {
+    const inner = sel || 'italic text';
+    result = `_${inner}_`;
+    selectStart = before.length + 1; selectEnd = selectStart + inner.length;
+  } else if (action === 'code') {
+    const inner = sel || 'code';
+    result = '`' + inner + '`';
+    selectStart = before.length + 1; selectEnd = selectStart + inner.length;
+  } else if (action === 'h2' || action === 'h3') {
+    const prefix = action === 'h2' ? '## ' : '### ';
+    result = sel ? sel.split('\n').map(l => prefix + l).join('\n') : prefix;
+    selectStart = before.length; selectEnd = selectStart + result.length;
+  } else if (action === 'ul') {
+    result = sel ? sel.split('\n').map(l => '- ' + l).join('\n') : '- ';
+    selectStart = before.length; selectEnd = selectStart + result.length;
+  } else if (action === 'ol') {
+    result = sel ? sel.split('\n').map((l, i) => `${i + 1}. ${l}`).join('\n') : '1. ';
+    selectStart = before.length; selectEnd = selectStart + result.length;
+  }
+  ta.value = before + result + after;
+  ta.focus();
+  ta.selectionStart = selectStart;
+  ta.selectionEnd = selectEnd;
+  ta.dispatchEvent(new Event('input'));
+}
+
 function renderNotesTab(id) {
   const panel = document.getElementById(id + '_notes_panel');
   if (!panel) return;
@@ -7066,6 +7155,7 @@ function renderNotesTab(id) {
     const ek = id + '::' + n.id;
     if (_noteEditMode[ek]) {
       return `<div class="note-entry note-editing">
+        ${mdToolbar(`ne_${id}_${n.id}`)}
         <textarea class="editable-note" id="ne_${id}_${n.id}" style="min-height:80px;margin-top:0">${escHtml(n.text)}</textarea>
         <div style="display:flex;gap:6px;margin-top:8px">
           <button class="btn btn-primary" style="font-size:12px;padding:4px 14px" onclick="saveNoteEntry('${id}','${n.id}')">Save</button>
