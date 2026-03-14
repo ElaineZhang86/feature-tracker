@@ -2081,22 +2081,12 @@
   }
   .dk-entry.expanded .dk-expand-icon { transform: rotate(180deg); }
 
-  .dk-entry-title-display {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-    white-space: normal;
-    word-break: break-word;
-    padding: 2px 4px;
-  }
-  .dk-entry-title-display.empty { color: var(--text-dim); font-weight: 400; }
-
   .dk-entry-title-input {
     width: 100%; box-sizing: border-box;
     font-size: 13px; font-weight: 600;
     border: none; border-bottom: 1px solid var(--border);
     background: transparent; color: var(--text);
-    padding: 4px 0; margin-bottom: 8px; outline: none; font-family: inherit;
+    padding: 4px 0; outline: none; font-family: inherit;
   }
   .dk-entry-title-input:focus { border-bottom-color: var(--accent); }
   .dk-entry-title-input::placeholder { color: var(--text-dim); font-weight: 400; }
@@ -5343,40 +5333,28 @@ function openDDEdit(featureId, id) {
     card.classList.add('expanded');
     _ddOpen[featureId + '_' + id] = true;
   }
-  const titleDisplay = document.getElementById(`dd_title_display_${featureId}_${id}`);
-  const titleInput   = document.getElementById(`dd_title_input_${featureId}_${id}`);
-  const rendered     = document.getElementById(`dd_rendered_${featureId}_${id}`);
-  const editor       = document.getElementById(`dd_editor_${featureId}_${id}`);
-  const editBtn      = document.getElementById(`dd_editbtn_${featureId}_${id}`);
-  const ta           = document.getElementById(`dd_ta_${featureId}_${id}`);
+  const rendered = document.getElementById(`dd_rendered_${featureId}_${id}`);
+  const editor   = document.getElementById(`dd_editor_${featureId}_${id}`);
+  const editBtn  = document.getElementById(`dd_editbtn_${featureId}_${id}`);
+  const ta       = document.getElementById(`dd_ta_${featureId}_${id}`);
   if (!editor) return;
-  if (titleDisplay) titleDisplay.style.display = 'none';
-  if (titleInput)   titleInput.style.display = '';
-  if (rendered)     rendered.style.display = 'none';
+  if (rendered) rendered.style.display = 'none';
   editor.style.display = 'block';
   if (editBtn) editBtn.style.display = 'none';
-  if (titleInput && !titleInput.value.trim()) titleInput.focus();
-  else if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
 }
 
 function saveDDEdit(featureId, id) {
-  const titleInput   = document.getElementById(`dd_title_input_${featureId}_${id}`);
-  const titleDisplay = document.getElementById(`dd_title_display_${featureId}_${id}`);
-  const ta           = document.getElementById(`dd_ta_${featureId}_${id}`);
-  const rendered     = document.getElementById(`dd_rendered_${featureId}_${id}`);
-  const editor       = document.getElementById(`dd_editor_${featureId}_${id}`);
-  const editBtn      = document.getElementById(`dd_editbtn_${featureId}_${id}`);
+  const titleInput = document.getElementById(`dd_title_input_${featureId}_${id}`);
+  const ta         = document.getElementById(`dd_ta_${featureId}_${id}`);
+  const rendered   = document.getElementById(`dd_rendered_${featureId}_${id}`);
+  const editor     = document.getElementById(`dd_editor_${featureId}_${id}`);
+  const editBtn    = document.getElementById(`dd_editbtn_${featureId}_${id}`);
   if (!ta) return;
   const titleVal   = titleInput ? titleInput.value.trim() : '';
   const contentVal = ta.value;
   updateDDField(featureId, id, 'title', titleVal);
   updateDDField(featureId, id, 'content', contentVal);
-  if (titleDisplay) {
-    titleDisplay.textContent = titleVal || 'Untitled entry';
-    titleDisplay.classList.toggle('empty', !titleVal);
-    titleDisplay.style.display = '';
-  }
-  if (titleInput) titleInput.style.display = 'none';
   editor.style.display = 'none';
   if (editBtn) editBtn.style.display = '';
   rendered.innerHTML = contentVal.trim()
@@ -5392,20 +5370,17 @@ function cancelDDEdit(featureId, id) {
     _reRenderDD(featureId);
     return;
   }
-  const titleInput   = document.getElementById(`dd_title_input_${featureId}_${id}`);
-  const titleDisplay = document.getElementById(`dd_title_display_${featureId}_${id}`);
-  const ta           = document.getElementById(`dd_ta_${featureId}_${id}`);
-  const rendered     = document.getElementById(`dd_rendered_${featureId}_${id}`);
-  const editor       = document.getElementById(`dd_editor_${featureId}_${id}`);
-  const editBtn      = document.getElementById(`dd_editbtn_${featureId}_${id}`);
+  const titleInput = document.getElementById(`dd_title_input_${featureId}_${id}`);
+  const ta         = document.getElementById(`dd_ta_${featureId}_${id}`);
+  const rendered   = document.getElementById(`dd_rendered_${featureId}_${id}`);
+  const editor     = document.getElementById(`dd_editor_${featureId}_${id}`);
+  const editBtn    = document.getElementById(`dd_editbtn_${featureId}_${id}`);
   if (!editor) return;
   if (entry) {
     if (titleInput) titleInput.value = entry.title || '';
     if (ta)         ta.value = entry.content || '';
   }
-  if (titleDisplay) titleDisplay.style.display = '';
-  if (titleInput)   titleInput.style.display = 'none';
-  editor.style.display = 'none';
+  if (editor) editor.style.display = 'none';
   if (editBtn) editBtn.style.display = '';
   if (rendered) rendered.style.display = 'block';
 }
@@ -5430,12 +5405,11 @@ function buildDDEntryCard(featureId, e) {
   <div class="context-card dk-entry${isExpanded ? ' expanded' : ''}" id="dd_card_${featureId}_${e.id}">
     <div class="dk-entry-header" onclick="toggleDDCollapse('${featureId}','${e.id}')">
       <div class="dk-entry-info" style="flex:1;min-width:0">
-        <span class="dk-entry-title-display${e.title ? '' : ' empty'}" id="dd_title_display_${featureId}_${e.id}">${escHtml(e.title) || 'Untitled entry'}</span>
         <input class="dk-entry-title-input" id="dd_title_input_${featureId}_${e.id}"
-          style="display:none" value="${escHtml(e.title)}" placeholder="Entry title…"
+          value="${escHtml(e.title)}" placeholder="Untitled entry"
           onclick="event.stopPropagation()"
           onblur="updateDDField('${featureId}','${e.id}','title',this.value.trim())"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('dd_ta_${featureId}_${e.id}')?.focus()}" />
+          onkeydown="if(event.key==='Enter'){event.preventDefault();openDDEdit('${featureId}','${e.id}');}" />
       </div>
       <div class="dk-entry-header-acts" onclick="event.stopPropagation()">
         <button class="q-icon-btn" id="dd_editbtn_${featureId}_${e.id}" title="Edit entry"
@@ -6467,48 +6441,33 @@ function updateDKField(featureId, id, field, value) {
 }
 
 function openDKEdit(featureId, id) {
-  // Expand the card if collapsed
   const card = document.getElementById(`dk_card_${featureId}_${id}`);
   if (card && !card.classList.contains('expanded')) {
     card.classList.add('expanded');
     _dkOpen[featureId + '_' + id] = true;
   }
-  const titleDisplay = document.getElementById(`dk_title_display_${featureId}_${id}`);
-  const titleInput   = document.getElementById(`dk_title_input_${featureId}_${id}`);
-  const rendered     = document.getElementById(`dk_rendered_${featureId}_${id}`);
-  const editor       = document.getElementById(`dk_editor_${featureId}_${id}`);
-  const editBtn      = document.getElementById(`dk_editbtn_${featureId}_${id}`);
-  const ta           = document.getElementById(`dk_ta_${featureId}_${id}`);
+  const rendered = document.getElementById(`dk_rendered_${featureId}_${id}`);
+  const editor   = document.getElementById(`dk_editor_${featureId}_${id}`);
+  const editBtn  = document.getElementById(`dk_editbtn_${featureId}_${id}`);
+  const ta       = document.getElementById(`dk_ta_${featureId}_${id}`);
   if (!editor) return;
-  if (titleDisplay) titleDisplay.style.display = 'none';
-  if (titleInput)   titleInput.style.display = '';
-  if (rendered)     rendered.style.display = 'none';
+  if (rendered) rendered.style.display = 'none';
   editor.style.display = 'block';
   if (editBtn) editBtn.style.display = 'none';
-  // Focus title if empty, otherwise content
-  if (titleInput && !titleInput.value.trim()) titleInput.focus();
-  else if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
 }
 
 function saveDKEdit(featureId, id) {
-  const titleInput   = document.getElementById(`dk_title_input_${featureId}_${id}`);
-  const titleDisplay = document.getElementById(`dk_title_display_${featureId}_${id}`);
-  const ta           = document.getElementById(`dk_ta_${featureId}_${id}`);
-  const rendered     = document.getElementById(`dk_rendered_${featureId}_${id}`);
-  const editor       = document.getElementById(`dk_editor_${featureId}_${id}`);
-  const editBtn      = document.getElementById(`dk_editbtn_${featureId}_${id}`);
+  const titleInput = document.getElementById(`dk_title_input_${featureId}_${id}`);
+  const ta         = document.getElementById(`dk_ta_${featureId}_${id}`);
+  const rendered   = document.getElementById(`dk_rendered_${featureId}_${id}`);
+  const editor     = document.getElementById(`dk_editor_${featureId}_${id}`);
+  const editBtn    = document.getElementById(`dk_editbtn_${featureId}_${id}`);
   if (!ta) return;
   const titleVal   = titleInput ? titleInput.value.trim() : '';
   const contentVal = ta.value;
   updateDKField(featureId, id, 'title', titleVal);
   updateDKField(featureId, id, 'content', contentVal);
-  // Update title display
-  if (titleDisplay) {
-    titleDisplay.textContent = titleVal || 'Untitled entry';
-    titleDisplay.classList.toggle('empty', !titleVal);
-    titleDisplay.style.display = '';
-  }
-  if (titleInput) titleInput.style.display = 'none';
   editor.style.display = 'none';
   if (editBtn) editBtn.style.display = '';
   rendered.innerHTML = contentVal.trim()
@@ -6524,20 +6483,17 @@ function cancelDKEdit(featureId, id) {
     renderDomainKnowledgeList(featureId);
     return;
   }
-  const titleInput   = document.getElementById(`dk_title_input_${featureId}_${id}`);
-  const titleDisplay = document.getElementById(`dk_title_display_${featureId}_${id}`);
-  const ta           = document.getElementById(`dk_ta_${featureId}_${id}`);
-  const rendered     = document.getElementById(`dk_rendered_${featureId}_${id}`);
-  const editor       = document.getElementById(`dk_editor_${featureId}_${id}`);
-  const editBtn      = document.getElementById(`dk_editbtn_${featureId}_${id}`);
+  const titleInput = document.getElementById(`dk_title_input_${featureId}_${id}`);
+  const ta         = document.getElementById(`dk_ta_${featureId}_${id}`);
+  const rendered   = document.getElementById(`dk_rendered_${featureId}_${id}`);
+  const editor     = document.getElementById(`dk_editor_${featureId}_${id}`);
+  const editBtn    = document.getElementById(`dk_editbtn_${featureId}_${id}`);
   if (!editor) return;
   if (entry) {
-    if (titleInput)   titleInput.value = entry.title || '';
-    if (ta)           ta.value = entry.content || '';
+    if (titleInput) titleInput.value = entry.title || '';
+    if (ta)         ta.value = entry.content || '';
   }
-  if (titleDisplay) titleDisplay.style.display = '';
-  if (titleInput)   titleInput.style.display = 'none';
-  editor.style.display = 'none';
+  if (editor) editor.style.display = 'none';
   if (editBtn) editBtn.style.display = '';
   if (rendered) rendered.style.display = 'block';
 }
@@ -6562,13 +6518,12 @@ function buildDKEntryCard(featureId, e) {
   <div class="context-card dk-entry${isExpanded ? ' expanded' : ''}" id="dk_card_${featureId}_${e.id}">
     <div class="dk-entry-header" onclick="toggleDKCollapse('${featureId}','${e.id}')">
       <div class="dk-entry-info" style="flex:1;min-width:0">
-        <span class="dk-entry-title-display${e.title ? '' : ' empty'}" id="dk_title_display_${featureId}_${e.id}">${escHtml(e.title) || 'Untitled entry'}</span>
         <input class="dk-entry-title-input" id="dk_title_input_${featureId}_${e.id}"
-          style="display:none"
           value="${escHtml(e.title)}"
-          placeholder="Entry title…"
+          placeholder="Untitled entry"
           onclick="event.stopPropagation()"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('dk_ta_${featureId}_${e.id}')?.focus()}" />
+          onblur="updateDKField('${featureId}','${e.id}','title',this.value.trim())"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();openDKEdit('${featureId}','${e.id}');}" />
       </div>
       <div class="dk-entry-header-acts" onclick="event.stopPropagation()">
         <button class="q-icon-btn" id="dk_editbtn_${featureId}_${e.id}" title="Edit entry"
