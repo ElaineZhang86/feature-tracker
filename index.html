@@ -1491,6 +1491,16 @@
   }
   .note-entry:last-child { margin-bottom: 0; }
   .note-entry:not(.note-editing):hover { border-color: var(--accent-dim); }
+  .note-entry-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .note-title-input {
+    width: 100%; box-sizing: border-box;
+    font-size: 13px; font-weight: 600;
+    border: none; border-bottom: 1px solid var(--border);
+    background: transparent; color: var(--text);
+    padding: 4px 0; margin-bottom: 8px; outline: none; font-family: inherit;
+  }
+  .note-title-input:focus { border-bottom-color: var(--accent); }
+  .note-title-input::placeholder { color: var(--text-dim); font-weight: 400; }
   .note-entry-body { font-size: 13px; line-height: 1.7; color: var(--text); word-break: break-word; }
   .note-entry-body p { margin: 0 0 6px; }
   .note-entry-body p:last-child { margin-bottom: 0; }
@@ -5413,6 +5423,7 @@ function buildDDEntryCard(featureId, e) {
     <div class="dk-entry-body">
       <div id="dd_rendered_${featureId}_${e.id}" class="md-body">${renderedHtml}</div>
       <div id="dd_editor_${featureId}_${e.id}" style="display:${hasContent ? 'none' : 'block'}">
+        ${mdToolbar(`dd_ta_${featureId}_${e.id}`)}
         <textarea class="dk-entry-content" id="dd_ta_${featureId}_${e.id}"
           placeholder="Paste or type markdown content…">${escHtml(e.content)}</textarea>
         <div class="dk-entry-actions">
@@ -5786,7 +5797,8 @@ function buildPrepTabContent(featureId, call) {
       <span class="prep-section-title">Research Questions</span>
     </div>
     <p class="prep-section-desc">High-level knowledge gaps this call should help answer — not the literal interview questions.</p>
-    <textarea class="add-feature-input prep-textarea" placeholder="e.g.&#10;• How do customers currently handle X?&#10;• What is the biggest pain point in Y workflow?&#10;• Do they even need feature Z?"
+    ${mdToolbar(`prep_rq_${cid}`)}
+    <textarea class="add-feature-input prep-textarea" id="prep_rq_${cid}" placeholder="e.g.&#10;• How do customers currently handle X?&#10;• What is the biggest pain point in Y workflow?&#10;• Do they even need feature Z?"
       onblur="updateCallField('${fid}','${cid}','prepResearchQs',this.value)">${e(call.prepResearchQs)}</textarea>
   </div>
   <div class="prep-section">
@@ -5829,7 +5841,8 @@ function buildPrepTabContent(featureId, call) {
       <span class="prep-section-title">Warm-up Questions</span>
     </div>
     <p class="prep-section-desc">Help them get comfortable and establish context. Add a → Dig follow-up if helpful.</p>
-    <textarea class="add-feature-input prep-textarea" placeholder="e.g.&#10;• Can you tell me a bit about yourself and your role?&#10;• What are your top goals and priorities right now?"
+    ${mdToolbar(`prep_wuq_${cid}`)}
+    <textarea class="add-feature-input prep-textarea" id="prep_wuq_${cid}" placeholder="e.g.&#10;• Can you tell me a bit about yourself and your role?&#10;• What are your top goals and priorities right now?"
       onblur="updateCallField('${fid}','${cid}','prepWarmUpQs',this.value)">${e(call.prepWarmUpQs)}</textarea>
   </div>
   <div class="prep-section">
@@ -5838,7 +5851,8 @@ function buildPrepTabContent(featureId, call) {
       <span class="prep-section-title">Topic Questions</span>
     </div>
     <p class="prep-section-desc">Open-ended, past-behavior focused. Ask "how do you handle X today?" not "would you use X?". Add → Dig follow-ups.</p>
-    <textarea class="add-feature-input prep-textarea" style="min-height:120px" placeholder="e.g.&#10;• Walk me through the last time you had to [X]. What happened?&#10;  → Dig: What made that difficult?"
+    ${mdToolbar(`prep_tq_${cid}`)}
+    <textarea class="add-feature-input prep-textarea" id="prep_tq_${cid}" style="min-height:120px" placeholder="e.g.&#10;• Walk me through the last time you had to [X]. What happened?&#10;  → Dig: What made that difficult?"
       onblur="updateCallField('${fid}','${cid}','prepTopicQs',this.value)">${e(call.prepTopicQs)}</textarea>
   </div>
   <div class="prep-section">
@@ -5847,7 +5861,8 @@ function buildPrepTabContent(featureId, call) {
       <span class="prep-section-title">Look For / Listen For</span>
     </div>
     <p class="prep-section-desc">Signals, patterns, and moments to pay attention to during the call.</p>
-    <textarea class="add-feature-input prep-textarea" placeholder="e.g.&#10;• Signs of workarounds or manual processes&#10;• Frustration when describing current workflow"
+    ${mdToolbar(`prep_lf_${cid}`)}
+    <textarea class="add-feature-input prep-textarea" id="prep_lf_${cid}" placeholder="e.g.&#10;• Signs of workarounds or manual processes&#10;• Frustration when describing current workflow"
       onblur="updateCallField('${fid}','${cid}','prepListenFor',this.value)">${e(call.prepListenFor)}</textarea>
   </div>
   <div style="padding:14px 22px 18px;border-top:1px solid var(--border)">
@@ -6543,6 +6558,7 @@ function buildDKEntryCard(featureId, e) {
         ${renderedHtml}
       </div>
       <div id="dk_editor_${featureId}_${e.id}" style="display:${hasContent ? 'none' : 'block'}">
+        ${mdToolbar(`dk_ta_${featureId}_${e.id}`)}
         <textarea class="dk-entry-content" id="dk_ta_${featureId}_${e.id}"
           placeholder="Paste or type markdown content…">${escHtml(e.content)}</textarea>
         <div class="dk-entry-actions">
@@ -6610,7 +6626,7 @@ function buildContextTabHtml(f) {
   const team      = getCtxArr(id, 'team',      f.team      || []);
   const links     = getCtxArr(id, 'links',     f.links     || []);
 
-  const summaryHtml = `<textarea class="editable-note" style="min-height:72px;margin-top:4px"
+  const summaryHtml = `${mdToolbar(`ctx_summary_${id}`)}<textarea class="editable-note" id="ctx_summary_${id}" style="min-height:72px;margin-top:0"
       placeholder="Describe this feature…"
       onblur="setCtxField('${id}','summary',this.value)">${escHtml(summary)}</textarea>`;
 
@@ -7155,6 +7171,7 @@ function renderNotesTab(id) {
     const ek = id + '::' + n.id;
     if (_noteEditMode[ek]) {
       return `<div class="note-entry note-editing">
+        <input class="note-title-input" id="ne_title_${id}_${n.id}" placeholder="Title (optional)" value="${escHtml(n.title || '')}" />
         ${mdToolbar(`ne_${id}_${n.id}`)}
         <textarea class="editable-note" id="ne_${id}_${n.id}" style="min-height:80px;margin-top:0">${escHtml(n.text)}</textarea>
         <div style="display:flex;gap:6px;margin-top:8px">
@@ -7164,6 +7181,7 @@ function renderNotesTab(id) {
       </div>`;
     }
     return `<div class="note-entry">
+      ${n.title ? `<div class="note-entry-title">${escHtml(n.title)}</div>` : ''}
       <div class="note-entry-body">${marked.parse(n.text || '')}</div>
       <div class="note-entry-meta">
         <span class="note-ts">${formatNoteDate(n.createdAt)}</span>
@@ -7230,9 +7248,11 @@ function editNoteEntry(id, noteId) {
 
 function saveNoteEntry(id, noteId) {
   const ta = document.getElementById('ne_' + id + '_' + noteId);
+  const titleEl = document.getElementById('ne_title_' + id + '_' + noteId);
   const text = ta ? ta.value.trim() : '';
-  if (!text) { cancelNoteEdit(id, noteId); return; }
-  saveNoteEntries(id, getNoteEntries(id).map(n => n.id === noteId ? { ...n, text } : n));
+  const title = titleEl ? titleEl.value.trim() : '';
+  if (!text && !title) { cancelNoteEdit(id, noteId); return; }
+  saveNoteEntries(id, getNoteEntries(id).map(n => n.id === noteId ? { ...n, text, title } : n));
   delete _noteEditMode[id + '::' + noteId];
   renderNotesTab(id);
   showToast();
@@ -7241,7 +7261,7 @@ function saveNoteEntry(id, noteId) {
 function cancelNoteEdit(id, noteId) {
   const entries = getNoteEntries(id);
   const note = entries.find(n => n.id === noteId);
-  if (note && !note.text) saveNoteEntries(id, entries.filter(n => n.id !== noteId));
+  if (note && !note.text && !note.title) saveNoteEntries(id, entries.filter(n => n.id !== noteId));
   delete _noteEditMode[id + '::' + noteId];
   renderNotesTab(id);
 }
@@ -8879,13 +8899,7 @@ document.addEventListener('click', () => {
     },
     "custom_1773442244486": {
       "tasks": [],
-      "notesEntries": [
-        {
-          "id": "n1773442255434",
-          "text": "",
-          "createdAt": 1773442255434
-        }
-      ],
+      "notesEntries": [],
       "specLinks": [],
       "designFiles": [
         {
@@ -8898,6 +8912,54 @@ document.addEventListener('click', () => {
           "screenshots": [],
           "notes": "",
           "createdAt": 1773442257000
+        }
+      ],
+      "ctx_summary": "",
+      "domainKnowledge": [
+        {
+          "id": "1773515028247",
+          "title": "",
+          "content": ""
+        }
+      ],
+      "calls": [
+        {
+          "id": "1773515034272",
+          "callName": "",
+          "callType": "customer",
+          "status": "scheduled",
+          "customer": "",
+          "relatedCustomer": "",
+          "callCategory": "",
+          "date": "",
+          "attendees": "",
+          "departments": "",
+          "notesLink": "",
+          "links": [],
+          "transcript": "",
+          "summary": "",
+          "prepResearchQs": "",
+          "prepWhoTalking": "",
+          "prepCompanySegment": "",
+          "prepTenure": "",
+          "prepUsageIndicators": "",
+          "prepTypesOfWork": "",
+          "prepWarmUpQs": "",
+          "prepTopicQs": "",
+          "prepListenFor": "",
+          "label": "",
+          "link": "",
+          "stage": ""
+        }
+      ],
+      "customQuestions": [],
+      "questionAnswers": {
+        "custom_0": ""
+      },
+      "deletedCustomQuestions": [
+        {
+          "id": "1773515051250",
+          "text": "test"
         }
       ]
     },
