@@ -523,14 +523,24 @@ node server.js</code></pre>
   <!-- SCHEDULE OVERVIEW -->
   <div class="section" id="schedule">
     <h2 class="section-title">Schedule Overview</h2>
-    <p>The landing page. Shows every feature as a card with:</p>
+    <p>The landing page. Shows every feature at a glance. Switch between three views using the toggle in the top-right:</p>
+    <table>
+      <thead><tr><th>View</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Cards</strong></td><td>Grid of cards, each showing status, customer, current focus, and progress</td></tr>
+        <tr><td><strong>List</strong></td><td>Table layout with columns: Feature, Status, Customer, Due Date, Progress</td></tr>
+        <tr><td><strong>Timeline</strong></td><td>Kanban board grouped by status</td></tr>
+      </tbody>
+    </table>
+    <p>Each card or row shows:</p>
     <ul>
       <li><strong>Status badge</strong> — Discovery / Design / Dev / QA / Done</li>
       <li><strong>Customer</strong> and <strong>due date</strong></li>
       <li><strong>Current Focus</strong> — what you are actively working on right now</li>
       <li><strong>Progress bar</strong> — percentage of To Do tasks marked Done (postponed tasks excluded)</li>
     </ul>
-    <p>Click any card to jump to that feature's detail page.</p>
+    <p>Click any card or row to jump to that feature's detail page.</p>
+    <p><strong>Drag to reorder</strong> — drag any card or list row to rearrange the feature order. The order is saved automatically and persists across sessions.</p>
     <div class="callout">
       <span class="material-symbols-rounded">tips_and_updates</span>
       <span>Start every week here. Scan current focus and progress for all features. Update anything stale before diving into work.</span>
