@@ -342,6 +342,13 @@
     transform: translateY(-1px);
   }
 
+  .schedule-card[draggable="true"], .sl-row[draggable="true"] { cursor: grab; }
+  .schedule-card[draggable="true"]:active, .sl-row[draggable="true"]:active { cursor: grabbing; }
+  .schedule-card.dragging { opacity: .35; transform: none; }
+  .sl-row.dragging { opacity: .35; }
+  .schedule-card.drag-over { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .sl-row.drag-over { outline: 2px solid var(--accent); outline-offset: -2px; }
+
   .sc-top {
     display: flex;
     align-items: flex-start;
@@ -3925,7 +3932,13 @@ function getAllFeatures() {
       summary:  ov._summary  ?? f.summary,
     };
   });
-  return [...builtins, ...loadCustomFeatures()];
+  const all = [...builtins, ...loadCustomFeatures()];
+  const order = loadFeatureOrder();
+  if (!order) return all;
+  const map = Object.fromEntries(all.map(f => [f.id, f]));
+  const ordered = order.map(id => map[id]).filter(Boolean);
+  const unordered = all.filter(f => !order.includes(f.id));
+  return [...ordered, ...unordered];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -3939,6 +3952,15 @@ function loadState() {
 function saveState(state) {
   localStorage.setItem('fh_state', JSON.stringify(state));
   showToast();
+  if (typeof scheduleSyncToGit === 'function') scheduleSyncToGit();
+}
+
+function loadFeatureOrder() {
+  try { return JSON.parse(localStorage.getItem('fh_feature_order') || 'null'); }
+  catch { return null; }
+}
+function saveFeatureOrder(ids) {
+  localStorage.setItem('fh_feature_order', JSON.stringify(ids));
   if (typeof scheduleSyncToGit === 'function') scheduleSyncToGit();
 }
 
@@ -4132,7 +4154,7 @@ function renderScheduleList() {
     const due = getDue(f);
     const pct = progressOf(f);
     return `
-    <div class="sl-cols sl-row" onclick="showFeature('${f.id}')">
+    <div class="sl-cols sl-row" draggable="true" data-id="${f.id}" onclick="showFeature('${f.id}')">
       <span class="material-symbols-rounded sl-icon">${f.icon}</span>
       <div class="sl-title">${escHtml(f.title)}</div>
       <div><span class="badge ${STATUS_BADGE[status] || 'badge-done'}">${status}</span></div>
@@ -4145,6 +4167,7 @@ function renderScheduleList() {
     </div>`;
   }).join('');
   grid.innerHTML = '<div class="schedule-list">' + header + rows + '</div>';
+  attachDragHandlers(grid.querySelector('.schedule-list'), '.sl-row');
 }
 
 function renderScheduleTimeline() {
@@ -4178,6 +4201,45 @@ function renderScheduleTimeline() {
   }).join('') + '</div>';
 }
 
+let _dragId = null;
+let _dragOverId = null;
+
+function attachDragHandlers(container, selector) {
+  container.addEventListener('dragstart', e => {
+    const el = e.target.closest(selector);
+    if (!el) return;
+    _dragId = el.dataset.id;
+    setTimeout(() => el.classList.add('dragging'), 0);
+  });
+  container.addEventListener('dragend', e => {
+    container.querySelectorAll('.dragging, .drag-over').forEach(x => x.classList.remove('dragging', 'drag-over'));
+    _dragId = null;
+    _dragOverId = null;
+  });
+  container.addEventListener('dragover', e => {
+    e.preventDefault();
+    const el = e.target.closest(selector);
+    if (!el || el.dataset.id === _dragId) return;
+    if (el.dataset.id !== _dragOverId) {
+      container.querySelectorAll('.drag-over').forEach(x => x.classList.remove('drag-over'));
+      el.classList.add('drag-over');
+      _dragOverId = el.dataset.id;
+    }
+  });
+  container.addEventListener('drop', e => {
+    e.preventDefault();
+    if (!_dragId || !_dragOverId || _dragId === _dragOverId) return;
+    const ids = getAllFeatures().map(f => f.id);
+    const from = ids.indexOf(_dragId);
+    const to = ids.indexOf(_dragOverId);
+    if (from === -1 || to === -1) return;
+    ids.splice(from, 1);
+    ids.splice(to, 0, _dragId);
+    saveFeatureOrder(ids);
+    renderScheduleCards();
+  });
+}
+
 function renderScheduleCards() {
   // Sync toggle button state
   ['cards','list','timeline'].forEach(v => {
@@ -4196,7 +4258,7 @@ function renderScheduleCards() {
     const total = allTasks.filter(t => t.status !== 'postponed').length;
     const doneCount = allTasks.filter(t => t.status === 'done').length;
     return `
-    <div class="schedule-card" onclick="showFeature('${f.id}')">
+    <div class="schedule-card" draggable="true" data-id="${f.id}" onclick="showFeature('${f.id}')">
       <div class="sc-top">
         <div class="sc-title"><span class="material-symbols-rounded sc-icon">${f.icon}</span>${f.title}</div>
         <span class="badge ${STATUS_BADGE[status] || 'badge-done'}">${status}</span>
@@ -4212,6 +4274,7 @@ function renderScheduleCards() {
       </div>
     </div>`;
   }).join('');
+  attachDragHandlers(grid, '.schedule-card');
 }
 
 // ═══════════════════════════════════════════════════════════════
