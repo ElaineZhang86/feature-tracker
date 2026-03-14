@@ -4463,6 +4463,25 @@ function cancelPostpone(featureId, taskId) {
   renderTaskList(featureId);
 }
 
+function openTaskAdd(featureId) {
+  const panel = document.getElementById(`${featureId}_tasks_panel`);
+  if (!panel) return;
+  panel.innerHTML = `
+    <div class="context-card" style="text-align:center;padding:48px 20px">
+      <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">pending_actions</span>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No tasks yet.<br>Add what still needs to be designed or decided.</div>
+      <div class="add-item-row" style="max-width:360px;margin:0 auto;margin-top:0">
+        <input class="add-item-input" id="${featureId}_add_task" placeholder="Add a task…"
+          onkeydown="if(event.key==='Enter')addTask('${featureId}')" />
+        <button class="btn btn-primary" onclick="addTask('${featureId}')">Add</button>
+      </div>
+    </div>`;
+  setTimeout(() => {
+    const inp = document.getElementById(`${featureId}_add_task`);
+    if (inp) inp.focus();
+  }, 50);
+}
+
 function addTask(featureId) {
   const inp = document.getElementById(`${featureId}_add_task`);
   if (!inp) return;
@@ -4540,11 +4559,7 @@ function renderTaskList(featureId) {
       <div class="context-card" style="text-align:center;padding:48px 20px">
         <span class="material-symbols-rounded" style="font-size:40px;color:var(--text-dim);display:block;margin-bottom:10px">pending_actions</span>
         <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">No tasks yet.<br>Add what still needs to be designed or decided.</div>
-        <div class="add-item-row" style="max-width:360px;margin:0 auto">
-          <input class="add-item-input" id="${featureId}_add_task" placeholder="Add a task…"
-            onkeydown="if(event.key==='Enter')addTask('${featureId}')" />
-          <button class="btn btn-primary" onclick="addTask('${featureId}')">Add</button>
-        </div>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 16px" onclick="openTaskAdd('${featureId}')">+ Add</button>
       </div>`;
     return;
   }
