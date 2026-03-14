@@ -169,7 +169,15 @@ Click the **⚙ icon** in the sidebar footer to open Settings.
 
 ## Schedule Overview
 
-The landing page. Shows every feature as a card with:
+The landing page. Shows every feature at a glance. Switch between three views using the toggle in the top-right:
+
+| View | Description |
+|------|-------------|
+| Cards | Grid of cards, each showing status, customer, current focus, and progress |
+| List | Table layout with columns: Feature, Status, Customer, Due Date, Progress |
+| Timeline | Kanban board grouped by status |
+
+Each card or row shows:
 
 - **Status badge** (Discovery / Design / Dev / QA / Done)
 - **Customer** and **due date**
@@ -177,6 +185,8 @@ The landing page. Shows every feature as a card with:
 - **Progress bar** — percentage of To Do tasks marked Done (postponed tasks excluded)
 
 Click any card to jump to that feature's detail page.
+
+**Drag to reorder** — drag any card or list row to rearrange the feature order. The order is saved automatically and persists across sessions.
 
 ---
 
