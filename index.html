@@ -4469,13 +4469,13 @@ function openTaskAdd(featureId) {
   panel.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <div>
-        <div style="font-size:14px;font-weight:600;color:var(--text)">To Do List</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">To Do</div>
         <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Track design tasks, completed work, and postponed items</div>
       </div>
       <button class="btn btn-primary" style="font-size:12px;padding:5px 12px;flex-shrink:0" onclick="openTaskAdd('${featureId}')">+ Add</button>
     </div>
     <div class="context-card">
-      <div class="add-item-row">
+      <div class="add-item-row" style="border-top:none;margin-top:0;padding-top:0">
         <input class="add-item-input" id="${featureId}_add_task" placeholder="Add a task…"
           onkeydown="if(event.key==='Enter')addTask('${featureId}')" />
       </div>
@@ -4579,7 +4579,7 @@ function renderTaskList(featureId) {
   panel.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
       <div>
-        <div style="font-size:14px;font-weight:600;color:var(--text)">To Do List</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">To Do</div>
         <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Track design tasks, completed work, and postponed items</div>
       </div>
       <button class="btn btn-primary" style="font-size:12px;padding:5px 12px;flex-shrink:0" onclick="document.getElementById('${featureId}_add_task').focus()">
@@ -8718,19 +8718,8 @@ document.addEventListener('click', () => {
         }
       ],
       "specLinks": [],
-      "designFiles": [
-        {
-          "id": "df1773512326663",
-          "title": "",
-          "figmaUrl": "",
-          "figmaLabel": "",
-          "protoUrl": "",
-          "protoLabel": "",
-          "screenshots": [],
-          "notes": "",
-          "createdAt": 1773512326663
-        }
-      ]
+      "designFiles": [],
+      "domainKnowledge": []
     }
   },
   "fh_custom_features": [
