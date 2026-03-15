@@ -6416,13 +6416,48 @@ function getDomainKnowledge(featureId) {
   return getFeatureState(featureId).domainKnowledge || [];
 }
 
+const _dkEditMode = {};
+
 function addDomainKnowledge(featureId) {
   const id = Date.now().toString();
   const entries = getDomainKnowledge(featureId);
-  _dkOpen[featureId + '_' + id] = true;
-  updateFeatureState(featureId, { domainKnowledge: [...entries, { id, title: '', content: '' }] });
+  updateFeatureState(featureId, { domainKnowledge: [...entries, { id, title: '', content: '', createdAt: Date.now() }] });
+  _dkEditMode[featureId + '::' + id] = true;
   renderDomainKnowledgeList(featureId);
-  setTimeout(() => openDKEdit(featureId, id), 50);
+  setTimeout(() => { const ti = document.getElementById('dk_title_' + featureId + '_' + id); if (ti) ti.focus(); }, 30);
+}
+
+function editDKEntry(featureId, id) {
+  _dkEditMode[featureId + '::' + id] = true;
+  renderDomainKnowledgeList(featureId);
+  setTimeout(() => {
+    const ta = document.getElementById('dk_ta_' + featureId + '_' + id);
+    if (ta) { ta.focus(); ta.selectionStart = ta.selectionEnd = ta.value.length; }
+  }, 30);
+}
+
+function saveDKEntry(featureId, id) {
+  const titleEl = document.getElementById('dk_title_' + featureId + '_' + id);
+  const ta      = document.getElementById('dk_ta_' + featureId + '_' + id);
+  const title   = titleEl ? titleEl.value.trim() : '';
+  const content = ta ? ta.value.trim() : '';
+  if (!title && !content) { cancelDKEdit(featureId, id); return; }
+  const entries = getDomainKnowledge(featureId).map(e =>
+    e.id === id ? { ...e, title, content } : e
+  );
+  updateFeatureState(featureId, { domainKnowledge: entries });
+  delete _dkEditMode[featureId + '::' + id];
+  renderDomainKnowledgeList(featureId);
+  showToast();
+}
+
+function cancelDKEdit(featureId, id) {
+  const entry = getDomainKnowledge(featureId).find(e => e.id === id);
+  if (entry && !entry.title && !entry.content) {
+    updateFeatureState(featureId, { domainKnowledge: getDomainKnowledge(featureId).filter(e => e.id !== id) });
+  }
+  delete _dkEditMode[featureId + '::' + id];
+  renderDomainKnowledgeList(featureId);
 }
 
 async function removeDomainKnowledge(featureId, id) {
@@ -6432,114 +6467,35 @@ async function removeDomainKnowledge(featureId, id) {
   renderDomainKnowledgeList(featureId);
 }
 
-function updateDKField(featureId, id, field, value) {
-  const entries = getDomainKnowledge(featureId).map(e =>
-    e.id === id ? { ...e, [field]: value } : e
-  );
-  updateFeatureState(featureId, { domainKnowledge: entries });
-}
-
-function openDKEdit(featureId, id) {
-  const card = document.getElementById(`dk_card_${featureId}_${id}`);
-  if (card && !card.classList.contains('expanded')) {
-    card.classList.add('expanded');
-    _dkOpen[featureId + '_' + id] = true;
-  }
-  const rendered = document.getElementById(`dk_rendered_${featureId}_${id}`);
-  const editor   = document.getElementById(`dk_editor_${featureId}_${id}`);
-  const ti       = document.getElementById(`dk_title_input_${featureId}_${id}`);
-  const ta       = document.getElementById(`dk_ta_${featureId}_${id}`);
-  if (!editor) return;
-  if (rendered) rendered.style.display = 'none';
-  editor.style.display = 'block';
-  if (ti && !ti.value.trim()) ti.focus();
-  else if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
-}
-
-function saveDKEdit(featureId, id) {
-  const titleInput = document.getElementById(`dk_title_input_${featureId}_${id}`);
-  const ta         = document.getElementById(`dk_ta_${featureId}_${id}`);
-  const rendered   = document.getElementById(`dk_rendered_${featureId}_${id}`);
-  const editor     = document.getElementById(`dk_editor_${featureId}_${id}`);
-  if (!ta) return;
-  const titleVal   = titleInput ? titleInput.value.trim() : '';
-  const contentVal = ta.value;
-  updateDKField(featureId, id, 'title', titleVal);
-  updateDKField(featureId, id, 'content', contentVal);
-  editor.style.display = 'none';
-  rendered.innerHTML = contentVal.trim()
-    ? marked.parse(contentVal)
-    : '';
-  rendered.style.display = 'block';
-}
-
-function cancelDKEdit(featureId, id) {
-  const entry = getDomainKnowledge(featureId).find(e => e.id === id);
-  if (entry && !entry.title && !entry.content) {
-    updateFeatureState(featureId, { domainKnowledge: getDomainKnowledge(featureId).filter(e => e.id !== id) });
-    renderDomainKnowledgeList(featureId);
-    return;
-  }
-  const titleInput = document.getElementById(`dk_title_input_${featureId}_${id}`);
-  const ta         = document.getElementById(`dk_ta_${featureId}_${id}`);
-  const rendered   = document.getElementById(`dk_rendered_${featureId}_${id}`);
-  const editor     = document.getElementById(`dk_editor_${featureId}_${id}`);
-  if (!editor) return;
-  if (entry) {
-    if (titleInput) titleInput.value = entry.title || '';
-    if (ta)         ta.value = entry.content || '';
-  }
-  if (editor) editor.style.display = 'none';
-  if (rendered) rendered.style.display = 'block';
-}
-
-const _dkOpen = {};
-
-function toggleDKCollapse(featureId, id) {
-  const card = document.getElementById(`dk_card_${featureId}_${id}`);
-  if (!card) return;
-  const isExpanded = card.classList.contains('expanded');
-  card.classList.toggle('expanded', !isExpanded);
-  _dkOpen[featureId + '_' + id] = !isExpanded;
-}
-
 function buildDKEntryCard(featureId, e) {
-  const hasContent = !!(e.content && e.content.trim());
-  const isExpanded = _dkOpen[featureId + '_' + e.id] !== false; // default expanded
-  const renderedHtml = hasContent ? marked.parse(e.content) : '';
-  return `
-  <div class="context-card dk-entry${isExpanded ? ' expanded' : ''}" id="dk_card_${featureId}_${e.id}">
-    <div class="dk-entry-header" onclick="toggleDKCollapse('${featureId}','${e.id}')">
-      <div class="dk-entry-info" style="flex:1;min-width:0">
-        <input class="dk-entry-title-input" id="dk_title_input_${featureId}_${e.id}"
-          value="${escHtml(e.title)}"
-          placeholder="Title..."
-          onclick="event.stopPropagation()"
-          onblur="updateDKField('${featureId}','${e.id}','title',this.value.trim())"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();openDKEdit('${featureId}','${e.id}');}" />
+  const ek = featureId + '::' + e.id;
+  if (_dkEditMode[ek]) {
+    return `<div class="note-entry note-editing">
+      <input class="note-title-input" id="dk_title_${featureId}_${e.id}" placeholder="Title..." value="${escHtml(e.title || '')}" />
+      ${mdToolbar('dk_ta_' + featureId + '_' + e.id)}
+      <textarea class="editable-note" id="dk_ta_${featureId}_${e.id}" style="min-height:80px;margin-top:0">${escHtml(e.content || '')}</textarea>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn btn-primary" style="font-size:12px;padding:4px 14px" onclick="saveDKEntry('${featureId}','${e.id}')">Save</button>
+        <button class="btn" style="font-size:12px;padding:4px 14px" onclick="cancelDKEdit('${featureId}','${e.id}')">Cancel</button>
       </div>
-      <button class="q-icon-btn" title="Delete entry" onclick="event.stopPropagation();removeDomainKnowledge('${featureId}','${e.id}')">
-        <span class="material-symbols-rounded" style="font-size:16px;color:var(--text-muted)">delete</span>
-      </button>
-      <span class="material-symbols-rounded dk-expand-icon">expand_more</span>
-    </div>
-    <div class="dk-entry-body">
-      <div id="dk_rendered_${featureId}_${e.id}" class="md-body dk-clickable" onclick="openDKEdit('${featureId}','${e.id}')">
-        ${renderedHtml || '<p class=\'dk-empty-hint\'>Click to add content…</p>'}
-      </div>
-      <div id="dk_editor_${featureId}_${e.id}" style="display:${hasContent ? 'none' : 'block'}">
-        ${mdToolbar(`dk_ta_${featureId}_${e.id}`)}
-        <textarea class="dk-entry-content" id="dk_ta_${featureId}_${e.id}"
-          placeholder="Paste or type markdown content…">${escHtml(e.content)}</textarea>
-        <div class="dk-entry-actions">
-          <button class="btn btn-primary" onclick="saveDKEdit('${featureId}','${e.id}')">Save</button>
-          <button class="btn" onclick="cancelDKEdit('${featureId}','${e.id}')">Cancel</button>
-        </div>
+    </div>`;
+  }
+  return `<div class="note-entry">
+    ${e.title ? `<div class="note-entry-title">${escHtml(e.title)}</div>` : ''}
+    <div class="note-entry-body">${marked.parse(e.content || '')}</div>
+    <div class="note-entry-meta">
+      <span class="note-ts">${formatNoteDate(e.createdAt)}</span>
+      <div style="display:flex;gap:3px">
+        <button class="q-icon-btn" title="Edit" onclick="editDKEntry('${featureId}','${e.id}')">
+          <span class="material-symbols-rounded">edit</span>
+        </button>
+        <button class="q-icon-btn del" title="Delete" onclick="removeDomainKnowledge('${featureId}','${e.id}')">
+          <span class="material-symbols-rounded">delete</span>
+        </button>
       </div>
     </div>
   </div>`;
 }
-
 function renderDomainKnowledgeList(featureId) {
   const panel = document.getElementById(`${featureId}_dk_panel`);
   if (!panel) return;
@@ -6564,7 +6520,9 @@ function renderDomainKnowledgeList(featureId) {
         + Add
       </button>
     </div>
-    ${entries.map(e => buildDKEntryCard(featureId, e)).join('')}`;
+    <div class="context-card">
+      <div>${entries.map(e => buildDKEntryCard(featureId, e)).join('')}</div>
+    </div>\`;
 }
 
 function renderAllDomainKnowledge() {
