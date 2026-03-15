@@ -37,7 +37,6 @@ node server.js
 You should see:
 ```
 Feature Tracker running at http://localhost:3456
-Auto-sync will commit to git every 30 s after a change.
 ```
 
 **3. Open the app**
@@ -49,8 +48,7 @@ Open **http://localhost:3456** in your browser. Keep the terminal open while you
 1. Open Terminal, `cd` into the `feature-tracker` folder
 2. Run `node server.js`
 3. Open **http://localhost:3456** in your browser
-4. Work normally — data syncs automatically every 30 seconds
-5. Before closing, confirm the sync indicator in the sidebar has turned green at least once
+4. Work normally — all changes save automatically
 
 ### Restoring on a new machine
 
@@ -60,11 +58,9 @@ cd feature-tracker
 node server.js
 ```
 
-Open `http://localhost:3456` — your data loads automatically from the snapshot embedded in `index.html`.
+Open `http://localhost:3456`. If you have GitHub Sync configured, your data loads automatically from GitHub. Otherwise it loads from the snapshot in `index.html`.
 
 ### Getting updates
-
-When new features or fixes are published, you do not need to re-clone. Pull the latest code into your existing folder and restart the server:
 
 ```bash
 git pull
@@ -77,49 +73,68 @@ Your data is not affected — the pull only updates the app code.
 
 > ⬆ **App update available** — run `git pull` in your terminal, then restart `node server.js` to get the latest version.
 
-The banner only appears when the server is running and detects that the remote has newer commits than your local copy. Click × to dismiss it. It does not appear if you are already up to date.
-
 ---
 
 ## How Data is Saved
 
-Data is stored in two places:
+Every field saves automatically to your browser's **localStorage** the moment you make a change — no save button needed.
 
-1. **Browser localStorage** — live working state, updates immediately as you work
-2. **`index.html` embedded snapshot** — written by the server every 30 seconds after a change, committed to git
+For backup and cross-machine access, the app supports two optional sync methods:
 
-Every field saves automatically:
-- Status, due date, current focus — on change
-- Notes — on every keystroke
-- Q&A answers, Domain Knowledge, Feature Brief — when you click away
-- Call fields — on change
-- Tasks — immediately on any action
+### GitHub Sync (recommended)
 
-You do **not** need to click the sync button to save your work. Data is in localStorage from the moment you type. The sync button (↻) only triggers an early git commit if you don't want to wait 30 seconds.
+Connect a GitHub repo in **Settings → GitHub Sync**. Once connected:
+- Every change auto-saves to a `data.json` file in your repo within 1 second
+- On any machine, open the app and enter your token once — your data loads automatically from GitHub
+- Works even if you clear your browser data
 
-### What happens when you close the browser
+See [GitHub Sync Setup](#github-sync-setup) for instructions.
 
-Your data stays in localStorage. When you reopen `http://localhost:3456`, it loads from localStorage. The embedded snapshot in `index.html` is the backup used only when localStorage is empty (e.g. on a new machine after cloning).
+### Data File
+
+Connect a local JSON file in **Settings → Data File**. Once connected:
+- Every change auto-saves to the file within 1 second
+- Put the file in iCloud Drive or Dropbox for cross-machine access
+- Works offline — no internet required
 
 ---
 
-## Sync Indicator (Sidebar Footer)
+## GitHub Sync Setup
 
-| Dot color | Meaning |
-|-----------|---------|
-| Grey | Server offline or idle |
-| Blue (pulsing) | Sync in progress |
-| Green | Synced — shows last sync time |
-| Red | Sync failed |
+**What you need:** A GitHub account (you already have one if you cloned the repo).
 
-Click the **↻ sync button** to force an immediate git commit without waiting 30 seconds. This is optional — auto-sync handles it automatically.
+**1. Create a Personal Access Token**
+
+Go to [github.com](https://github.com) → **Settings → Developer settings → Personal access tokens → Fine-grained tokens** → Generate new token.
+
+- Set **Repository access** to your `feature-tracker` repo
+- Under **Permissions → Repository permissions**, set **Contents** to **Read and Write**
+- Copy the token (starts with `github_pat_` or `ghp_`)
+
+**2. Connect in the app**
+
+Open **Settings → GitHub Sync** and fill in:
+
+| Field | Value |
+|-------|-------|
+| Owner | Your GitHub username |
+| Repository | `feature-tracker` |
+| Branch | Your working branch (e.g. `main`) |
+| Token | Paste your token |
+| File path | `data.json` (default) |
+
+Click **Connect**. The app tests the connection and saves your current state to GitHub immediately.
+
+**3. Done**
+
+The sidebar footer shows a green dot and "GitHub saved HH:MM" after each successful save. From this point on, every change syncs automatically — no action required.
 
 ---
 
 ## Common Questions
 
 **Does the app need internet to work?**
-No. The app runs entirely on your local machine. When you run `node server.js`, it starts a small local server and your browser connects to it through `localhost`. No internet connection is required.
+No. The app runs entirely on your local machine. Internet is only required if you are using GitHub Sync.
 
 ---
 
@@ -129,7 +144,7 @@ The terminal is just running the local server. As long as `node server.js` is ru
 ---
 
 **Where is my data stored?**
-Your feature data is stored locally in the repo folder. The server periodically commits a snapshot to git automatically, so everything stays backed up. If you ever move to a new machine, clone the repo and run `node server.js` — your data loads automatically.
+All changes save instantly to your browser's localStorage. If you have GitHub Sync configured, a backup also saves to `data.json` in your GitHub repo within 1 second of each change. If you have a Data File connected, it saves there too.
 
 ---
 
@@ -144,6 +159,7 @@ If you want to experiment with changing the app itself (modifying the UI, adding
 No. Since you cloned it, any changes you make only affect your local copy. The original repo would only change if someone pushed changes back to GitHub, which requires permissions.
 
 ---
+
 ## Navigation
 
 The left sidebar lists every feature with its current status badge. Click any feature to open it. At the top is **Schedule Overview**, a dashboard showing all features at once.
@@ -154,10 +170,13 @@ Your name and role appear below the app title. Click them to edit. On first laun
 
 ### Sidebar footer
 
-| Icon | Action |
-|------|--------|
-| ↻ | Force sync to git now (optional) |
-| ⚙ | Open Settings |
+The footer shows your GitHub sync status on the left and the **⚙ settings** button on the right.
+
+| Dot color | Meaning |
+|-----------|---------|
+| Blue (pulsing) | Saving to GitHub |
+| Green | Saved — shows last save time |
+| Red | Save failed |
 
 The theme toggle (sun/moon) is in the sidebar header, next to the app title.
 
@@ -179,6 +198,8 @@ Click the **⚙ icon** in the sidebar footer to open Settings.
 | Section | What you can do |
 |---------|----------------|
 | Account | Update your name and role |
+| Data File | Connect a local JSON file for automatic backup |
+| GitHub Sync | Connect a GitHub repo for automatic cloud backup |
 | Help | Open the User Guide |
 | Appearance | Toggle light / dark theme |
 
@@ -383,14 +404,11 @@ Deleted features appear in the **Deleted** section at the bottom of the sidebar.
 
 ---
 
-
 ## Tips
 
-- **Always enter data at localhost:3456**, not by editing `index.html` directly
-- **Start each session:** `node server.js` → open `http://localhost:3456`
+- **Set up GitHub Sync** — connect once and never worry about data loss again
 - **Use Current Focus as a daily intent** — one sentence: what specifically needs to happen today on this feature
 - **Log calls even before they happen** — create the call as Scheduled, fill in prep, paste the transcript after
 - **Domain Knowledge is for things you learned, not things you were told** — if you had to figure it out, write it down so you never have to again
 - **Postpone, don't delete** — if a task is blocked, postpone it with a reason so the context is preserved
-- **Check the sync indicator is green** before closing your browser at the end of the day
 - **Export before you hand off** — share a feature's full context with a teammate as a single file

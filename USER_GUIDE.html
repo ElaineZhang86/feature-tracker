@@ -295,6 +295,10 @@
       <span class="material-symbols-rounded nav-icon">settings</span>
       <span class="nav-label">Settings</span>
     </a>
+    <a class="nav-item" href="#data-file" onclick="setActive(this)">
+      <span class="material-symbols-rounded nav-icon">save</span>
+      <span class="nav-label">Data File</span>
+    </a>
     <a class="nav-item" href="#schedule" onclick="setActive(this)">
       <span class="material-symbols-rounded nav-icon">grid_view</span>
       <span class="nav-label">Schedule Overview</span>
@@ -401,82 +405,62 @@
   <!-- SETUP -->
   <div class="section" id="setup">
     <h2 class="section-title">How to Set Up</h2>
-    <p>Data auto-saves to git every 30 seconds, so it follows you across machines.</p>
-    <p><strong>What you need:</strong> Node.js v18 or later, Git</p>
 
-    <p><strong>1. Clone the repo</strong></p>
-    <pre><code>git clone https://github.com/YOUR_USERNAME/feature-tracker.git
-cd feature-tracker</code></pre>
+    <h3>1. Get the app</h3>
+    <p>Clone the repository or download it as a ZIP from GitHub:</p>
+    <pre><code>git clone https://github.com/YOUR_USERNAME/feature-tracker.git</code></pre>
+    <p>Then open the folder and double-click <code>index.html</code> to launch the app. No install, no build step.</p>
 
-    <p><strong>2. Start the server</strong></p>
-    <pre><code>node server.js</code></pre>
-    <p>You should see:</p>
-    <pre><code>Feature Tracker running at http://localhost:3456
-Auto-sync will commit to git every 30 s after a change.</code></pre>
-
-    <p><strong>3. Open the app</strong></p>
-    <p>Open <strong>http://localhost:3456</strong> in your browser. Keep the terminal open while you work.</p>
-
-    <div class="callout callout-warn">
-      <span class="material-symbols-rounded">warning</span>
-      <span>Always open at <strong>http://localhost:3456</strong> — not by double-clicking the file. Double-clicking opens <code>file://</code> which has separate storage and your data won't show up.</span>
+    <div class="callout">
+      <span class="material-symbols-rounded">tips_and_updates</span>
+      <span>Your data saves automatically to your browser's localStorage as you work. The next steps set up backup so your data isn't tied to one browser.</span>
     </div>
 
-    <h3>Daily workflow</h3>
+    <h3>2. Connect GitHub Sync (recommended backup)</h3>
+    <p><strong>What you need:</strong> a GitHub account, a repository (can be private), and a Personal Access Token with repo write access.</p>
+
+    <p><strong>Create a Personal Access Token</strong></p>
     <ol>
-      <li>Open Terminal, <code>cd</code> into the <code>feature-tracker</code> folder</li>
-      <li>Run <code>node server.js</code></li>
-      <li>Open <strong>http://localhost:3456</strong> in your browser</li>
-      <li>Work normally — data syncs every 30 seconds automatically</li>
-      <li>Before closing, confirm the sync indicator turned green at least once</li>
+      <li>Go to <strong>GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)</strong></li>
+      <li>Click <strong>Generate new token (classic)</strong></li>
+      <li>Give it a name (e.g. <em>feature-tracker-sync</em>)</li>
+      <li>Check the <strong>repo</strong> scope</li>
+      <li>Click <strong>Generate token</strong> and copy it immediately — GitHub only shows it once</li>
     </ol>
 
-    <h3>Restoring on a new machine</h3>
-    <pre><code>git clone https://github.com/YOUR_USERNAME/feature-tracker.git
-cd feature-tracker
-node server.js</code></pre>
-    <p>Open <code>http://localhost:3456</code> — your data loads automatically from the snapshot in <code>index.html</code>.</p>
+    <p><strong>Connect in Settings</strong></p>
+    <ol>
+      <li>Open the app and click the <strong>⚙ icon</strong> in the sidebar footer</li>
+      <li>Go to <strong>GitHub Sync</strong></li>
+      <li>Fill in: Owner (your GitHub username), Repo, Branch (e.g. <code>main</code>), and File Path (e.g. <code>feature-tracker-data.json</code>)</li>
+      <li>Paste your Personal Access Token and click <strong>Connect</strong></li>
+    </ol>
+    <p>The app verifies access and writes an initial snapshot. From then on, every change is pushed automatically in the background.</p>
 
-    <div style="background:color-mix(in srgb,#6366f1 8%,var(--surface,#f8f8f8));border-left:4px solid #6366f1;border-radius:6px;padding:14px 18px;margin-top:16px">
-      <p style="margin:0 0 8px;font-weight:600;color:#6366f1">Getting updates</p>
-      <p style="margin:0 0 10px">When new features or fixes are published, you do not need to re-clone. Pull the latest code into your existing folder and restart the server:</p>
-      <pre style="background:var(--code-bg,#1e1e2e);color:#cdd6f4;border-radius:6px;padding:10px 14px;font-size:13px;margin:0 0 10px;overflow-x:auto">git pull
-node server.js</pre>
-      <p style="margin:0 0 10px;font-size:13px">Your data is not affected — the pull only updates the app code.</p>
-      <p style="margin:0 0 6px;font-weight:600;font-size:13px">In-app update notification</p>
-      <p style="margin:0 0 8px;font-size:13px">When an update is available, a banner automatically appears at the top of the app (above Schedule Overview):</p>
-      <div style="background:color-mix(in srgb,#6366f1 12%,var(--surface,#f0f0ff));border:1px solid color-mix(in srgb,#6366f1 30%,transparent);border-radius:6px;padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <span style="font-size:18px">🆕</span>
-        <span><strong>App update available</strong> — run <code style="background:rgba(0,0,0,.07);border-radius:3px;padding:1px 5px;font-size:12px">git pull</code> in your terminal, then restart <code style="background:rgba(0,0,0,.07);border-radius:3px;padding:1px 5px;font-size:12px">node server.js</code> to get the latest version.</span>
-      </div>
-      <p style="margin:0;font-size:13px;color:var(--text-muted,#6b7280)">The banner only appears when the server is running and detects that the remote has newer commits. Click × to dismiss it. It will not appear if you are already up to date.</p>
+    <div class="callout callout-success">
+      <span class="material-symbols-rounded">cloud_done</span>
+      <span>Once connected, your data follows you to any machine — open the app, configure the same GitHub Sync settings, and your data loads automatically.</span>
+    </div>
+    <div class="callout callout-warn">
+      <span class="material-symbols-rounded">lock</span>
+      <span>Your token is stored in your browser only and is never sent anywhere except directly to the GitHub API.</span>
     </div>
 
-    <h3>How data is saved</h3>
-    <p>Data is stored in two places:</p>
-    <ul>
-      <li><strong>Browser localStorage</strong> — live working state, updates immediately as you work</li>
-      <li><strong><code>index.html</code> embedded snapshot</strong> — written by the server every 30 seconds after a change, committed to git</li>
-    </ul>
-    <p>You do <strong>not</strong> need to click the sync button to save your work. Data is in localStorage from the moment you type. The sync button (↻) only triggers an early git commit if you don't want to wait 30 seconds.</p>
+    <h3>3. Optional — Data File backup</h3>
+    <p>In addition to GitHub Sync, you can connect a local JSON file as a second backup copy — useful if you also want a file you can put in iCloud Drive or Dropbox. See <a href="#data-file" onclick="setActive(document.querySelector('[href=\'#data-file\']'))">Data File</a> for details and how to restore from a backup.</p>
   </div>
 
   <!-- NAVIGATION -->
   <div class="section" id="faq">
     <h2 class="section-title">Common Questions</h2>
-    <div class="section-body">
       <h3>Does the app need internet to work?</h3>
-      <p>No. The app runs entirely on your local machine. When you run <code>node server.js</code>, it starts a small local server and your browser connects to it through <code>localhost</code>. No internet connection is required.</p>
-      <h3>What is the terminal doing? Can I use other terminals while it&#39;s open?</h3>
-      <p>The terminal is just running the local server. As long as <code>node server.js</code> is running somewhere, the app works. You can freely use other terminals or work in other directories — that one just needs to stay open so the server keeps running.</p>
+      <p>The app runs entirely in your browser — no internet required. If you have GitHub Sync configured, it pushes changes to GitHub whenever you're online. The app still works offline and syncs the next time you have a connection.</p>
       <h3>Where is my data stored?</h3>
-      <p>Your feature data is stored locally in the repo folder. The server periodically commits a snapshot to git automatically, so everything stays backed up. If you ever move to a new machine, clone the repo and run <code>node server.js</code> — your data loads automatically.</p>
-      <h3>Do I need to create a git branch?</h3>
-      <p>If you are just using the tool — adding tasks, notes, calls, domain knowledge — you can stay on <code>main</code>. No branch needed.</p>
-      <p>If you want to experiment with changing the app itself (modifying the UI, adding functionality), create your own branch so you can test things without affecting the working version.</p>
-      <h3>Will my changes affect the original repo?</h3>
-      <p>No. Since you cloned it, any changes you make only affect your local copy. The original repo would only change if someone pushed changes back to GitHub, which requires permissions.</p>
-    </div>
+      <p>Your data lives in your browser's localStorage — that is always the live working copy. GitHub Sync backs it up to a GitHub repo on every change. If you set up GitHub Sync, your data is safe even if you clear your browser or switch machines.</p>
+      <h3>How do I move to a new machine?</h3>
+      <p>Open the app on your new machine, go to <strong>Settings → GitHub Sync</strong>, and enter the same repo, owner, branch, and file path. Click Connect — the app fetches your data from GitHub and loads it automatically.</p>
+      <h3>Is my data safe if I accidentally clear my browser?</h3>
+      <p>Yes, if GitHub Sync is set up. Your full state is pushed on every change. Re-connect on any machine and everything comes back. Without GitHub Sync, clearing browser data will erase your work.</p>
   </div>
 
   <div class="section" id="navigation">
@@ -485,27 +469,14 @@ node server.js</pre>
     <h3>Sidebar header</h3>
     <p>Your name and role appear below the app title. Click them to edit. The theme toggle (sun/moon icon) is also here, next to the title.</p>
     <h3>Sidebar footer</h3>
-    <table>
-      <tr><th>Icon</th><th>Action</th></tr>
-      <tr><td>↻</td><td>Force sync to git now</td></tr>
-      <tr><td>⚙</td><td>Open Settings</td></tr>
-    </table>
-
-    <h3>Sync indicator</h3>
-    <p>Next to the ↻ button is a small dot that shows the current sync status:</p>
+    <p>The sidebar footer shows your GitHub Sync status (if configured) and the <strong>⚙ settings button</strong>.</p>
+    <p>When GitHub Sync is active, a small status dot appears next to the ⚙ button:</p>
     <table>
       <tr><th>Dot color</th><th>Meaning</th></tr>
-      <tr><td>Grey</td><td>Server offline or idle — no changes to sync</td></tr>
-      <tr><td>Blue (pulsing)</td><td>Change detected — sync queued, waiting 30 seconds</td></tr>
-      <tr><td>Green</td><td>Synced — shows the time of the last successful commit</td></tr>
-      <tr><td>Red</td><td>Sync failed — check that <code>node server.js</code> is still running</td></tr>
+      <tr><td>Blue (pulsing)</td><td>Saving to GitHub…</td></tr>
+      <tr><td>Green</td><td>Saved — shows the time of the last successful sync</td></tr>
+      <tr><td>Red</td><td>Sync failed — check your GitHub Sync settings</td></tr>
     </table>
-    <p>Every time you make a change, a 30-second timer starts. When it fires, the server embeds your full state into <code>index.html</code>, commits it to git, and pushes to your remote. Rapid edits are batched — only one commit is made after you stop typing.</p>
-    <p>You do <strong>not</strong> need to click ↻ manually. It is there if you want to force a commit immediately — for example, before closing your laptop.</p>
-    <div class="callout callout-warn">
-      <span class="material-symbols-rounded">warning</span>
-      <span>Confirm the dot has turned <strong>green at least once</strong> before closing your browser at the end of a session. If it never turns green, your changes are in localStorage but not yet committed to git.</span>
-    </div>
   </div>
 
   <!-- YOUR IDENTITY -->
@@ -515,7 +486,7 @@ node server.js</pre>
     <ul>
       <li><strong>Edit at any time</strong> — click your name in the sidebar header, or go to <strong>Settings → Account</strong></li>
       <li>Name is required; role is optional</li>
-      <li>Identity is stored locally in your browser — it is not synced to git</li>
+      <li>Identity is stored locally in your browser only — it is not included in GitHub Sync</li>
     </ul>
     <div class="callout callout-success">
       <span class="material-symbols-rounded">account_circle</span>
@@ -531,8 +502,56 @@ node server.js</pre>
       <tr><th>Section</th><th>What you can do</th></tr>
       <tr><td><strong>Account</strong></td><td>Update your name and role</td></tr>
       <tr><td><strong>Help</strong></td><td>Open this User Guide in a new tab</td></tr>
+      <tr><td><strong>Data File</strong></td><td>Connect a local JSON file as an automatic backup via the browser's File System API</td></tr>
+      <tr><td><strong>GitHub Sync</strong></td><td>Connect a GitHub repo to automatically back up your data on every change</td></tr>
       <tr><td><strong>Appearance</strong></td><td>Toggle light / dark theme</td></tr>
     </table>
+  </div>
+
+  <!-- DATA FILE -->
+  <div class="section" id="data-file">
+    <h2 class="section-title">Data File</h2>
+    <p>The Data File feature lets you save your entire workspace to a <code>.json</code> file on your machine. It has two distinct uses:</p>
+
+    <h3>Auto-save backup (Connect file)</h3>
+    <p>Click <strong>Connect file</strong> in Settings → Data File. The browser asks you to choose a save location — pick anywhere on your machine, including a folder synced by iCloud Drive or Dropbox.</p>
+    <p>From that point on, every change you make auto-saves to that file within a second. It runs silently in the background alongside GitHub Sync.</p>
+    <ul>
+      <li>Works on the same machine across browser restarts — the app reconnects the file handle automatically on startup</li>
+      <li>Put the file in iCloud Drive or Dropbox for a passive second copy</li>
+      <li>The file contains your <strong>full workspace</strong> — all features, calls, notes, tasks, domain knowledge, Q&amp;A, design files</li>
+    </ul>
+    <div class="callout callout-warn">
+      <span class="material-symbols-rounded">warning</span>
+      <span>The File System Access API is only available in Chrome and Edge. It will not work in Safari or Firefox.</span>
+    </div>
+
+    <h3>Restore from backup (Load from backup)</h3>
+    <p>Click <strong>Load from backup</strong> in Settings → Data File. You can pick any <code>.json</code> file that was previously saved by the Data File auto-save — from this machine, another machine, or sent to you by a teammate.</p>
+    <p>The app reads the file and replaces your current workspace with the full state from that backup. This is the right tool when:</p>
+    <ul>
+      <li>You cleared your browser and lost localStorage, but still have a backup file</li>
+      <li>A teammate shared their full workspace with you as a <code>.json</code> export</li>
+      <li>You are restoring to a new machine and have a backup file in iCloud or Dropbox</li>
+    </ul>
+    <div class="callout">
+      <span class="material-symbols-rounded">tips_and_updates</span>
+      <span><strong>New machine workflow:</strong> copy your backup <code>.json</code> from iCloud or Dropbox, open the app, go to Settings → Data File → Load from backup, and pick the file. Your full workspace is restored instantly.</span>
+    </div>
+
+    <h3>Data File vs GitHub Sync</h3>
+    <table>
+      <thead><tr><th></th><th>Data File</th><th>GitHub Sync</th></tr></thead>
+      <tbody>
+        <tr><td>Auto-saves changes</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td>Cross-machine without extra steps</td><td>No (manual file copy)</td><td>Yes (automatic)</td></tr>
+        <tr><td>Works in Safari / Firefox</td><td>No</td><td>Yes</td></tr>
+        <tr><td>Restore from backup file</td><td>Yes</td><td>No</td></tr>
+        <tr><td>Share full workspace with a teammate</td><td>Yes (send the file)</td><td>No</td></tr>
+        <tr><td>Requires a GitHub account</td><td>No</td><td>Yes</td></tr>
+      </tbody>
+    </table>
+    <p>GitHub Sync is the primary backup for most users. Data File is a useful second layer — especially if you want a portable file you fully control.</p>
   </div>
 
   <!-- SCHEDULE OVERVIEW -->
@@ -752,7 +771,7 @@ node server.js</pre>
   <div class="section" id="tips">
     <h2 class="section-title">Tips</h2>
     <ul>
-      <li><strong>Start every session:</strong> <code>node server.js</code> → open <code>http://localhost:3456</code> → confirm the sync indicator turns green before doing any work</li>
+      <li><strong>Set up GitHub Sync first</strong> — open Settings → GitHub Sync and connect a repo before you start adding features. Takes 2 minutes once, then runs silently in the background forever.</li>
       <li><strong>Start every week on Schedule Overview</strong> — scan current focus and progress, update anything stale before diving in</li>
       <li><strong>Use Current Focus as a daily intent</strong> — one sentence: what specifically needs to happen on this feature today</li>
       <li><strong>Log calls even before they happen</strong> — create as Scheduled, fill in prep, paste the transcript after</li>
