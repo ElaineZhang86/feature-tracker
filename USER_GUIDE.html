@@ -407,10 +407,6 @@
     <pre><code>git clone https://github.com/ElaineZhang86/feature-hub.git</code></pre>
     <p>Then open the folder and double-click <code>index.html</code> to launch the app. No install, no build step.</p>
 
-    <div class="callout">
-      <span class="material-symbols-rounded">tips_and_updates</span>
-      <span>Your data saves automatically to your browser's localStorage as you work. The next steps set up backup so your data isn't tied to one browser.</span>
-    </div>
 
     <h3>2. Connect GitHub Sync (recommended backup)</h3>
     <p><strong>What you need:</strong> a GitHub account, a repository (can be private), and a Personal Access Token with repo write access.</p>
@@ -459,17 +455,8 @@
       <p>Yes, if GitHub Sync is set up. Your full state is pushed on every change. Re-connect on any machine and everything comes back. Without GitHub Sync, clearing browser data will erase your work.</p>
       <h3>How do I share my work with another person — and what's the difference between sharing a feature vs the whole workspace?</h3>
       <p>There are two different ways to share, depending on what you want to hand off:</p>
-      <p><strong>Feature by feature (recommended for handoffs)</strong> — click the <strong>↓ download icon</strong> on any feature header to export that one feature as a <code>.json</code> file. The other person clicks the <strong>↑ upload icon</strong> next to "Features" in their sidebar to import it. They get that feature's full context — calls, notes, tasks, Q&amp;A, domain knowledge — merged into their own workspace without affecting anything else they have.</p>
-      <p><strong>Full workspace (replaces everything)</strong> — go to Settings → Data File and click <strong>Connect file</strong> to save your workspace as a <code>.json</code>, then send that file. The other person goes to Settings → Data File → <strong>Load from backup</strong> and picks the file. This replaces their entire workspace with yours — every feature, every tab, all data. Use this when you want to transfer your complete setup, not just one feature.</p>
-      <table>
-        <thead><tr><th></th><th>Feature export / import</th><th>Data File load from backup</th></tr></thead>
-        <tbody>
-          <tr><td>What transfers</td><td>One feature at a time</td><td>Entire workspace</td></tr>
-          <tr><td>Recipient's existing data</td><td>Kept — feature is added alongside</td><td>Replaced</td></tr>
-          <tr><td>Best for</td><td>Handing off a single feature to a teammate</td><td>Full workspace transfer or onboarding a new designer</td></tr>
-          <tr><td>Works in Safari / Firefox</td><td>Yes</td><td>No (Chrome / Edge only)</td></tr>
-        </tbody>
-      </table>
+      <p><strong>Feature by feature (recommended for handoffs)</strong> — click the <strong>↓ download icon</strong> on any feature header to export that one feature as a <code>.json</code> file. The other person clicks the <strong>↑ upload icon</strong> next to "Features" in their sidebar to import it. Their existing features are untouched — the new feature is simply added alongside them. Works in all browsers.</p>
+      <p><strong>Full workspace</strong> — go to Settings → Data File, click <strong>Connect file</strong> to save your workspace as a <code>.json</code>, then send that file. The other person goes to Settings → Data File → <strong>Load from backup</strong> and picks the file. This replaces their entire workspace with yours. Use this for a full handoff or onboarding a new designer — not for sharing a single feature. Chrome and Edge only.</p>
   </div>
 
   <div class="section" id="navigation">
