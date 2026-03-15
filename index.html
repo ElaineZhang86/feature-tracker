@@ -8161,22 +8161,24 @@ function loadFromSeed() {
       if (data.fh_deleted_features)localStorage.setItem('fh_deleted_features', JSON.stringify(data.fh_deleted_features));
       console.log('[git-sync] Seeded localStorage from embedded snapshot.');
     } else if (data.fh_state) {
-      // Already has state — merge domainKnowledge and qanda from seed if localStorage has none
+      // Merge: restore any field that has data in seed but is empty in localStorage
       const state = JSON.parse(existing);
       let changed = false;
+      const isEmpty = v => v === undefined || v === null || v === '' ||
+                           (Array.isArray(v) && v.length === 0) ||
+                           (typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0);
       Object.keys(data.fh_state).forEach(featureId => {
         const seedFeature = data.fh_state[featureId];
-        if (!state[featureId]) return;
-        ['domainKnowledge', 'qanda', 'ddocEntries'].forEach(key => {
-          if (seedFeature[key] && seedFeature[key].length > 0 &&
-              (!state[featureId][key] || state[featureId][key].length === 0)) {
+        if (!state[featureId]) { state[featureId] = seedFeature; changed = true; return; }
+        Object.keys(seedFeature).forEach(key => {
+          if (!isEmpty(seedFeature[key]) && isEmpty(state[featureId][key])) {
             state[featureId][key] = seedFeature[key];
             changed = true;
-            console.log('[git-sync] Merged ' + key + ' for ' + featureId + ' from snapshot.');
           }
         });
       });
       if (changed) localStorage.setItem('fh_state', JSON.stringify(state));
+      console.log('[git-sync] Merged snapshot into localStorage.');
     }
   } catch(e) {
     console.warn('[git-sync] Failed to parse fh-seed:', e);
