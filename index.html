@@ -6606,6 +6606,8 @@ function setCtxField(id, key, value) {
   showToast();
 }
 
+const _ctxEdit = {};
+
 function buildContextTabHtml(f) {
   const id = f.id;
   const summary   = getCtxSummary(id, f.summary);
@@ -6613,30 +6615,80 @@ function buildContextTabHtml(f) {
   const team      = getCtxArr(id, 'team',      f.team      || []);
   const links     = getCtxArr(id, 'links',     f.links     || []);
 
-  const summaryHtml = `${mdToolbar(`ctx_summary_${id}`)}<textarea class="editable-note" id="ctx_summary_${id}" style="min-height:72px;margin-top:0"
-      placeholder="Describe this feature…"
-      onblur="setCtxField('${id}','summary',this.value)">${escHtml(summary)}</textarea>`;
+  // ── Summary ───────────────────────────────────────────────────────────
+  let summaryHtml;
+  if (_ctxEdit[id + '_summary']) {
+    summaryHtml = `
+      ${mdToolbar(`ctx_summary_${id}`)}
+      <textarea class="editable-note" id="ctx_summary_${id}" style="min-height:72px;margin-top:0" placeholder="Describe this feature…">${escHtml(summary)}</textarea>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn btn-primary" style="font-size:12px;padding:4px 14px" onclick="saveCtxSummary('${id}')">Save</button>
+        <button class="btn" style="font-size:12px;padding:4px 14px" onclick="cancelCtxSummary('${id}')">Cancel</button>
+      </div>`;
+  } else if (summary && summary.trim()) {
+    summaryHtml = `
+      <div class="md-body" style="margin-bottom:10px">${marked.parse(summary)}</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn" style="font-size:12px;padding:4px 12px;display:flex;align-items:center;gap:4px" onclick="editCtxSummary('${id}')">
+          <span class="material-symbols-rounded" style="font-size:14px">edit</span> Edit
+        </button>
+        <button class="btn" style="font-size:12px;padding:4px 12px;color:var(--red)" onclick="deleteCtxSummary('${id}')">Delete</button>
+      </div>`;
+  } else {
+    summaryHtml = `
+      <p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">No summary yet.</p>
+      <button class="btn btn-primary" style="font-size:12px;padding:5px 14px" onclick="editCtxSummary('${id}')">+ Add summary</button>`;
+  }
 
-  const decChipsHtml = decisions.length
-    ? `<ul class="decision-list">${decisions.map((d, i) => `
-        <li style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px">
-          <span style="flex:1">${escHtml(d)}</span>
-          <button class="remove-btn" style="flex-shrink:0" title="Remove" onclick="removeCtxArrItem('${id}','decisions',${i})"><span class="material-symbols-rounded">delete</span></button>
-        </li>`).join('')}</ul>`
-    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">No decisions recorded yet</p>`;
-  const decisionsHtml = decChipsHtml + `
+  // ── Key Decisions ─────────────────────────────────────────────────────
+  const decEditIdx = _ctxEdit[id + '_dec'];
+  const decItemsHtml = decisions.map((d, i) => {
+    if (decEditIdx === i) {
+      return `<li style="display:flex;align-items:center;gap:6px;margin-bottom:6px;list-style:none">
+        <input class="add-item-input" id="${id}_edit_dec_${i}" value="${escHtml(d)}" style="flex:1"
+          onkeydown="if(event.key==='Enter')saveCtxDec('${id}',${i})" />
+        <button class="btn btn-primary" style="font-size:12px;padding:4px 10px;flex-shrink:0" onclick="saveCtxDec('${id}',${i})">Save</button>
+        <button class="btn" style="font-size:12px;padding:4px 10px;flex-shrink:0" onclick="cancelCtxEdit('${id}','dec')">Cancel</button>
+      </li>`;
+    }
+    return `<li style="display:flex;align-items:flex-start;gap:4px;margin-bottom:4px;list-style:none">
+      <span style="flex:1;font-size:13px;padding-top:2px">${escHtml(d)}</span>
+      <button class="q-icon-btn" title="Edit" onclick="editCtxItem('${id}','dec',${i})"><span class="material-symbols-rounded">edit</span></button>
+      <button class="q-icon-btn" title="Remove" onclick="removeCtxArrItem('${id}','decisions',${i})"><span class="material-symbols-rounded" style="color:var(--text-muted)">close</span></button>
+    </li>`;
+  }).join('');
+  const decisionsHtml = (decisions.length
+    ? `<ul style="margin:0 0 12px;padding:0">${decItemsHtml}</ul>`
+    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">No decisions recorded yet</p>`) + `
     <div class="add-item-row" style="padding-top:0;border-top:none">
       <input class="add-item-input" id="${id}_add_decision" placeholder="Add a key decision…"
         onkeydown="if(event.key==='Enter')addCtxArrItem('${id}','decisions','${id}_add_decision')" />
       <button class="btn btn-primary" onclick="addCtxArrItem('${id}','decisions','${id}_add_decision')">Add</button>
     </div>`;
 
-  const teamChipsHtml = team.length
-    ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${team.map((p, i) =>
-        `<span class="constraint-tag" style="display:inline-flex;align-items:center;gap:4px;font-size:12px"><span class="avatar" style="width:18px;height:18px;font-size:9px;flex-shrink:0">${initials(p.name)}</span>${escHtml(p.name)}<span style="color:var(--text-dim)">· ${escHtml(p.role)}</span><button class="remove-btn" style="width:18px;height:18px;flex-shrink:0" title="Remove" onclick="removeCtxTeamMember('${id}',${i})"><span class="material-symbols-rounded" style="font-size:13px">close</span></button></span>`
-      ).join('')}</div>`
-    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">No team members yet</p>`;
-  const teamHtml = teamChipsHtml + `
+  // ── Team ──────────────────────────────────────────────────────────────
+  const teamEditIdx = _ctxEdit[id + '_team'];
+  const teamItemsHtml = team.map((p, i) => {
+    if (teamEditIdx === i) {
+      return `<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+        <input class="add-item-input" id="${id}_edit_team_name_${i}" value="${escHtml(p.name)}" placeholder="Name…" style="flex:1.5"
+          onkeydown="if(event.key==='Enter')saveCtxTeam('${id}',${i})" />
+        <input class="add-item-input" id="${id}_edit_team_role_${i}" value="${escHtml(p.role || '')}" placeholder="Role…"
+          onkeydown="if(event.key==='Enter')saveCtxTeam('${id}',${i})" />
+        <button class="btn btn-primary" style="font-size:12px;padding:4px 10px;flex-shrink:0" onclick="saveCtxTeam('${id}',${i})">Save</button>
+        <button class="btn" style="font-size:12px;padding:4px 10px;flex-shrink:0" onclick="cancelCtxEdit('${id}','team')">Cancel</button>
+      </div>`;
+    }
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span class="avatar" style="width:24px;height:24px;font-size:10px;flex-shrink:0">${initials(p.name)}</span>
+      <span style="flex:1;font-size:13px">${escHtml(p.name)}<span style="color:var(--text-dim)"> · ${escHtml(p.role || '')}</span></span>
+      <button class="q-icon-btn" title="Edit" onclick="editCtxItem('${id}','team',${i})"><span class="material-symbols-rounded">edit</span></button>
+      <button class="q-icon-btn" title="Remove" onclick="removeCtxTeamMember('${id}',${i})"><span class="material-symbols-rounded" style="color:var(--text-muted)">close</span></button>
+    </div>`;
+  }).join('');
+  const teamHtml = (team.length
+    ? `<div style="margin-bottom:12px">${teamItemsHtml}</div>`
+    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">No team members yet</p>`) + `
     <div class="add-item-row" style="padding-top:0;border-top:none">
       <input class="add-item-input" id="${id}_add_team_name" placeholder="Name…" style="flex:1.5"
         onkeydown="if(event.key==='Enter')addCtxTeamMember('${id}')" />
@@ -6645,12 +6697,31 @@ function buildContextTabHtml(f) {
       <button class="btn btn-primary" onclick="addCtxTeamMember('${id}')">Add</button>
     </div>`;
 
-  const linkChipsHtml = links.length
-    ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${links.map((l, i) =>
-        `<span class="constraint-tag" style="display:inline-flex;align-items:center;gap:4px;font-size:12px"><a href="${escHtml(l.url)}" target="_blank" style="color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:3px"><span class="material-symbols-rounded" style="font-size:12px">open_in_new</span>${escHtml(l.label)}</a><button class="remove-btn" style="width:18px;height:18px;flex-shrink:0" title="Remove" onclick="removeCtxLink('${id}',${i})"><span class="material-symbols-rounded" style="font-size:13px">close</span></button></span>`
-      ).join('')}</div>`
-    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">No links added yet</p>`;
-  const linksHtml = linkChipsHtml + `
+  // ── Links ─────────────────────────────────────────────────────────────
+  const linkEditIdx = _ctxEdit[id + '_link'];
+  const linkItemsHtml = links.map((l, i) => {
+    if (linkEditIdx === i) {
+      return `<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+        <input class="add-item-input" id="${id}_edit_link_label_${i}" value="${escHtml(l.label)}" placeholder="Label…" style="flex:1"
+          onkeydown="if(event.key==='Enter')saveCtxLink('${id}',${i})" />
+        <input class="add-item-input" id="${id}_edit_link_url_${i}" value="${escHtml(l.url)}" placeholder="https://…" style="flex:2"
+          onkeydown="if(event.key==='Enter')saveCtxLink('${id}',${i})" />
+        <button class="btn btn-primary" style="font-size:12px;padding:4px 10px;flex-shrink:0" onclick="saveCtxLink('${id}',${i})">Save</button>
+        <button class="btn" style="font-size:12px;padding:4px 10px;flex-shrink:0" onclick="cancelCtxEdit('${id}','link')">Cancel</button>
+      </div>`;
+    }
+    return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      <a href="${escHtml(l.url)}" target="_blank" style="flex:1;color:var(--accent);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:4px;min-width:0">
+        <span class="material-symbols-rounded" style="font-size:13px;flex-shrink:0">open_in_new</span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(l.label)}</span>
+      </a>
+      <button class="q-icon-btn" title="Edit" onclick="editCtxItem('${id}','link',${i})"><span class="material-symbols-rounded">edit</span></button>
+      <button class="q-icon-btn" title="Remove" onclick="removeCtxLink('${id}',${i})"><span class="material-symbols-rounded" style="color:var(--text-muted)">close</span></button>
+    </div>`;
+  }).join('');
+  const linksHtml = (links.length
+    ? `<div style="margin-bottom:12px">${linkItemsHtml}</div>`
+    : `<p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">No links added yet</p>`) + `
     <div class="add-item-row" style="padding-top:0;border-top:none">
       <input class="add-item-input" id="${id}_add_link_label" placeholder="Label…" style="flex:1"
         onkeydown="if(event.key==='Enter')addCtxLink('${id}')" />
@@ -6684,6 +6755,76 @@ function renderContextTab(featureId) {
   if (!f || !panel) return;
   panel.innerHTML = buildContextTabHtml(f);
 }
+
+// ── Summary edit/save/cancel/delete ───────────────────────────────────────
+function editCtxSummary(id) {
+  _ctxEdit[id + '_summary'] = true;
+  renderContextTab(id);
+  setTimeout(() => { const ta = document.getElementById('ctx_summary_' + id); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } }, 30);
+}
+function saveCtxSummary(id) {
+  const ta = document.getElementById('ctx_summary_' + id);
+  if (ta) setCtxField(id, 'summary', ta.value);
+  _ctxEdit[id + '_summary'] = false;
+  renderContextTab(id);
+}
+function cancelCtxSummary(id) {
+  _ctxEdit[id + '_summary'] = false;
+  renderContextTab(id);
+}
+function deleteCtxSummary(id) {
+  setCtxField(id, 'summary', '');
+  _ctxEdit[id + '_summary'] = false;
+  renderContextTab(id);
+}
+
+// ── Array item inline edit ────────────────────────────────────────────────
+function editCtxItem(id, key, idx) {
+  _ctxEdit[id + '_' + key] = idx;
+  renderContextTab(id);
+  setTimeout(() => {
+    const el = document.getElementById(id + '_edit_' + key + '_' + idx)
+            || document.getElementById(id + '_edit_' + key + '_name_' + idx);
+    if (el) el.focus();
+  }, 30);
+}
+function cancelCtxEdit(id, key) {
+  _ctxEdit[id + '_' + key] = null;
+  renderContextTab(id);
+}
+function saveCtxDec(id, i) {
+  const inp = document.getElementById(id + '_edit_dec_' + i);
+  if (!inp || !inp.value.trim()) return;
+  const f = getAllFeatures().find(x => x.id === id);
+  const arr = getCtxArr(id, 'decisions', f ? f.decisions || [] : []);
+  arr[i] = inp.value.trim();
+  setCtxField(id, 'decisions', arr);
+  _ctxEdit[id + '_dec'] = null;
+  renderContextTab(id);
+}
+function saveCtxTeam(id, i) {
+  const nameEl = document.getElementById(id + '_edit_team_name_' + i);
+  const roleEl = document.getElementById(id + '_edit_team_role_' + i);
+  if (!nameEl || !nameEl.value.trim()) return;
+  const f = getAllFeatures().find(x => x.id === id);
+  const arr = getCtxArr(id, 'team', f ? f.team || [] : []);
+  arr[i] = { name: nameEl.value.trim(), role: roleEl ? roleEl.value.trim() : '' };
+  setCtxField(id, 'team', arr);
+  _ctxEdit[id + '_team'] = null;
+  renderContextTab(id);
+}
+function saveCtxLink(id, i) {
+  const labelEl = document.getElementById(id + '_edit_link_label_' + i);
+  const urlEl   = document.getElementById(id + '_edit_link_url_' + i);
+  if (!labelEl || !urlEl) return;
+  const f = getAllFeatures().find(x => x.id === id);
+  const arr = getCtxArr(id, 'links', f ? f.links || [] : []);
+  arr[i] = { label: labelEl.value.trim() || urlEl.value.trim(), url: urlEl.value.trim() };
+  setCtxField(id, 'links', arr);
+  _ctxEdit[id + '_link'] = null;
+  renderContextTab(id);
+}
+
 
 // ═══════════════════════════════════════════════════════════════
 //  CONTEXT DATA EDITING (all features via fh_state)
