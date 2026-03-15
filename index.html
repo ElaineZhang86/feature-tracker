@@ -2128,6 +2128,11 @@
   .dk-entry-content:focus { border-color: var(--accent); }
   .dk-entry-content::placeholder { color: var(--text-dim); }
 
+
+  .dk-clickable { cursor: pointer; min-height: 28px; border-radius: var(--radius-sm); transition: background .12s; }
+  .dk-clickable:hover { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+  .dk-empty-hint { color: var(--text-dim); font-size: 13px; font-style: italic; margin: 0; }
+
   .dk-entry-actions {
     display: flex;
     gap: 8px;
@@ -5340,13 +5345,11 @@ function openDDEdit(featureId, id) {
   }
   const rendered = document.getElementById(`dd_rendered_${featureId}_${id}`);
   const editor   = document.getElementById(`dd_editor_${featureId}_${id}`);
-  const editBtn  = document.getElementById(`dd_editbtn_${featureId}_${id}`);
   const ti       = document.getElementById(`dd_title_input_${featureId}_${id}`);
   const ta       = document.getElementById(`dd_ta_${featureId}_${id}`);
   if (!editor) return;
   if (rendered) rendered.style.display = 'none';
   editor.style.display = 'block';
-  if (editBtn) editBtn.style.display = 'none';
   if (ti && !ti.value.trim()) ti.focus();
   else if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
 }
@@ -5356,17 +5359,15 @@ function saveDDEdit(featureId, id) {
   const ta         = document.getElementById(`dd_ta_${featureId}_${id}`);
   const rendered   = document.getElementById(`dd_rendered_${featureId}_${id}`);
   const editor     = document.getElementById(`dd_editor_${featureId}_${id}`);
-  const editBtn    = document.getElementById(`dd_editbtn_${featureId}_${id}`);
   if (!ta) return;
   const titleVal   = titleInput ? titleInput.value.trim() : '';
   const contentVal = ta.value;
   updateDDField(featureId, id, 'title', titleVal);
   updateDDField(featureId, id, 'content', contentVal);
   editor.style.display = 'none';
-  if (editBtn) editBtn.style.display = '';
   rendered.innerHTML = contentVal.trim()
     ? marked.parse(contentVal)
-    : '<p style="color:var(--text-dim);font-size:13px">No content yet. Click Edit to add.</p>';
+    : '';
   rendered.style.display = 'block';
 }
 
@@ -5381,14 +5382,12 @@ function cancelDDEdit(featureId, id) {
   const ta         = document.getElementById(`dd_ta_${featureId}_${id}`);
   const rendered   = document.getElementById(`dd_rendered_${featureId}_${id}`);
   const editor     = document.getElementById(`dd_editor_${featureId}_${id}`);
-  const editBtn    = document.getElementById(`dd_editbtn_${featureId}_${id}`);
   if (!editor) return;
   if (entry) {
     if (titleInput) titleInput.value = entry.title || '';
     if (ta)         ta.value = entry.content || '';
   }
   if (editor) editor.style.display = 'none';
-  if (editBtn) editBtn.style.display = '';
   if (rendered) rendered.style.display = 'block';
 }
 
@@ -5405,9 +5404,7 @@ function toggleDDCollapse(featureId, id) {
 function buildDDEntryCard(featureId, e) {
   const hasContent = !!(e.content && e.content.trim());
   const isExpanded = _ddOpen[featureId + '_' + e.id] !== false;
-  const renderedHtml = hasContent
-    ? marked.parse(e.content)
-    : '<p style="color:var(--text-dim);font-size:13px">No content yet. Click Edit to add.</p>';
+  const renderedHtml = hasContent ? marked.parse(e.content) : '';
   return `
   <div class="context-card dk-entry${isExpanded ? ' expanded' : ''}" id="dd_card_${featureId}_${e.id}">
     <div class="dk-entry-header" onclick="toggleDDCollapse('${featureId}','${e.id}')">
@@ -5418,16 +5415,15 @@ function buildDDEntryCard(featureId, e) {
           onblur="updateDDField('${featureId}','${e.id}','title',this.value.trim())"
           onkeydown="if(event.key==='Enter'){event.preventDefault();openDDEdit('${featureId}','${e.id}');}" />
       </div>
-      <div class="dk-entry-header-acts" onclick="event.stopPropagation()">
-        <button class="q-icon-btn" id="dd_editbtn_${featureId}_${e.id}" title="Edit entry"
-          onclick="openDDEdit('${featureId}','${e.id}')">
-          <span class="material-symbols-rounded">edit</span>
-        </button>
-      </div>
+      <button class="q-icon-btn" title="Delete entry" onclick="event.stopPropagation();removeDDEntry('${featureId}','${e.id}')">
+        <span class="material-symbols-rounded" style="font-size:16px;color:var(--text-muted)">delete</span>
+      </button>
       <span class="material-symbols-rounded dk-expand-icon">expand_more</span>
     </div>
     <div class="dk-entry-body">
-      <div id="dd_rendered_${featureId}_${e.id}" class="md-body">${renderedHtml}</div>
+      <div id="dd_rendered_${featureId}_${e.id}" class="md-body dk-clickable" onclick="openDDEdit('${featureId}','${e.id}')">
+        ${renderedHtml || '<p class=\'dk-empty-hint\'>Click to add content…</p>'}
+      </div>
       <div id="dd_editor_${featureId}_${e.id}" style="display:${hasContent ? 'none' : 'block'}">
         ${mdToolbar(`dd_ta_${featureId}_${e.id}`)}
         <textarea class="dk-entry-content" id="dd_ta_${featureId}_${e.id}"
@@ -5435,7 +5431,6 @@ function buildDDEntryCard(featureId, e) {
         <div class="dk-entry-actions">
           <button class="btn btn-primary" onclick="saveDDEdit('${featureId}','${e.id}')">Save</button>
           <button class="btn" onclick="cancelDDEdit('${featureId}','${e.id}')">Cancel</button>
-          <button class="btn" style="margin-left:auto;color:var(--red)" onclick="removeDDEntry('${featureId}','${e.id}')">Delete</button>
         </div>
       </div>
     </div>
@@ -6452,13 +6447,11 @@ function openDKEdit(featureId, id) {
   }
   const rendered = document.getElementById(`dk_rendered_${featureId}_${id}`);
   const editor   = document.getElementById(`dk_editor_${featureId}_${id}`);
-  const editBtn  = document.getElementById(`dk_editbtn_${featureId}_${id}`);
   const ti       = document.getElementById(`dk_title_input_${featureId}_${id}`);
   const ta       = document.getElementById(`dk_ta_${featureId}_${id}`);
   if (!editor) return;
   if (rendered) rendered.style.display = 'none';
   editor.style.display = 'block';
-  if (editBtn) editBtn.style.display = 'none';
   if (ti && !ti.value.trim()) ti.focus();
   else if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
 }
@@ -6468,17 +6461,15 @@ function saveDKEdit(featureId, id) {
   const ta         = document.getElementById(`dk_ta_${featureId}_${id}`);
   const rendered   = document.getElementById(`dk_rendered_${featureId}_${id}`);
   const editor     = document.getElementById(`dk_editor_${featureId}_${id}`);
-  const editBtn    = document.getElementById(`dk_editbtn_${featureId}_${id}`);
   if (!ta) return;
   const titleVal   = titleInput ? titleInput.value.trim() : '';
   const contentVal = ta.value;
   updateDKField(featureId, id, 'title', titleVal);
   updateDKField(featureId, id, 'content', contentVal);
   editor.style.display = 'none';
-  if (editBtn) editBtn.style.display = '';
   rendered.innerHTML = contentVal.trim()
     ? marked.parse(contentVal)
-    : '<p style="color:var(--text-dim);font-size:13px">No content yet. Click Edit to add.</p>';
+    : '';
   rendered.style.display = 'block';
 }
 
@@ -6493,14 +6484,12 @@ function cancelDKEdit(featureId, id) {
   const ta         = document.getElementById(`dk_ta_${featureId}_${id}`);
   const rendered   = document.getElementById(`dk_rendered_${featureId}_${id}`);
   const editor     = document.getElementById(`dk_editor_${featureId}_${id}`);
-  const editBtn    = document.getElementById(`dk_editbtn_${featureId}_${id}`);
   if (!editor) return;
   if (entry) {
     if (titleInput) titleInput.value = entry.title || '';
     if (ta)         ta.value = entry.content || '';
   }
   if (editor) editor.style.display = 'none';
-  if (editBtn) editBtn.style.display = '';
   if (rendered) rendered.style.display = 'block';
 }
 
@@ -6517,9 +6506,7 @@ function toggleDKCollapse(featureId, id) {
 function buildDKEntryCard(featureId, e) {
   const hasContent = !!(e.content && e.content.trim());
   const isExpanded = _dkOpen[featureId + '_' + e.id] !== false; // default expanded
-  const renderedHtml = hasContent
-    ? marked.parse(e.content)
-    : '<p style="color:var(--text-dim);font-size:13px">No content yet. Click Edit to add.</p>';
+  const renderedHtml = hasContent ? marked.parse(e.content) : '';
   return `
   <div class="context-card dk-entry${isExpanded ? ' expanded' : ''}" id="dk_card_${featureId}_${e.id}">
     <div class="dk-entry-header" onclick="toggleDKCollapse('${featureId}','${e.id}')">
@@ -6531,17 +6518,14 @@ function buildDKEntryCard(featureId, e) {
           onblur="updateDKField('${featureId}','${e.id}','title',this.value.trim())"
           onkeydown="if(event.key==='Enter'){event.preventDefault();openDKEdit('${featureId}','${e.id}');}" />
       </div>
-      <div class="dk-entry-header-acts" onclick="event.stopPropagation()">
-        <button class="q-icon-btn" id="dk_editbtn_${featureId}_${e.id}" title="Edit entry"
-          onclick="openDKEdit('${featureId}','${e.id}')">
-          <span class="material-symbols-rounded">edit</span>
-        </button>
-      </div>
+      <button class="q-icon-btn" title="Delete entry" onclick="event.stopPropagation();removeDomainKnowledge('${featureId}','${e.id}')">
+        <span class="material-symbols-rounded" style="font-size:16px;color:var(--text-muted)">delete</span>
+      </button>
       <span class="material-symbols-rounded dk-expand-icon">expand_more</span>
     </div>
     <div class="dk-entry-body">
-      <div id="dk_rendered_${featureId}_${e.id}" class="md-body">
-        ${renderedHtml}
+      <div id="dk_rendered_${featureId}_${e.id}" class="md-body dk-clickable" onclick="openDKEdit('${featureId}','${e.id}')">
+        ${renderedHtml || '<p class=\'dk-empty-hint\'>Click to add content…</p>'}
       </div>
       <div id="dk_editor_${featureId}_${e.id}" style="display:${hasContent ? 'none' : 'block'}">
         ${mdToolbar(`dk_ta_${featureId}_${e.id}`)}
@@ -6550,7 +6534,6 @@ function buildDKEntryCard(featureId, e) {
         <div class="dk-entry-actions">
           <button class="btn btn-primary" onclick="saveDKEdit('${featureId}','${e.id}')">Save</button>
           <button class="btn" onclick="cancelDKEdit('${featureId}','${e.id}')">Cancel</button>
-          <button class="btn" style="margin-left:auto;color:var(--red)" onclick="removeDomainKnowledge('${featureId}','${e.id}')">Delete</button>
         </div>
       </div>
     </div>
