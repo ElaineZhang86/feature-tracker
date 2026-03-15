@@ -6612,10 +6612,8 @@ function buildContextTabHtml(f) {
     summaryHtml = `
       <div class="md-body" style="margin-bottom:10px">${marked.parse(summary)}</div>
       <div style="display:flex;gap:6px">
-        <button class="btn" style="font-size:12px;padding:4px 12px;display:flex;align-items:center;gap:4px" onclick="editCtxSummary('${id}')">
-          <span class="material-symbols-rounded" style="font-size:14px">edit</span> Edit
-        </button>
-        <button class="btn" style="font-size:12px;padding:4px 12px;color:var(--red)" onclick="deleteCtxSummary('${id}')">Delete</button>
+        <button class="q-icon-btn" title="Edit" onclick="editCtxSummary('${id}')"><span class="material-symbols-rounded">edit</span></button>
+        <button class="q-icon-btn del" title="Delete" onclick="deleteCtxSummary('${id}')"><span class="material-symbols-rounded">delete</span></button>
       </div>`;
   } else {
     summaryHtml = `
@@ -6637,7 +6635,7 @@ function buildContextTabHtml(f) {
     return `<li style="display:flex;align-items:flex-start;gap:4px;margin-bottom:4px;list-style:none">
       <span style="flex:1;font-size:13px;padding-top:2px">${escHtml(d)}</span>
       <button class="q-icon-btn" title="Edit" onclick="editCtxItem('${id}','dec',${i})"><span class="material-symbols-rounded">edit</span></button>
-      <button class="q-icon-btn" title="Remove" onclick="removeCtxArrItem('${id}','decisions',${i})"><span class="material-symbols-rounded" style="color:var(--text-muted)">close</span></button>
+      <button class="q-icon-btn del" title="Delete" onclick="removeCtxArrItem('${id}','decisions',${i})"><span class="material-symbols-rounded">delete</span></button>
     </li>`;
   }).join('');
   const decisionsHtml = (decisions.length
@@ -6666,7 +6664,7 @@ function buildContextTabHtml(f) {
       <span class="avatar" style="width:24px;height:24px;font-size:10px;flex-shrink:0">${initials(p.name)}</span>
       <span style="flex:1;font-size:13px">${escHtml(p.name)}<span style="color:var(--text-dim)"> · ${escHtml(p.role || '')}</span></span>
       <button class="q-icon-btn" title="Edit" onclick="editCtxItem('${id}','team',${i})"><span class="material-symbols-rounded">edit</span></button>
-      <button class="q-icon-btn" title="Remove" onclick="removeCtxTeamMember('${id}',${i})"><span class="material-symbols-rounded" style="color:var(--text-muted)">close</span></button>
+      <button class="q-icon-btn del" title="Delete" onclick="removeCtxTeamMember('${id}',${i})"><span class="material-symbols-rounded">delete</span></button>
     </div>`;
   }).join('');
   const teamHtml = (team.length
@@ -6699,7 +6697,7 @@ function buildContextTabHtml(f) {
         <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(l.label)}</span>
       </a>
       <button class="q-icon-btn" title="Edit" onclick="editCtxItem('${id}','link',${i})"><span class="material-symbols-rounded">edit</span></button>
-      <button class="q-icon-btn" title="Remove" onclick="removeCtxLink('${id}',${i})"><span class="material-symbols-rounded" style="color:var(--text-muted)">close</span></button>
+      <button class="q-icon-btn del" title="Delete" onclick="removeCtxLink('${id}',${i})"><span class="material-symbols-rounded">delete</span></button>
     </div>`;
   }).join('');
   const linksHtml = (links.length
@@ -8621,9 +8619,9 @@ document.addEventListener('click', () => {
       ],
       "notesEntries": [
         {
-          "id": "n1773546854722",
+          "id": "n1773547345928",
           "text": "",
-          "createdAt": 1773546854722
+          "createdAt": 1773547345928
         }
       ],
       "specLinks": [],
@@ -8636,14 +8634,14 @@ document.addEventListener('click', () => {
       ],
       "domainKnowledge": [
         {
-          "id": "1773546651493",
+          "id": "1773547290262",
           "title": "",
           "content": ""
         }
       ],
       "designFiles": [
         {
-          "id": "df1773546720179",
+          "id": "df1773547339179",
           "title": "",
           "figmaUrl": "",
           "figmaLabel": "",
@@ -8651,7 +8649,44 @@ document.addEventListener('click', () => {
           "protoLabel": "",
           "screenshots": [],
           "notes": "",
-          "createdAt": 1773546720179
+          "createdAt": 1773547339179
+        }
+      ],
+      "calls": [
+        {
+          "id": "1773547314283",
+          "callName": "",
+          "callType": "customer",
+          "status": "scheduled",
+          "customer": "",
+          "relatedCustomer": "",
+          "callCategory": "",
+          "date": "",
+          "attendees": "",
+          "departments": "",
+          "notesLink": "",
+          "links": [],
+          "transcript": "",
+          "summary": "",
+          "prepResearchQs": "",
+          "prepWhoTalking": "",
+          "prepCompanySegment": "",
+          "prepTenure": "",
+          "prepUsageIndicators": "",
+          "prepTypesOfWork": "",
+          "prepWarmUpQs": "",
+          "prepTopicQs": "",
+          "prepListenFor": "",
+          "label": "",
+          "link": "",
+          "stage": ""
+        }
+      ],
+      "customQuestions": [],
+      "deletedCustomQuestions": [
+        {
+          "id": "1773547328299",
+          "text": "kkk"
         }
       ]
     },
