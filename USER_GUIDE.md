@@ -1,77 +1,23 @@
-# Feature Context Hub — User Guide
+# Feature Tracker — User Guide
 
-**Feature Context Hub** is a personal workspace for product designers to track every in-flight feature in one place. It replaces scattered Confluence notes, Slack threads, and browser bookmarks with a single file that keeps context, research, calls, and tasks together — organized per feature, always accessible offline.
-
----
-
-## How to Open the App
-
-> **Important:** Always open the app at **http://localhost:3456** — never by double-clicking `index.html`.
->
-> Double-clicking the file opens it as `file://` which has completely separate storage from `localhost`. Your data will not show up there.
+**Feature Tracker** is a personal workspace for product designers to track every in-flight feature in one place. It replaces scattered Confluence notes, Slack threads, and browser bookmarks with a single file that keeps context, research, calls, and tasks together — organized per feature, always accessible offline.
 
 ---
 
 ## Setup
 
-### What you need
+### 1. Open the app
 
-- [Node.js](https://nodejs.org) v18 or later
-- [Git](https://git-scm.com)
+Open `index.html` directly in your browser, or visit the hosted GitHub Pages URL if available.
 
-### First-time setup
+### 2. Enter your name and role
 
-**1. Clone the repo**
+On first launch, a two-step welcome modal appears:
 
-```bash
-git clone https://github.com/YOUR_USERNAME/feature-tracker.git
-cd feature-tracker
-```
+- **Step 1** — enter your name and role
+- **Step 2** — optionally connect GitHub Sync (recommended) so your data is backed up automatically
 
-**2. Start the server**
-
-```bash
-node server.js
-```
-
-You should see:
-```
-Feature Tracker running at http://localhost:3456
-```
-
-**3. Open the app**
-
-Open **http://localhost:3456** in your browser. Keep the terminal open while you work.
-
-### Daily workflow
-
-1. Open Terminal, `cd` into the `feature-tracker` folder
-2. Run `node server.js`
-3. Open **http://localhost:3456** in your browser
-4. Work normally — all changes save automatically
-
-### Restoring on a new machine
-
-```bash
-git clone https://github.com/YOUR_USERNAME/feature-tracker.git
-cd feature-tracker
-node server.js
-```
-
-Open `http://localhost:3456`. If you have GitHub Sync configured, your data loads automatically from GitHub. Otherwise it loads from the snapshot in `index.html`.
-
-### Getting updates
-
-```bash
-git pull
-node server.js
-```
-
-Your data is not affected — the pull only updates the app code.
-
-**In-app update notification:** When an update is available, a banner automatically appears at the top of the app (above Schedule Overview):
-
-> ⬆ **App update available** — run `git pull` in your terminal, then restart `node server.js` to get the latest version.
+You can skip Step 2 and set up GitHub Sync later in **Settings → GitHub Sync**.
 
 ---
 
@@ -134,29 +80,24 @@ The sidebar footer shows a green dot and "GitHub saved HH:MM" after each success
 ## Common Questions
 
 **Does the app need internet to work?**
-No. The app runs entirely on your local machine. Internet is only required if you are using GitHub Sync.
-
----
-
-**What is the terminal doing? Can I use other terminals while it's open?**
-The terminal is just running the local server. As long as `node server.js` is running somewhere, the app works. You can freely use other terminals or work in other directories — that one just needs to stay open so the server keeps running.
+No. The app runs entirely in your browser. Internet is only required for GitHub Sync to push and pull data.
 
 ---
 
 **Where is my data stored?**
-All changes save instantly to your browser's localStorage. If you have GitHub Sync configured, a backup also saves to `data.json` in your GitHub repo within 1 second of each change. If you have a Data File connected, it saves there too.
+All changes save instantly to your browser's localStorage. If you have GitHub Sync configured, a backup also saves to your GitHub repo within 1 second of each change. If you have a Data File connected, it saves there too.
 
 ---
 
 **Do I need to create a git branch?**
-If you are just using the tool — adding tasks, notes, calls, domain knowledge — you can stay on `main`. No branch needed.
+If you are just using the tool — adding tasks, notes, calls, domain knowledge — no branch needed.
 
-If you want to experiment with changing the app itself (modifying the UI, adding functionality), create your own branch so you can test things without affecting the working version.
+If you want to experiment with modifying the app itself, create a branch so you can test without affecting the working version.
 
 ---
 
 **Will my changes affect the original repo?**
-No. Since you cloned it, any changes you make only affect your local copy. The original repo would only change if someone pushed changes back to GitHub, which requires permissions.
+No. Any changes you make only affect your local copy unless you explicitly push them.
 
 ---
 
@@ -197,11 +138,27 @@ Click the **⚙ icon** in the sidebar footer to open Settings.
 
 | Section | What you can do |
 |---------|----------------|
-| Account | Update your name and role |
-| Data File | Connect a local JSON file for automatic backup |
-| GitHub Sync | Connect a GitHub repo for automatic cloud backup |
+| Account | Update your name and role — name, role, and Save in one row |
+| GitHub Sync | Connect a GitHub repo to back up your data automatically on every change |
+| Data File | Auto-save to a local JSON file, or restore your full workspace from a backup |
 | Help | Open the User Guide |
 | Appearance | Toggle light / dark theme |
+
+### GitHub Sync
+
+Fill in Owner, Repository, Branch, File path, and Personal Access Token. The **Connect** button is disabled until the three required fields (owner, repo, token) are filled. Once all fields are filled, click Connect — the app tests the connection and writes your data to GitHub immediately. On success, the fields collapse and a **Disconnect** button appears.
+
+To change your settings, click **Disconnect** (a confirmation modal appears first), then re-enter your details and reconnect.
+
+### Data File
+
+| Button | What it does |
+|--------|-------------|
+| **Connect file** | Browser prompts you to pick a save location. Every change auto-saves to that file. Once connected the button becomes **Download**. |
+| **Download** | Downloads the current workspace as `feature-tracker-data.json` to your Downloads folder. |
+| **Load from backup** | Pick any `.json` backup file to restore your full workspace. Replaces everything in your current session. |
+
+When a file is connected, the status row shows the filename and file size.
 
 ---
 

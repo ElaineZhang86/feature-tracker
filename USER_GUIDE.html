@@ -456,7 +456,7 @@
       <h3>How do I share my work with another person — and what's the difference between sharing a feature vs the whole workspace?</h3>
       <p>There are two different ways to share, depending on what you want to hand off:</p>
       <p><strong>Feature by feature (recommended for handoffs)</strong> — click the <strong>↓ download icon</strong> on any feature header to export that one feature as a <code>.json</code> file. The other person clicks the <strong>↑ upload icon</strong> next to "Features" in their sidebar to import it. Their existing features are untouched — the new feature is simply added alongside them. Works in all browsers.</p>
-      <p><strong>Full workspace</strong> — go to Settings → Data File, click <strong>Connect file</strong> to save your workspace as a <code>.json</code>, then send that file. The other person goes to Settings → Data File → <strong>Load from backup</strong> and picks the file. This replaces their entire workspace with yours. Use this for a full handoff or onboarding a new designer — not for sharing a single feature. Chrome and Edge only.</p>
+      <p><strong>Full workspace</strong> — go to <strong>Settings → Data File</strong>, click <strong>Connect file</strong> to connect a save location, then click <strong>Download</strong> to get a <code>feature-tracker-data.json</code> file. Send that file to the other person. They go to <strong>Settings → Data File → Load from backup</strong> and pick the file. This replaces their entire workspace with yours. Use this for a full handoff or onboarding a new designer — not for sharing a single feature. Chrome and Edge only.</p>
   </div>
 
   <div class="section" id="navigation">
@@ -478,15 +478,15 @@
   <!-- YOUR IDENTITY -->
   <div class="section" id="identity">
     <h2 class="section-title">Your Identity</h2>
-    <p>On first launch, a welcome modal prompts you to enter your name and role. These appear in the sidebar header beneath the app title so you always know whose workspace this is.</p>
+    <p>On first launch, a two-step welcome modal appears:</p>
     <ul>
-      <li><strong>Edit at any time</strong> — click your name in the sidebar header, or go to <strong>Settings → Account</strong></li>
-      <li>Name is required; role is optional</li>
-      <li>Identity is stored locally in your browser only — it is not included in GitHub Sync</li>
+      <li><strong>Step 1 — Name &amp; Role</strong> — enter your name (required) and role (optional). Click <strong>Next →</strong> to continue.</li>
+      <li><strong>Step 2 — GitHub Sync (optional)</strong> — connect a GitHub repo for automatic backup. You can skip this and set it up later in <strong>Settings → GitHub Sync</strong>.</li>
     </ul>
+    <p>Your name and role appear in the sidebar header. Edit at any time by clicking your name in the sidebar or going to <strong>Settings → Account</strong>.</p>
     <div class="callout callout-success">
       <span class="material-symbols-rounded">account_circle</span>
-      <span>Once saved, the welcome modal never appears again. Your name and role persist across sessions in localStorage.</span>
+      <span>Identity is stored locally in your browser only — it is not included in GitHub Sync.</span>
     </div>
   </div>
 
@@ -496,20 +496,24 @@
     <p>Click the <strong>⚙ icon</strong> in the sidebar footer to open the Settings panel.</p>
     <table>
       <tr><th>Section</th><th>What you can do</th></tr>
-      <tr><td><strong>Account</strong></td><td>Update your name and role</td></tr>
-      <tr><td><strong>Help</strong></td><td>Open this User Guide in a new tab</td></tr>
-      <tr><td><strong>Data File</strong></td><td>Auto-save your full workspace to a local JSON file, or restore from a backup</td></tr>
+      <tr><td><strong>Account</strong></td><td>Update your name and role — all in one row with Save</td></tr>
       <tr><td><strong>GitHub Sync</strong></td><td>Connect a GitHub repo to automatically back up your data on every change</td></tr>
+      <tr><td><strong>Data File</strong></td><td>Auto-save your full workspace to a local JSON file, or restore from a backup</td></tr>
+      <tr><td><strong>Help</strong></td><td>Open this User Guide in a new tab</td></tr>
       <tr><td><strong>Appearance</strong></td><td>Toggle light / dark theme</td></tr>
     </table>
 
-    <h3>Data File</h3>
-    <p>The Data File setting has two buttons:</p>
-    <p><strong>Connect file</strong> — the browser asks you to choose a save location on your machine. Every change you make auto-saves to that file within a second. Put it in iCloud Drive or Dropbox for a passive second copy alongside GitHub Sync. The file contains your full workspace — all features, calls, notes, tasks, domain knowledge, Q&amp;A, and design files.</p>
-    <p><strong>Load from backup</strong> — pick any <code>.json</code> file previously saved by the Data File auto-save (from this machine, another machine, or sent by a teammate). The app reads the file and restores your full workspace from it. Useful when you have cleared your browser, moved to a new machine, or received a full workspace export from someone else.</p>
+    <h3>GitHub Sync</h3>
+    <p>Fill in your Owner, Repository, Branch, File path, and Personal Access Token. The <strong>Connect</strong> button is disabled until all three required fields (owner, repo, token) are filled. Click Connect — the app verifies credentials, writes your data to GitHub, and collapses the form.</p>
+    <p>When connected, the status row shows a green dot with your repo name and the last save time. A <strong>Disconnect</strong> button appears in the section header. Clicking it shows a confirmation modal before disconnecting — your field values are preserved so you can reconnect without retyping.</p>
+
+    <h3 id="data-file">Data File</h3>
+    <p>The Data File section has two actions:</p>
+    <p><strong>Connect file / Download</strong> — when no file is connected, clicking <strong>Connect file</strong> prompts you to pick a save location. Every change auto-saves to that file within a second. Once connected, the button becomes <strong>Download</strong> — clicking it downloads the current workspace as <code>feature-tracker-data.json</code>. The status row shows the connected filename and file size.</p>
+    <p><strong>Load from backup</strong> — pick any <code>.json</code> backup file to restore your full workspace. This replaces everything in your current session. Useful after clearing the browser, moving to a new machine, or receiving a workspace export from a teammate.</p>
     <div class="callout callout-warn">
       <span class="material-symbols-rounded">warning</span>
-      <span>The File System Access API is only available in Chrome and Edge. It will not work in Safari or Firefox.</span>
+      <span>The File System Access API (Connect file / Download / Load from backup) is only available in Chrome and Edge. It will not work in Safari or Firefox.</span>
     </div>
   </div>
 
