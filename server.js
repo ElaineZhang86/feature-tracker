@@ -52,11 +52,17 @@ function handleSync(req, res) {
       // Remove existing seed tag if present
       html = html.replace(/<script id="fh-seed" type="application\/json">[\s\S]*?<\/script>\n?/, '');
 
-      // Inject seed tag just before </body>
+      // Inject seed tag just before the init script so loadFromSeed() can
+      // find the element when it runs. Fallback to </body> if not found.
       // Sanitize: re-parse and re-serialize to escape any control characters
       const cleanState = JSON.parse(JSON.stringify(state));
       const seedTag = `<script id="fh-seed" type="application/json">\n${JSON.stringify(cleanState, null, 2)}\n</script>\n`;
-      html = html.replace('</body>', seedTag + '</body>');
+      const initScriptMarker = '<script>loadFromSeed()';
+      if (html.includes(initScriptMarker)) {
+        html = html.replace(initScriptMarker, seedTag + initScriptMarker);
+      } else {
+        html = html.replace('</body>', seedTag + '</body>');
+      }
 
       fs.writeFileSync(INDEX, html, 'utf8');
 
