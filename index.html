@@ -1514,6 +1514,13 @@
   .note-entry:last-child { margin-bottom: 0; }
   .note-entry:not(.note-editing):hover { border-color: var(--accent-dim); }
   .note-entry-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .dk-collapse-header { display: flex; align-items: center; justify-content: space-between; cursor: pointer; gap: 8px; padding: 0; margin: -2px 0 0; }
+  .dk-collapse-header:hover .dk-collapse-title { color: var(--accent); }
+  .dk-collapse-title { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; min-width: 0; }
+  .dk-collapse-chevron { font-size: 16px; color: var(--text-dim); flex-shrink: 0; transition: transform .2s; }
+  .dk-collapsed .dk-collapse-chevron { transform: rotate(-90deg); }
+  .dk-collapsed .note-entry-body, .dk-collapsed .note-entry-meta { display: none; }
+  .dk-collapsed { padding-bottom: 12px; }
   .note-title-input {
     width: 100%; box-sizing: border-box;
     font-size: 13px; font-weight: 600;
@@ -6417,6 +6424,13 @@ function getDomainKnowledge(featureId) {
 }
 
 const _dkEditMode = {};
+const _dkCollapsed = {};
+
+function toggleDKCollapse(featureId, id) {
+  const key = featureId + '::' + id;
+  _dkCollapsed[key] = !_dkCollapsed[key];
+  renderDomainKnowledgeList(featureId);
+}
 
 function addDomainKnowledge(featureId) {
   const id = Date.now().toString();
@@ -6480,16 +6494,20 @@ function buildDKEntryCard(featureId, e) {
       </div>
     </div>`;
   }
-  return `<div class="note-entry">
-    ${e.title ? `<div class="note-entry-title">${escHtml(e.title)}</div>` : ''}
-    <div class="note-entry-body">${marked.parse(e.content || '')}</div>
+  const isCollapsed = _dkCollapsed[featureId + '::' + e.id];
+  return `<div class="note-entry${isCollapsed ? ' dk-collapsed' : ''}">
+    <div class="dk-collapse-header" onclick="toggleDKCollapse('${featureId}','${e.id}')">
+      <span class="dk-collapse-title">${e.title ? escHtml(e.title) : '<span style=\'color:var(--text-dim);font-weight:400\'>Untitled</span>'}</span>
+      <span class="material-symbols-rounded dk-collapse-chevron">expand_more</span>
+    </div>
+    <div class="note-entry-body" style="margin-top:8px">${marked.parse(e.content || '')}</div>
     <div class="note-entry-meta">
       <span class="note-ts">${formatNoteDate(e.createdAt)}</span>
       <div style="display:flex;gap:3px">
-        <button class="q-icon-btn" title="Edit" onclick="editDKEntry('${featureId}','${e.id}')">
+        <button class="q-icon-btn" title="Edit" onclick="event.stopPropagation();editDKEntry('${featureId}','${e.id}')">
           <span class="material-symbols-rounded">edit</span>
         </button>
-        <button class="q-icon-btn del" title="Delete" onclick="removeDomainKnowledge('${featureId}','${e.id}')">
+        <button class="q-icon-btn del" title="Delete" onclick="event.stopPropagation();removeDomainKnowledge('${featureId}','${e.id}')">
           <span class="material-symbols-rounded">delete</span>
         </button>
       </div>
