@@ -295,10 +295,6 @@
       <span class="material-symbols-rounded nav-icon">settings</span>
       <span class="nav-label">Settings</span>
     </a>
-    <a class="nav-item" href="#data-file" onclick="setActive(this)">
-      <span class="material-symbols-rounded nav-icon">save</span>
-      <span class="nav-label">Data File</span>
-    </a>
     <a class="nav-item" href="#schedule" onclick="setActive(this)">
       <span class="material-symbols-rounded nav-icon">grid_view</span>
       <span class="nav-label">Schedule Overview</span>
@@ -461,6 +457,19 @@
       <p>Open the app on your new machine, go to <strong>Settings → GitHub Sync</strong>, and enter the same repo, owner, branch, and file path. Click Connect — the app fetches your data from GitHub and loads it automatically.</p>
       <h3>Is my data safe if I accidentally clear my browser?</h3>
       <p>Yes, if GitHub Sync is set up. Your full state is pushed on every change. Re-connect on any machine and everything comes back. Without GitHub Sync, clearing browser data will erase your work.</p>
+      <h3>How do I share my work with another person — and what's the difference between sharing a feature vs the whole workspace?</h3>
+      <p>There are two different ways to share, depending on what you want to hand off:</p>
+      <p><strong>Feature by feature (recommended for handoffs)</strong> — click the <strong>↓ download icon</strong> on any feature header to export that one feature as a <code>.json</code> file. The other person clicks the <strong>↑ upload icon</strong> next to "Features" in their sidebar to import it. They get that feature's full context — calls, notes, tasks, Q&amp;A, domain knowledge — merged into their own workspace without affecting anything else they have.</p>
+      <p><strong>Full workspace (replaces everything)</strong> — go to Settings → Data File and click <strong>Connect file</strong> to save your workspace as a <code>.json</code>, then send that file. The other person goes to Settings → Data File → <strong>Load from backup</strong> and picks the file. This replaces their entire workspace with yours — every feature, every tab, all data. Use this when you want to transfer your complete setup, not just one feature.</p>
+      <table>
+        <thead><tr><th></th><th>Feature export / import</th><th>Data File load from backup</th></tr></thead>
+        <tbody>
+          <tr><td>What transfers</td><td>One feature at a time</td><td>Entire workspace</td></tr>
+          <tr><td>Recipient's existing data</td><td>Kept — feature is added alongside</td><td>Replaced</td></tr>
+          <tr><td>Best for</td><td>Handing off a single feature to a teammate</td><td>Full workspace transfer or onboarding a new designer</td></tr>
+          <tr><td>Works in Safari / Firefox</td><td>Yes</td><td>No (Chrome / Edge only)</td></tr>
+        </tbody>
+      </table>
   </div>
 
   <div class="section" id="navigation">
@@ -502,56 +511,19 @@
       <tr><th>Section</th><th>What you can do</th></tr>
       <tr><td><strong>Account</strong></td><td>Update your name and role</td></tr>
       <tr><td><strong>Help</strong></td><td>Open this User Guide in a new tab</td></tr>
-      <tr><td><strong>Data File</strong></td><td>Connect a local JSON file as an automatic backup via the browser's File System API</td></tr>
+      <tr><td><strong>Data File</strong></td><td>Auto-save your full workspace to a local JSON file, or restore from a backup</td></tr>
       <tr><td><strong>GitHub Sync</strong></td><td>Connect a GitHub repo to automatically back up your data on every change</td></tr>
       <tr><td><strong>Appearance</strong></td><td>Toggle light / dark theme</td></tr>
     </table>
-  </div>
 
-  <!-- DATA FILE -->
-  <div class="section" id="data-file">
-    <h2 class="section-title">Data File</h2>
-    <p>The Data File feature lets you save your entire workspace to a <code>.json</code> file on your machine. It has two distinct uses:</p>
-
-    <h3>Auto-save backup (Connect file)</h3>
-    <p>Click <strong>Connect file</strong> in Settings → Data File. The browser asks you to choose a save location — pick anywhere on your machine, including a folder synced by iCloud Drive or Dropbox.</p>
-    <p>From that point on, every change you make auto-saves to that file within a second. It runs silently in the background alongside GitHub Sync.</p>
-    <ul>
-      <li>Works on the same machine across browser restarts — the app reconnects the file handle automatically on startup</li>
-      <li>Put the file in iCloud Drive or Dropbox for a passive second copy</li>
-      <li>The file contains your <strong>full workspace</strong> — all features, calls, notes, tasks, domain knowledge, Q&amp;A, design files</li>
-    </ul>
+    <h3>Data File</h3>
+    <p>The Data File setting has two buttons:</p>
+    <p><strong>Connect file</strong> — the browser asks you to choose a save location on your machine. Every change you make auto-saves to that file within a second. Put it in iCloud Drive or Dropbox for a passive second copy alongside GitHub Sync. The file contains your full workspace — all features, calls, notes, tasks, domain knowledge, Q&amp;A, and design files.</p>
+    <p><strong>Load from backup</strong> — pick any <code>.json</code> file previously saved by the Data File auto-save (from this machine, another machine, or sent by a teammate). The app reads the file and restores your full workspace from it. Useful when you have cleared your browser, moved to a new machine, or received a full workspace export from someone else.</p>
     <div class="callout callout-warn">
       <span class="material-symbols-rounded">warning</span>
       <span>The File System Access API is only available in Chrome and Edge. It will not work in Safari or Firefox.</span>
     </div>
-
-    <h3>Restore from backup (Load from backup)</h3>
-    <p>Click <strong>Load from backup</strong> in Settings → Data File. You can pick any <code>.json</code> file that was previously saved by the Data File auto-save — from this machine, another machine, or sent to you by a teammate.</p>
-    <p>The app reads the file and replaces your current workspace with the full state from that backup. This is the right tool when:</p>
-    <ul>
-      <li>You cleared your browser and lost localStorage, but still have a backup file</li>
-      <li>A teammate shared their full workspace with you as a <code>.json</code> export</li>
-      <li>You are restoring to a new machine and have a backup file in iCloud or Dropbox</li>
-    </ul>
-    <div class="callout">
-      <span class="material-symbols-rounded">tips_and_updates</span>
-      <span><strong>New machine workflow:</strong> copy your backup <code>.json</code> from iCloud or Dropbox, open the app, go to Settings → Data File → Load from backup, and pick the file. Your full workspace is restored instantly.</span>
-    </div>
-
-    <h3>Data File vs GitHub Sync</h3>
-    <table>
-      <thead><tr><th></th><th>Data File</th><th>GitHub Sync</th></tr></thead>
-      <tbody>
-        <tr><td>Auto-saves changes</td><td>Yes</td><td>Yes</td></tr>
-        <tr><td>Cross-machine without extra steps</td><td>No (manual file copy)</td><td>Yes (automatic)</td></tr>
-        <tr><td>Works in Safari / Firefox</td><td>No</td><td>Yes</td></tr>
-        <tr><td>Restore from backup file</td><td>Yes</td><td>No</td></tr>
-        <tr><td>Share full workspace with a teammate</td><td>Yes (send the file)</td><td>No</td></tr>
-        <tr><td>Requires a GitHub account</td><td>No</td><td>Yes</td></tr>
-      </tbody>
-    </table>
-    <p>GitHub Sync is the primary backup for most users. Data File is a useful second layer — especially if you want a portable file you fully control.</p>
   </div>
 
   <!-- SCHEDULE OVERVIEW -->
