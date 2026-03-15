@@ -1517,11 +1517,14 @@
   .note-title-input {
     width: 100%; box-sizing: border-box;
     font-size: 13px; font-weight: 600;
-    border: none; border-bottom: 1px solid var(--border);
-    background: transparent; color: var(--text);
-    padding: 4px 0; margin-bottom: 8px; outline: none; font-family: inherit;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 7px 10px; margin-bottom: 8px; outline: none; font-family: inherit;
+    transition: border-color .15s, background .15s;
   }
-  .note-title-input:focus { border-bottom-color: var(--accent); }
+  .note-title-input:focus { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--surface2)); }
   .note-title-input::placeholder { color: var(--text-dim); font-weight: 400; }
   .note-entry-body { font-size: 13px; line-height: 1.7; color: var(--text); word-break: break-word; }
   .note-entry-body p { margin: 0 0 6px; }
@@ -2067,7 +2070,6 @@
     align-items: center;
     gap: 10px;
     padding: 13px 18px 12px;
-    border-bottom: 1px solid var(--border);
     cursor: pointer;
     user-select: none;
     padding: 2px 18px 2px 14px;
@@ -2084,11 +2086,14 @@
   .dk-entry-title-input {
     width: 100%; box-sizing: border-box;
     font-size: 13px; font-weight: 600;
-    border: none; border-bottom: 1px solid var(--border);
-    background: transparent; color: var(--text);
-    padding: 4px 0; outline: none; font-family: inherit;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 7px 10px; outline: none; font-family: inherit;
+    transition: border-color .15s, background .15s;
   }
-  .dk-entry-title-input:focus { border-bottom-color: var(--accent); }
+  .dk-entry-title-input:focus { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--surface2)); }
   .dk-entry-title-input::placeholder { color: var(--text-dim); font-weight: 400; }
 
   .dk-entry-header-acts {
@@ -5336,12 +5341,14 @@ function openDDEdit(featureId, id) {
   const rendered = document.getElementById(`dd_rendered_${featureId}_${id}`);
   const editor   = document.getElementById(`dd_editor_${featureId}_${id}`);
   const editBtn  = document.getElementById(`dd_editbtn_${featureId}_${id}`);
+  const ti       = document.getElementById(`dd_title_input_${featureId}_${id}`);
   const ta       = document.getElementById(`dd_ta_${featureId}_${id}`);
   if (!editor) return;
   if (rendered) rendered.style.display = 'none';
   editor.style.display = 'block';
   if (editBtn) editBtn.style.display = 'none';
-  if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  if (ti && !ti.value.trim()) ti.focus();
+  else if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
 }
 
 function saveDDEdit(featureId, id) {
@@ -6449,12 +6456,14 @@ function openDKEdit(featureId, id) {
   const rendered = document.getElementById(`dk_rendered_${featureId}_${id}`);
   const editor   = document.getElementById(`dk_editor_${featureId}_${id}`);
   const editBtn  = document.getElementById(`dk_editbtn_${featureId}_${id}`);
+  const ti       = document.getElementById(`dk_title_input_${featureId}_${id}`);
   const ta       = document.getElementById(`dk_ta_${featureId}_${id}`);
   if (!editor) return;
   if (rendered) rendered.style.display = 'none';
   editor.style.display = 'block';
   if (editBtn) editBtn.style.display = 'none';
-  if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  if (ti && !ti.value.trim()) ti.focus();
+  else if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
 }
 
 function saveDKEdit(featureId, id) {
@@ -7218,7 +7227,7 @@ function addNoteEntry(id) {
   saveNoteEntries(id, [...getNoteEntries(id), note]);
   _noteEditMode[id + '::' + note.id] = true;
   renderNotesTab(id);
-  setTimeout(() => { const ta = document.getElementById('ne_' + id + '_' + note.id); if (ta) ta.focus(); }, 30);
+  setTimeout(() => { const ti = document.getElementById('ne_title_' + id + '_' + note.id); if (ti) ti.focus(); }, 30);
 }
 
 function editNoteEntry(id, noteId) {
@@ -8963,7 +8972,8 @@ document.addEventListener('click', () => {
           "text": "test"
         }
       ],
-      "ctx_decisions": []
+      "ctx_decisions": [],
+      "ctx_team": []
     },
     "custom_1773511895391": {
       "tasks": [],
