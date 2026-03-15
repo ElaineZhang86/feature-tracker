@@ -5413,7 +5413,7 @@ function buildDDEntryCard(featureId, e) {
     <div class="dk-entry-header" onclick="toggleDDCollapse('${featureId}','${e.id}')">
       <div class="dk-entry-info" style="flex:1;min-width:0">
         <input class="dk-entry-title-input" id="dd_title_input_${featureId}_${e.id}"
-          value="${escHtml(e.title)}" placeholder="Untitled entry"
+          value="${escHtml(e.title)}" placeholder="Title..."
           onclick="event.stopPropagation()"
           onblur="updateDDField('${featureId}','${e.id}','title',this.value.trim())"
           onkeydown="if(event.key==='Enter'){event.preventDefault();openDDEdit('${featureId}','${e.id}');}" />
@@ -5422,10 +5422,6 @@ function buildDDEntryCard(featureId, e) {
         <button class="q-icon-btn" id="dd_editbtn_${featureId}_${e.id}" title="Edit entry"
           onclick="openDDEdit('${featureId}','${e.id}')">
           <span class="material-symbols-rounded">edit</span>
-        </button>
-        <button class="remove-btn" title="Delete entry"
-          onclick="removeDDEntry('${featureId}','${e.id}')">
-          <span class="material-symbols-rounded">delete</span>
         </button>
       </div>
       <span class="material-symbols-rounded dk-expand-icon">expand_more</span>
@@ -5439,6 +5435,7 @@ function buildDDEntryCard(featureId, e) {
         <div class="dk-entry-actions">
           <button class="btn btn-primary" onclick="saveDDEdit('${featureId}','${e.id}')">Save</button>
           <button class="btn" onclick="cancelDDEdit('${featureId}','${e.id}')">Cancel</button>
+          <button class="btn" style="margin-left:auto;color:var(--red)" onclick="removeDDEntry('${featureId}','${e.id}')">Delete</button>
         </div>
       </div>
     </div>
@@ -6529,7 +6526,7 @@ function buildDKEntryCard(featureId, e) {
       <div class="dk-entry-info" style="flex:1;min-width:0">
         <input class="dk-entry-title-input" id="dk_title_input_${featureId}_${e.id}"
           value="${escHtml(e.title)}"
-          placeholder="Untitled entry"
+          placeholder="Title..."
           onclick="event.stopPropagation()"
           onblur="updateDKField('${featureId}','${e.id}','title',this.value.trim())"
           onkeydown="if(event.key==='Enter'){event.preventDefault();openDKEdit('${featureId}','${e.id}');}" />
@@ -6538,10 +6535,6 @@ function buildDKEntryCard(featureId, e) {
         <button class="q-icon-btn" id="dk_editbtn_${featureId}_${e.id}" title="Edit entry"
           onclick="openDKEdit('${featureId}','${e.id}')">
           <span class="material-symbols-rounded">edit</span>
-        </button>
-        <button class="remove-btn" title="Delete entry"
-          onclick="removeDomainKnowledge('${featureId}','${e.id}')">
-          <span class="material-symbols-rounded">delete</span>
         </button>
       </div>
       <span class="material-symbols-rounded dk-expand-icon">expand_more</span>
@@ -6557,6 +6550,7 @@ function buildDKEntryCard(featureId, e) {
         <div class="dk-entry-actions">
           <button class="btn btn-primary" onclick="saveDKEdit('${featureId}','${e.id}')">Save</button>
           <button class="btn" onclick="cancelDKEdit('${featureId}','${e.id}')">Cancel</button>
+          <button class="btn" style="margin-left:auto;color:var(--red)" onclick="removeDomainKnowledge('${featureId}','${e.id}')">Delete</button>
         </div>
       </div>
     </div>
@@ -7164,7 +7158,7 @@ function renderNotesTab(id) {
     const ek = id + '::' + n.id;
     if (_noteEditMode[ek]) {
       return `<div class="note-entry note-editing">
-        <input class="note-title-input" id="ne_title_${id}_${n.id}" placeholder="Title (optional)" value="${escHtml(n.title || '')}" />
+        <input class="note-title-input" id="ne_title_${id}_${n.id}" placeholder="Title..." value="${escHtml(n.title || '')}" />
         ${mdToolbar(`ne_${id}_${n.id}`)}
         <textarea class="editable-note" id="ne_${id}_${n.id}" style="min-height:80px;margin-top:0">${escHtml(n.text)}</textarea>
         <div style="display:flex;gap:6px;margin-top:8px">
