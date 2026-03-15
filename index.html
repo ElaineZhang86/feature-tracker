@@ -8590,13 +8590,7 @@ document.addEventListener('click', () => {
           "content": "# Avalara Tax Exemptions — Domain Knowledge (IP-5363)\n\n## Problem\n\nSome customers are tax-exempt (government, nonprofits). When these customers have an exemption certificate in Avalara:\n- AR invoices correctly show zero tax ✅\n- But BuildOps doesn't **retrieve** or **display** the exemption certificate details\n- BuildOps doesn't provide **customer-level AP/AR taxability defaults**\n- AP purchases for the same job still require manual configuration\n\n## Why AR Exemptions Cannot Auto-Drive AP\n\n> ⚠️ **Important legal distinction:** AR exemption certificates apply to sales only. AP tax depends on the contractor's resale status, jurisdiction, use vs. resale classification, and vendor behavior. Automatically reusing AR certificates for AP would misapply tax law in many cases.\n\n- An AR exemption certificate tells Avalara: \"Do not charge sales tax on invoices issued to this customer.\"\n- It does **NOT** mean the contractor is exempt from paying tax when buying materials\n- Correct approach: provide explicit, auditable AP controls (`AP Work Taxability Type`, `Use Taxable`)\n\n## Solution: 4 Workstreams\n\n### Workstream 1 — Retrieve & Store Exemption Certificate from Avalara\n\n- Extend customer Avalara sync to retrieve exemption certificate data\n- Store: `certificateId`, `exemptionCertRegion`, `exemptionReason`, `effectiveDate`, `expirationDate`, `status`\n- On-demand **\"Refresh from Avalara\"** action on Customer detail\n\n| Status | Condition |\n|---|---|\n| ✅ Exempt in Avalara | Valid cert + not expired |\n| ⚠️ Certificate Expired/Revoked | Valid cert + expired |\n| ❌ No certificate | No cert found |\n| ❓ Unknown | Sync failed — show last sync timestamp |\n\n### Workstream 2 — Customer-Level Taxability Fields (New)\n\n| Field | Type | Gating |\n|---|---|---|\n| `isUseTaxable` | Boolean (default: false) | `ap-taxes` flag |\n| `apWorkTaxabilityTypeId` | FK to WorkTaxabilityType | `work-taxability-types` + Avalara |\n| `arWorkTaxabilityTypeId` | FK to WorkTaxabilityType | `work-taxability-types` + Avalara |\n\n### Workstream 3 — Defaulting & Inheritance\n\nCustomer fields default into: Project, Job, Maintenance Job, Service Agreement. Rule: \"Customer fields provide defaults, not locked behavior\" — all can be manually overridden.\n\n### Workstream 4 — Exemption Status on Documents\n\n| Document | What's shown |\n|---|---|\n| PO / Receipt / Bill | Read-only badge: \"Exempt in Avalara (AR)\" / \"No certificate\" / \"Unknown\" |\n| AR Invoice | Badge + certificate summary + \"Last synced\" timestamp |\n\nDisplay is **informational only** — does not automatically change AP tax calculation.\n\n## Feature Flags\n\n| Flag | Controls |\n|---|---|\n| `work-taxability-types` | AP/AR Work Taxability Type fields on Customer, Job, SA |\n| `ap-taxes` | Use Taxable field + AP tax configuration |\n\n## Non-Goals\n\n- Auto-applying AR exemptions to AP (tax law violation)\n- Periodic background sync of certificates (deferred)\n- Editing exemption certificates from BuildOps (read-only — managed in Avalara)\n\n## Related Links\n\n- [IP-5363 - Avalara Tax Exemptions PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4260888584)\n- [TDD - IP-5363](https://buildops.atlassian.net/wiki/spaces/EN/pages/4334288898)\n- [IPP-337 - Job Taxability Settings PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4263018514)"
         }
       ],
-      "domainKnowledge": [
-        {
-          "id": "1773547759760",
-          "title": "",
-          "content": ""
-        }
-      ],
+      "domainKnowledge": [],
       "designFiles": [
         {
           "id": "df1773547339179",
@@ -8610,36 +8604,7 @@ document.addEventListener('click', () => {
           "createdAt": 1773547339179
         }
       ],
-      "calls": [
-        {
-          "id": "1773547314283",
-          "callName": "",
-          "callType": "customer",
-          "status": "scheduled",
-          "customer": "",
-          "relatedCustomer": "",
-          "callCategory": "",
-          "date": "",
-          "attendees": "",
-          "departments": "",
-          "notesLink": "",
-          "links": [],
-          "transcript": "",
-          "summary": "",
-          "prepResearchQs": "",
-          "prepWhoTalking": "",
-          "prepCompanySegment": "",
-          "prepTenure": "",
-          "prepUsageIndicators": "",
-          "prepTypesOfWork": "",
-          "prepWarmUpQs": "",
-          "prepTopicQs": "",
-          "prepListenFor": "",
-          "label": "",
-          "link": "",
-          "stage": ""
-        }
-      ],
+      "calls": [],
       "customQuestions": [],
       "deletedCustomQuestions": [
         {
