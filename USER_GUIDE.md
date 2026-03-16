@@ -334,9 +334,19 @@ A unified task list for all work states.
 | Done | Completed |
 | Postponed | Deferred — stores a reason |
 
-- Add tasks with **+ Add**
+- Add tasks with **+ Task**
+- **Edit a task** — click the task text to edit it inline; press Enter or Escape to save, or click away
 - Postpone a task to record why it is blocked
 - Progress bar on Schedule Overview counts Done / (To Do + Done) — postponed tasks excluded
+
+#### Sections
+
+Group tasks with section headers to organize your list.
+
+- Click **+ Section** to add a new section header
+- **Rename a section** — click the section title to edit it inline
+- **Delete a section** — click the trash icon on the section header (tasks inside are not deleted)
+- **Drag to reorder** — drag any task above or below another task, or drop it onto a section header to place it directly below that section
 
 ---
 
