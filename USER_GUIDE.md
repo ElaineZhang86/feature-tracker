@@ -47,6 +47,8 @@ Connect a local JSON file in **Settings → Data File**. Once connected:
 
 ## GitHub Sync Setup
 
+> ⚠️ **Don't connect to the public `feature-tracker` repo** — your workspace data would be visible to anyone who clones it. Instead, create a private repo of your own (e.g. `feature-tracker-data`) and connect to that.
+
 **What you need:** A GitHub account (you already have one if you cloned the repo).
 
 **1. Create a Personal Access Token**

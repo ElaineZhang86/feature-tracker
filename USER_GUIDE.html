@@ -254,6 +254,8 @@
   .callout .material-symbols-rounded { font-size: 17px; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
   .callout-warn .material-symbols-rounded { color: var(--yellow); }
   .callout-success .material-symbols-rounded { color: var(--green); }
+  .callout-danger { border-color: #f87171; background: color-mix(in srgb, #ef4444 8%, var(--surface2)); }
+  .callout-danger .material-symbols-rounded { color: #ef4444; }
 
   hr.divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
 </style>
@@ -413,6 +415,10 @@
 
 
     <h3>2. Connect GitHub Sync (recommended backup)</h3>
+    <div class="callout callout-danger">
+      <span class="material-symbols-rounded">error</span>
+      <span><strong>Don't connect to the public <code>feature-tracker</code> repo</strong> — your workspace data would be visible to anyone who clones it. Instead, create a private repo of your own (e.g. <code>feature-tracker-data</code>) and connect to that.</span>
+    </div>
     <p><strong>What you need:</strong> a GitHub account, a repository (can be private), and a Personal Access Token with repo write access.</p>
 
     <p><strong>Create a Personal Access Token</strong></p>
