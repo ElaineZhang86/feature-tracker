@@ -347,6 +347,10 @@
     </a>
 
     <div class="nav-group-label">Reference</div>
+    <a class="nav-item" href="#updates" onclick="setActive(this)">
+      <span class="material-symbols-rounded nav-icon">system_update_alt</span>
+      <span class="nav-label">Getting Updates</span>
+    </a>
     <a class="nav-item" href="#deleted" onclick="setActive(this)">
       <span class="material-symbols-rounded nav-icon">delete</span>
       <span class="nav-label">Deleted Features</span>
@@ -703,6 +707,22 @@
     <div class="callout">
       <span class="material-symbols-rounded">handshake</span>
       <span><strong>Handoff tip:</strong> Postponed tasks are especially valuable during handoffs — they tell the incoming designer what's blocked and why, so nothing falls through the cracks.</span>
+    </div>
+  </div>
+
+  <!-- GETTING UPDATES -->
+  <div class="section" id="updates">
+    <h2 class="section-title">Getting Updates</h2>
+    <p>If you cloned the repo, you can pull in the latest version of the app at any time:</p>
+    <ol>
+      <li>Open your terminal and navigate to the <code>feature-tracker</code> folder</li>
+      <li>Run <code>git pull</code></li>
+      <li>Refresh the page in your browser</li>
+    </ol>
+    <p>Your data is stored in localStorage and is not affected by pulling updates. If GitHub Sync or a Data File is connected, your snapshots are also unaffected.</p>
+    <div class="callout">
+      <span class="material-symbols-rounded" style="font-size:16px;flex-shrink:0">info</span>
+      <span>If an update is available, a banner appears at the top of the app with the same instructions.</span>
     </div>
   </div>
 
