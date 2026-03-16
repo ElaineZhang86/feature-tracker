@@ -350,7 +350,7 @@ If you cloned the repo, you can pull in the latest version of the app at any tim
 
 Your data is stored in localStorage and is not affected by pulling updates. If GitHub Sync or a Data File is connected, your snapshots are also unaffected.
 
-If an update is available, a banner appears at the top of the app with the same instructions.
+
 
 ---
 
