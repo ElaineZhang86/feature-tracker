@@ -23,24 +23,24 @@ You can skip Step 2 and set up GitHub Sync later in **Settings → GitHub Sync**
 
 ## How Data is Saved
 
-Every field saves automatically to your browser's **localStorage** the moment you make a change — no save button needed.
+Your browser's **localStorage** is always the live working copy — every edit lands there instantly with no save button needed.
 
-For backup and cross-machine access, the app supports two optional sync methods:
+For backup and cross-machine access, the app supports two optional methods:
 
 ### GitHub Sync (recommended)
 
 Connect a GitHub repo in **Settings → GitHub Sync**. Once connected:
-- Every change auto-saves to a `data.json` file in your repo within 1 second
-- On any machine, open the app and enter your token once — your data loads automatically from GitHub
-- Works even if you clear your browser data
+- The app automatically saves snapshots of your workspace to a `data.json` file in your repo
+- On a new machine, reconnect with the same settings — the app restores the latest snapshot from GitHub into localStorage
+- Your data can be restored from GitHub even if you clear your browser
 
 See [GitHub Sync Setup](#github-sync-setup) for instructions.
 
 ### Data File
 
 Connect a local JSON file in **Settings → Data File**. Once connected:
-- Every change auto-saves to the file within 1 second
-- Put the file in iCloud Drive or Dropbox for cross-machine access
+- The app automatically writes updated snapshots to the connected file
+- Put the file in iCloud Drive or Dropbox for a passive second copy
 - Works offline — no internet required
 
 ---
@@ -69,11 +69,11 @@ Open **Settings → GitHub Sync** and fill in:
 | Token | Paste your token |
 | File path | `data.json` (default) |
 
-Click **Connect**. The app tests the connection and saves your current state to GitHub immediately.
+Click **Connect**. The app verifies access and writes an initial snapshot to GitHub immediately.
 
 **3. Done**
 
-The sidebar footer shows a green dot and "GitHub saved HH:MM" after each successful save. From this point on, every change syncs automatically — no action required.
+The sidebar footer shows a green dot and the time of the last successful save. From this point on, the app automatically saves snapshots in the background — no action required.
 
 ---
 
@@ -85,7 +85,7 @@ No. The app runs entirely in your browser. Internet is only required for GitHub 
 ---
 
 **Where is my data stored?**
-All changes save instantly to your browser's localStorage. If you have GitHub Sync configured, a backup also saves to your GitHub repo within 1 second of each change. If you have a Data File connected, it saves there too.
+localStorage is always the live working copy — every edit lands there instantly. If GitHub Sync is configured, the app automatically saves snapshots to your GitHub repo. If a Data File is connected, updated snapshots are written there too.
 
 ---
 
@@ -154,7 +154,7 @@ To change your settings, click **Disconnect** (a confirmation modal appears firs
 
 | Button | What it does |
 |--------|-------------|
-| **Connect file** | Browser prompts you to pick a save location. Every change auto-saves to that file. Once connected the button becomes **Download**. |
+| **Connect file** | Browser prompts you to pick a save location. The app automatically writes updated snapshots to that file. Once connected the button becomes **Download**. |
 | **Download** | Downloads the current workspace as `feature-tracker-data.json` to your Downloads folder. |
 | **Load from backup** | Pick any `.json` backup file to restore your full workspace. Replaces everything in your current session. |
 
@@ -363,7 +363,7 @@ Deleted features appear in the **Deleted** section at the bottom of the sidebar.
 
 ## Tips
 
-- **Set up GitHub Sync** — connect once and never worry about data loss again
+- **Set up GitHub Sync** — connect once and your workspace is backed up automatically from then on
 - **Use Current Focus as a daily intent** — one sentence: what specifically needs to happen today on this feature
 - **Log calls even before they happen** — create the call as Scheduled, fill in prep, paste the transcript after
 - **Domain Knowledge is for things you learned, not things you were told** — if you had to figure it out, write it down so you never have to again

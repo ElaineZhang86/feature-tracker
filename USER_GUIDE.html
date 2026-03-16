@@ -427,11 +427,11 @@
       <li>Fill in: Owner (your GitHub username), Repo, Branch (e.g. <code>main</code>), and File Path (e.g. <code>feature-tracker-data.json</code>)</li>
       <li>Paste your Personal Access Token and click <strong>Connect</strong></li>
     </ol>
-    <p>The app verifies access and writes an initial snapshot. From then on, every change is pushed automatically in the background.</p>
+    <p>The app verifies access and writes an initial snapshot to GitHub immediately. From then on, it automatically saves snapshots in the background — no action required.</p>
 
     <div class="callout callout-success">
       <span class="material-symbols-rounded">cloud_done</span>
-      <span>Once connected, your data follows you to any machine — open the app, configure the same GitHub Sync settings, and your data loads automatically.</span>
+      <span>Once connected, your workspace follows you to any machine — open the app, reconnect with the same GitHub Sync settings, and the latest snapshot is restored into your browser automatically.</span>
     </div>
     <div class="callout callout-warn">
       <span class="material-symbols-rounded">lock</span>
@@ -446,13 +446,13 @@
   <div class="section" id="faq">
     <h2 class="section-title">Common Questions</h2>
       <h3>Does the app need internet to work?</h3>
-      <p>The app runs entirely in your browser — no internet required. If you have GitHub Sync configured, it pushes changes to GitHub whenever you're online. The app still works offline and syncs the next time you have a connection.</p>
+      <p>The app runs entirely in your browser — no internet required. If GitHub Sync is configured, it saves snapshots to GitHub when you're online. The app continues to work offline and saves the next time a connection is available.</p>
       <h3>Where is my data stored?</h3>
-      <p>Your data lives in your browser's localStorage — that is always the live working copy. GitHub Sync backs it up to a GitHub repo on every change. If you set up GitHub Sync, your data is safe even if you clear your browser or switch machines.</p>
+      <p>localStorage is always the live working copy — every edit lands there instantly. If GitHub Sync is configured, the app automatically saves snapshots to your GitHub repo. Your data can be restored from GitHub on any machine as long as GitHub Sync was set up before the data was lost.</p>
       <h3>How do I move to a new machine?</h3>
-      <p>Open the app on your new machine, go to <strong>Settings → GitHub Sync</strong>, and enter the same repo, owner, branch, and file path. Click Connect — the app fetches your data from GitHub and loads it automatically.</p>
+      <p>Open the app on your new machine, go to <strong>Settings → GitHub Sync</strong>, and enter the same owner, repo, branch, file path, and token. Click Connect — the app fetches the latest snapshot from GitHub and restores it into localStorage automatically.</p>
       <h3>Is my data safe if I accidentally clear my browser?</h3>
-      <p>Yes, if GitHub Sync is set up. Your full state is pushed on every change. Re-connect on any machine and everything comes back. Without GitHub Sync, clearing browser data will erase your work.</p>
+      <p>If GitHub Sync was configured, your data can be restored — reconnect with the same settings and the latest snapshot is loaded from GitHub. Without GitHub Sync, clearing browser data will erase your work.</p>
       <h3>How do I share my work with another person — and what's the difference between sharing a feature vs the whole workspace?</h3>
       <p>There are two different ways to share, depending on what you want to hand off:</p>
       <p><strong>Feature by feature (recommended for handoffs)</strong> — click the <strong>↓ download icon</strong> on any feature header to export that one feature as a <code>.json</code> file. The other person clicks the <strong>↑ upload icon</strong> next to "Features" in their sidebar to import it. Their existing features are untouched — the new feature is simply added alongside them. Works in all browsers.</p>
@@ -509,7 +509,7 @@
 
     <h3 id="data-file">Data File</h3>
     <p>The Data File section has two actions:</p>
-    <p><strong>Connect file / Download</strong> — when no file is connected, clicking <strong>Connect file</strong> prompts you to pick a save location. Every change auto-saves to that file within a second. Once connected, the button becomes <strong>Download</strong> — clicking it downloads the current workspace as <code>feature-tracker-data.json</code>. The status row shows the connected filename and file size.</p>
+    <p><strong>Connect file / Download</strong> — when no file is connected, clicking <strong>Connect file</strong> prompts you to pick a save location. The app automatically writes updated snapshots to that file. Once connected, the button becomes <strong>Download</strong> — clicking it downloads the current workspace as <code>feature-tracker-data.json</code>. The status row shows the connected filename and file size.</p>
     <p><strong>Load from backup</strong> — pick any <code>.json</code> backup file to restore your full workspace. This replaces everything in your current session. Useful after clearing the browser, moving to a new machine, or receiving a workspace export from a teammate.</p>
     <div class="callout callout-warn">
       <span class="material-symbols-rounded">warning</span>
