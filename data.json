@@ -1076,7 +1076,16 @@
             "_descEdited": false,
             "dod": "<br>",
             "_dodEdited": false,
-            "designLinks": [],
+            "designLinks": [
+              {
+                "id": "local_1773780688070_3vg2",
+                "jiraId": null,
+                "url": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&t=iicPOCVVGrVvUiu1-1",
+                "label": "Figma design",
+                "fromJira": false,
+                "pendingRemove": false
+              }
+            ],
             "_designLinksEdited": true
           },
           {
