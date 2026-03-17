@@ -9162,6 +9162,134 @@ function _implFmtTime(iso) {
   } catch { return ''; }
 }
 
+// ── Definition of Done helpers ─────────────────────────────────────────────
+function _renderDodItems(featureId, t) {
+  const items = t.dod || [];
+  const rows = items.map(item => `
+    <div style="display:flex;align-items:center;gap:8px;padding:3px 0">
+      <input type="checkbox" ${item.done?'checked':''} onchange="toggleDodItem('${featureId}','${t.key}','${item.id}',this.checked)"
+        style="margin:0;accent-color:var(--accent);flex-shrink:0;cursor:pointer;width:14px;height:14px"/>
+      <span contenteditable="true" id="${featureId}_dod_item_${item.id}"
+        style="flex:1;outline:none;font-size:13px;line-height:1.5;min-width:0;cursor:text;${item.done?'text-decoration:line-through;color:var(--text-dim)':''}"
+        onblur="updateDodItem('${featureId}','${t.key}','${item.id}',this.textContent)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();addDodItem('${featureId}','${t.key}')}">${escHtml(item.text)}</span>
+      <button onclick="removeDodItem('${featureId}','${t.key}','${item.id}')"
+        style="flex-shrink:0;border:none;background:none;cursor:pointer;color:var(--text-dim);font-size:16px;padding:0 4px;line-height:1;opacity:.5"
+        onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5">×</button>
+    </div>`).join('');
+  return `<div style="display:flex;flex-direction:column">${rows}</div>
+    <button onclick="addDodItem('${featureId}','${t.key}')"
+      style="margin-top:6px;padding:5px 10px;font-size:11px;border-radius:6px;background:var(--surface);border:1px dashed var(--border);cursor:pointer;color:var(--text-dim);display:flex;align-items:center;gap:4px">
+      <span class="material-symbols-rounded" style="font-size:13px">add</span>Add item
+    </button>`;
+}
+
+function _updateTicketSyncStatus(featureId, t) {
+  const summaryChanged = t._origSummary !== undefined && t.summary !== t._origSummary;
+  const hasContent = !!(summaryChanged || t._descEdited || t._dodEdited);
+  if (t.syncStatus === 'synced' && hasContent) t.syncStatus = 'dirty';
+  else if (t.syncStatus === 'empty' && hasContent) t.syncStatus = 'unsynced';
+  else if (t.syncStatus === 'unsynced' && !hasContent) t.syncStatus = 'empty';
+  const statusMap = {empty:'',unsynced:'unsynced',synced:'synced',dirty:'saving',error:'error'};
+  const rowEl = document.getElementById(featureId + '_ticket_' + t.key);
+  if (rowEl) { const dot = rowEl.querySelector('.sync-dot'); if (dot) dot.className = 'sync-dot ' + (statusMap[t.syncStatus]||''); }
+}
+
+function addDodItem(featureId, key) {
+  const impl = loadImpl(featureId);
+  const t = impl.items.find(t => t.key === key); if (!t) return;
+  const id = 'dod_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+  if (!t.dod) t.dod = [];
+  t.dod.push({ id, text: '', done: false });
+  t._dodEdited = true;
+  _updateTicketSyncStatus(featureId, t);
+  saveImpl(featureId, impl);
+  const div = document.getElementById(featureId + '_dod_' + key);
+  if (div) div.innerHTML = _renderDodItems(featureId, t);
+  setTimeout(() => { const el = document.getElementById(featureId + '_dod_item_' + id); if (el) el.focus(); }, 50);
+  _implRefreshSyncAllBtn(featureId);
+}
+
+function updateDodItem(featureId, key, id, text) {
+  const impl = loadImpl(featureId);
+  const t = impl.items.find(t => t.key === key); if (!t) return;
+  const item = (t.dod || []).find(i => i.id === id); if (!item) return;
+  const trimmed = text.trim();
+  if (!trimmed && !item.text) {
+    t.dod = t.dod.filter(i => i.id !== id);
+    const div = document.getElementById(featureId + '_dod_' + key);
+    if (div) div.innerHTML = _renderDodItems(featureId, t);
+  } else {
+    item.text = trimmed || item.text;
+  }
+  t._dodEdited = true;
+  _updateTicketSyncStatus(featureId, t);
+  saveImpl(featureId, impl);
+  _implRefreshSyncAllBtn(featureId);
+}
+
+function toggleDodItem(featureId, key, id, done) {
+  const impl = loadImpl(featureId);
+  const t = impl.items.find(t => t.key === key); if (!t) return;
+  const item = (t.dod || []).find(i => i.id === id); if (!item) return;
+  item.done = done;
+  t._dodEdited = true;
+  _updateTicketSyncStatus(featureId, t);
+  saveImpl(featureId, impl);
+  const textEl = document.getElementById(featureId + '_dod_item_' + id);
+  if (textEl) { textEl.style.textDecoration = done ? 'line-through' : ''; textEl.style.color = done ? 'var(--text-dim)' : ''; }
+  _implRefreshSyncAllBtn(featureId);
+}
+
+function removeDodItem(featureId, key, id) {
+  const impl = loadImpl(featureId);
+  const t = impl.items.find(t => t.key === key); if (!t) return;
+  t.dod = (t.dod || []).filter(i => i.id !== id);
+  t._dodEdited = true;
+  _updateTicketSyncStatus(featureId, t);
+  saveImpl(featureId, impl);
+  const div = document.getElementById(featureId + '_dod_' + key);
+  if (div) div.innerHTML = _renderDodItems(featureId, t);
+  _implRefreshSyncAllBtn(featureId);
+}
+
+function _stripDodBlocks(blocks) {
+  const idx = blocks.findIndex(b =>
+    b.type === 'heading' &&
+    (b.content || []).map(n => n.text || '').join('').trim() === 'Definition of Done'
+  );
+  if (idx === -1) return blocks;
+  let end = idx + 1;
+  while (end < blocks.length && blocks[end].type === 'taskList') end++;
+  return [...blocks.slice(0, idx), ...blocks.slice(end)];
+}
+
+function _extractDodFromAdf(adf) {
+  if (!adf || !adf.content) return { cleanAdf: adf, dodItems: [] };
+  const blocks = adf.content;
+  const idx = blocks.findIndex(b =>
+    b.type === 'heading' &&
+    (b.content || []).map(n => n.text || '').join('').trim() === 'Definition of Done'
+  );
+  if (idx === -1) return { cleanAdf: adf, dodItems: [] };
+  const dodItems = [];
+  let end = idx + 1;
+  while (end < blocks.length && blocks[end].type === 'taskList') {
+    (blocks[end].content || []).forEach(item => {
+      dodItems.push({
+        id: 'dod_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+        text: (item.content || []).map(n => n.text || '').join(''),
+        done: item.attrs?.state === 'DONE'
+      });
+    });
+    end++;
+  }
+  return {
+    cleanAdf: { type: 'doc', version: 1, content: [...blocks.slice(0, idx), ...blocks.slice(end)] },
+    dodItems
+  };
+}
+
 async function _fetchTicketDesc(featureId, key) {
   const impl = loadImpl(featureId);
   const t = impl.items.find(t => t.key === key);
@@ -9306,20 +9434,8 @@ function updateTicketField(featureId, key, field, value) {
   }
   // Track whether description has been locally edited
   if (field === 'description') t._descEdited = true;
-  // Determine if there is unsynced content
-  const summaryChanged = t._origSummary !== undefined && t.summary !== t._origSummary;
-  const hasContent = !!(summaryChanged || t._descEdited);
-  if (t.syncStatus === 'synced' && hasContent) t.syncStatus = 'dirty';
-  else if (t.syncStatus === 'empty' && hasContent) t.syncStatus = 'unsynced';
-  else if (t.syncStatus === 'unsynced' && !hasContent) t.syncStatus = 'empty';
+  _updateTicketSyncStatus(featureId, t);
   saveImpl(featureId, impl);
-  // Update sync dot without full re-render
-  const statusMap = {empty:'',unsynced:'unsynced',synced:'synced',dirty:'saving',error:'error'};
-  const rowEl = document.getElementById(featureId + '_ticket_' + key);
-  if (rowEl) {
-    const dot = rowEl.querySelector('.sync-dot');
-    if (dot) dot.className = 'sync-dot ' + (statusMap[t.syncStatus]||'');
-  }
   _implRefreshSyncAllBtn(featureId);
 }
 
@@ -12477,13 +12593,15 @@ function generateConfluenceContent(featureId, f) {
             "designLink": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186",
             "requirements": "here is the test",
             "specNotes": "spec notes here",
-            "syncStatus": "synced",
+            "syncStatus": "dirty",
             "lastSynced": "2026-03-17T20:00:31.008Z",
             "commentId": "535034",
             "syncError": null,
             "_expanded": true,
             "description": "Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only).&nbsp;<div><strong style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;\">Design:</strong><span style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;\"> </span><a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186\" target=\"_blank\" style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;\">Figma design</a></div>",
-            "_descEdited": false
+            "_descEdited": false,
+            "dod": [],
+            "_dodEdited": true
           },
           {
             "id": "250570",
