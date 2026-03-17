@@ -8942,38 +8942,54 @@ function _ticketInsertLink(featureId, key) {
 
 // ── Design Links ────────────────────────────────────────────────────────────
 function _renderDesignLinksSection(featureId, t) {
-  const links = t.designLinks || [];
-  const rows = links.map(dl => {
-    if (dl.pendingRemove) return `
-      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;opacity:0.5;border-bottom:1px solid var(--border)">
-        <span class="material-symbols-rounded" style="font-size:14px;color:var(--text-dim);flex-shrink:0">link_off</span>
-        <span style="flex:1;font-size:12px;color:var(--text-dim);text-decoration:line-through;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(dl.label || dl.url)}</span>
-        <button onclick="restoreDesignLink('${featureId}','${t.key}','${dl.id}')"
-          style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;white-space:nowrap;padding:2px 0">Undo</button>
-      </div>`;
-    const isFigma = dl.url.includes('figma.com');
-    return `
-      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-        <span class="material-symbols-rounded" style="font-size:14px;color:var(--accent);flex-shrink:0">${isFigma ? 'design_services' : 'link'}</span>
-        <a href="${escHtml(dl.url)}" target="_blank"
-          style="flex:1;font-size:13px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
-          title="${escHtml(dl.url)}">${escHtml(dl.label || dl.url)}</a>
-        ${!dl.jiraId ? '<span style="font-size:10px;color:var(--yellow);background:var(--yellow-bg);border-radius:3px;padding:1px 5px;flex-shrink:0;white-space:nowrap">not synced</span>' : ''}
-        <button onclick="removeDesignLink('${featureId}','${t.key}','${dl.id}')"
-          style="flex-shrink:0;border:none;background:none;cursor:pointer;color:var(--text-dim);padding:0 2px;line-height:1;font-size:16px;opacity:.5"
-          onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5">×</button>
-      </div>`;
-  }).join('');
+  // Only one design link is supported. Show the active (non-pending-remove) link if present.
+  const active = (t.designLinks || []).find(dl => !dl.pendingRemove);
+  const removing = !active && (t.designLinks || []).find(dl => dl.pendingRemove);
+
+  if (removing) {
+    return `<div id="${featureId}_design_links_${t.key}">
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0">
+        <span class="material-symbols-rounded" style="font-size:14px;color:var(--text-dim)">link_off</span>
+        <span style="flex:1;font-size:12px;color:var(--text-dim);text-decoration:line-through;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(removing.label || removing.url)}</span>
+        <button onclick="restoreDesignLink('${featureId}','${t.key}','${removing.id}')"
+          style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;white-space:nowrap">Undo</button>
+      </div>
+    </div>`;
+  }
+
+  if (!active) {
+    return `<div id="${featureId}_design_links_${t.key}">
+      <div style="font-size:12px;color:var(--text-dim);padding:2px 0 8px">No design link yet.</div>
+      <button onclick="openAddDesignLink('${featureId}','${t.key}')"
+        style="padding:5px 10px;font-size:11px;border-radius:6px;background:var(--surface);border:1px dashed var(--border);cursor:pointer;color:var(--text-dim);display:inline-flex;align-items:center;gap:4px">
+        <span class="material-symbols-rounded" style="font-size:13px">add_link</span>Add design link
+      </button>
+    </div>`;
+  }
+
+  const isFigma = active.url.includes('figma.com');
   return `<div id="${featureId}_design_links_${t.key}">
-    ${rows || '<div style="font-size:12px;color:var(--text-dim);padding:4px 0 6px">No design links yet.</div>'}
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;margin-bottom:6px;border-bottom:1px solid var(--border)">
+      <span class="material-symbols-rounded" style="font-size:14px;color:var(--accent);flex-shrink:0">${isFigma ? 'design_services' : 'link'}</span>
+      <a href="${escHtml(active.url)}" target="_blank"
+        style="flex:1;font-size:13px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+        title="${escHtml(active.url)}">${escHtml(active.label || active.url)}</a>
+      ${!active.jiraId ? '<span style="font-size:10px;color:var(--yellow);background:var(--yellow-bg);border-radius:3px;padding:1px 5px;flex-shrink:0;white-space:nowrap">not synced</span>' : ''}
+      <button onclick="removeDesignLink('${featureId}','${t.key}','${active.id}')"
+        style="flex-shrink:0;border:none;background:none;cursor:pointer;color:var(--text-dim);padding:0 2px;line-height:1;font-size:16px;opacity:.5"
+        onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5" title="Remove design link">×</button>
+    </div>
     <button onclick="openAddDesignLink('${featureId}','${t.key}')"
-      style="margin-top:4px;padding:5px 10px;font-size:11px;border-radius:6px;background:var(--surface);border:1px dashed var(--border);cursor:pointer;color:var(--text-dim);display:inline-flex;align-items:center;gap:4px">
-      <span class="material-symbols-rounded" style="font-size:13px">add_link</span>Add design link
+      style="padding:5px 10px;font-size:11px;border-radius:6px;background:var(--surface);border:1px solid var(--border);cursor:pointer;color:var(--text-dim);display:inline-flex;align-items:center;gap:4px">
+      <span class="material-symbols-rounded" style="font-size:13px">edit</span>Change link
     </button>
   </div>`;
 }
 
 function openAddDesignLink(featureId, key) {
+  const impl = loadImpl(featureId);
+  const t = impl.items.find(t => t.key === key);
+  const existing = t ? (t.designLinks || []).find(dl => !dl.pendingRemove) : null;
   document.getElementById('_design_link_panel')?.remove();
   const panel = document.createElement('div');
   panel.id = '_design_link_panel';
@@ -8981,7 +8997,7 @@ function openAddDesignLink(featureId, key) {
   panel.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:520px;max-width:calc(100vw - 48px);box-shadow:0 8px 32px rgba(0,0,0,0.18)">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px">
-        <span style="font-size:15px;font-weight:700;color:var(--text)">Add design link</span>
+        <span style="font-size:15px;font-weight:700;color:var(--text)">${existing ? 'Change design link' : 'Add design link'}</span>
         <button id="_dlp_close" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:4px;display:flex;align-items:center">
           <span class="material-symbols-rounded" style="font-size:20px">close</span>
         </button>
@@ -9008,6 +9024,7 @@ function openAddDesignLink(featureId, key) {
   const urlInput = panel.querySelector('#_dlp_url');
   const labelInput = panel.querySelector('#_dlp_label');
   const errEl = panel.querySelector('#_dlp_url_err');
+  if (existing) { urlInput.value = existing.url; labelInput.value = existing.label || ''; }
   urlInput.focus();
   const close = () => panel.remove();
   panel.querySelector('#_dlp_close').onclick = close;
@@ -9031,12 +9048,22 @@ function addDesignLink(featureId, key, url, label) {
   const t = impl.items.find(t => t.key === key);
   if (!t) return;
   if (!t.designLinks) t.designLinks = [];
-  if (t.designLinks.find(dl => dl.url === url && !dl.pendingRemove)) {
-    showToast('This link is already added');
+
+  const active = t.designLinks.find(dl => !dl.pendingRemove);
+  if (active && active.url === url && active.label === label) {
+    showToast('Design link is already set to this URL');
     return;
   }
+
+  // If there's a Jira-synced active link, mark it for deletion on next sync.
+  // If it's local-only, just drop it.
+  const newList = t.designLinks
+    .filter(dl => dl.pendingRemove || (dl.jiraId && !dl.pendingRemove))  // keep pending-removes + keep synced ones (mark them)
+    .map(dl => (!dl.pendingRemove && dl.jiraId) ? { ...dl, pendingRemove: true } : dl);
+
   const id = 'local_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
-  t.designLinks.push({ id, jiraId: null, url, label, fromJira: false, pendingRemove: false });
+  newList.push({ id, jiraId: null, url, label, fromJira: false, pendingRemove: false });
+  t.designLinks = newList;
   t._designLinksEdited = true;
   _updateTicketSyncStatus(featureId, t);
   saveImpl(featureId, impl);
@@ -9633,7 +9660,17 @@ async function importEpic(featureId) {
       headers: { 'x-cf-email': creds.email, 'x-cf-token': creds.token }
     });
     const data = await res.json();
-    if (!data.ok) throw new Error(data.error || 'Import failed');
+    if (!data.ok) {
+      let msg = data.error || 'Import failed';
+      if (data.details) {
+        try {
+          const d = typeof data.details === 'string' ? JSON.parse(data.details) : data.details;
+          const jiraMsg = d.errorMessages?.[0] || d.message || '';
+          if (jiraMsg) msg += ': ' + jiraMsg;
+        } catch {}
+      }
+      throw new Error(msg);
+    }
     const impl = {
       epicUrl: data.epicUrl, epicKey: data.epicKey, epicTitle: data.epicTitle, domain: data.domain,
       items: data.items.map(t => ({ ...t, _origSummary: t.summary, description: null, dod:'', _descEdited:false, _dodEdited:false, designLinks:[], _designLinksEdited:false, requirements:'', specNotes:'', syncStatus:'empty', lastSynced:null, commentId:null, syncError:null, _jiraUpdatedAt:null, relatedWork:[], comments:null }))
@@ -9809,28 +9846,34 @@ async function syncTicket(featureId, key) {
       if (!data.ok) throw new Error(data.error || 'Sync failed');
     }
 
-    // ── Sync design links ─────────────────────────────────────────────────────
+    // ── Sync design link (one per ticket, upsert via stable globalId) ────────
     if (t._designLinksEdited) {
-      const newLinks = (t.designLinks || []).filter(dl => !dl.jiraId && !dl.pendingRemove);
+      const activeLink = (t.designLinks || []).find(dl => !dl.pendingRemove);
       const removedLinks = (t.designLinks || []).filter(dl => dl.jiraId && dl.pendingRemove);
-      for (const dl of newLinks) {
+
+      // Upsert the active design link (POST with stable globalId = create or update)
+      if (activeLink) {
         try {
           const dlRes = await fetch('/api/jira/ticket/design-link', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...syncCreds, ticketKey: t.key, url: dl.url, label: dl.label })
+            body: JSON.stringify({ ...syncCreds, ticketKey: t.key, url: activeLink.url, label: activeLink.label })
           });
           const dlData = await dlRes.json();
-          if (dlData.ok) { dl.jiraId = dlData.id; dl.fromJira = true; }
-        } catch { /* individual link failure — continue */ }
+          if (dlData.ok) { activeLink.jiraId = dlData.id; activeLink.fromJira = true; }
+          else throw new Error(dlData.error || 'Design link sync failed');
+        } catch(dlErr) { throw new Error('Design link: ' + dlErr.message); }
       }
+
+      // Delete any replaced/removed Jira-synced links
       for (const dl of removedLinks) {
         try {
           await fetch('/api/jira/ticket/design-link', {
             method: 'DELETE', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...syncCreds, ticketKey: t.key, linkId: dl.jiraId })
           });
-        } catch { /* individual link failure — continue */ }
+        } catch { /* deletion failure is non-fatal */ }
       }
+
       t.designLinks = (t.designLinks || []).filter(dl => !dl.pendingRemove);
       t._designLinksEdited = false;
     }
@@ -12022,14 +12065,7 @@ function generateConfluenceContent(featureId, f) {
           "title": "Feature Brief",
           "content": "# Index Cost — Customer Discovery & SIP Evidence\n\n**Design Ticket:** [SERVICE-4335](https://buildops.atlassian.net/browse/SERVICE-4335)\n**Epic:** [SERVICE-4214](https://buildops.atlassian.net/browse/SERVICE-4214)\n**SIP Issues:** SIP-8787 · SIP (Index Cost Bulk Updates)\n\n---\n\n## What Customers Are Saying\n\n### SIP: \"Ability to Use Index Cost for Pricing on Job Report\"\n**Customer:** SmartCare (and others adopting Index Cost)\n\n**Problem:**\nJob Reports today continue to rely on costs from source purchasing documents (POs, AP Bills) or Inventory Issues — **not** from the Index Cost. This undermines the entire purpose of Index Cost and creates an inconsistency between the pricing strategy set in the Cost Catalogue and what actually appears on the job report.\n\n**Business Impact:**\n- Margins are frequently eroded or inconsistently applied\n- Pricing accuracy depends on individual vigilance rather than system enforcement\n- Teams spend excessive time validating costs and markups instead of higher-value work\n- Customers adopting Index Cost do not realize its full value until Job Report uses it\n\n**Current Workaround:**\nSupervisors, managers, or billing clerks manually verify that pricing is calculated using the correct cost before invoicing — highly manual and error-prone.\n\n---\n\n### SIP: \"Item-Level Index Cost Bulk Updates Applied to Pricebooks\"\n\n**Problem:**\nCustomers need to update pricing for a specific item when its supplier cost changes due to an external index, and apply that change **only to selected pricebooks**. BuildOps does not support targeted, item-level bulk updates tied to index cost changes.\n\n**Business Impact:**\n- Manual updates for every high-frequency cost change on indexed items\n- Risk of inconsistent pricing across pricebooks when updates are missed\n\n**Current Workaround:**\nManually identify impacted pricebooks, then update the item price one pricebook at a time. Some customers maintain separate tracking outside BuildOps to manage index changes.\n\n**Context:**\n- Customers using Inventory, Procurement, and multiple pricebooks tied to different customers/regions/contracts\n- Index-based cost changes on individual items are common and recurring — not an edge case\n- Under contract with due date **2026-06-30**\n\n---\n\n## Design Scope (SERVICE-4335)\n\nThe design ticket covers:\n1. **Cost Catalogue UI** — list view, create/edit cost catalogue entries\n2. **Job Report integration** — using index cost as markup base (max(Index Cost, Purchase Cost))\n3. **Property-level inheritance** — property inherits a Cost Catalogue; job inherits from property\n4. **Phase 1 only**: No manual override at job level, no pricebook-level cost override\n\n## What's Built (feature/index-cost branch)\n- `CostCatalogueList` UI with mock data (commit c7d322ae)\n- Index cost design spec (commit 48f9ea65)\n- Component preview: `docs/index-cost-component-preview.html`"
         }
-      ],
-      "implementation": {
-        "epicUrl": "",
-        "epicKey": "",
-        "epicTitle": "",
-        "domain": "",
-        "items": []
-      }
+      ]
     },
     "bulk-po": {
       "tasks": [
@@ -12278,20 +12314,6 @@ function generateConfluenceContent(featureId, f) {
           "title": "Feature Brief",
           "content": "# Job Taxability Settings — Domain Docs (IPP-337 — PPC)\n\n## Problem\n\nService contractors operate on a simple, all-or-nothing tax model. PPC's current system (IFS) supports three clear states: **Taxable / Non-Taxable / Exempt**. Today in BuildOps, this is fragmented across multiple steps and configuration points.\n\nPPC's core rule:\n> \"The job is either taxable or not, and therefore, the things we purchase are the opposite.\"\n\n| Job Type | AR (Customer Invoice) | AP (Vendor Purchases) |\n|---|---|---|\n| **Taxable** | Charge sales tax to customer | Tax-exempt (resale certificate) |\n| **Non-Taxable** | No sales tax | Taxable (consumption/use tax) |\n| **Exempt Customer/Job** | No tax | No tax (government, nonprofit, etc.) |\n\n## Solution: Work Taxability Types\n\nA structured, hierarchical system for controlling AP and AR taxability across the entire job lifecycle.\n\n### New Concept: Work Taxability Type\n\nConfigurable value (set in Tax Settings) that controls:\n- **Line Taxability Rule:** Always Taxable / Always Non-Taxable / Inherit from Item List\n\n### New Entity Fields\n\n| Entity | New Fields |\n|---|---|\n| `WorkTaxabilityType` | `lineTaxabilityRule` (ALWAYS_TAXABLE / ALWAYS_NON_TAXABLE / INHERIT) |\n| `JobBlueprint` (Job Template) | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `Job` | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `ServiceAgreement` | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `Customer` | `apWorkTaxabilityTypeId` + `arWorkTaxabilityTypeId` |\n\n### Defaulting Hierarchy\n\n```\nCustomer defaults → Job Template re-defaults → SA re-defaults → Job (manual override)\n```\n\n### PO/Invoice Line Behavior\n\nWhen a PO is created for a job:\n- ALWAYS_TAXABLE → all lines `Taxable = true`\n- ALWAYS_NON_TAXABLE → all lines `Taxable = false`\n- INHERIT → each line inherits from the Item List `taxable` setting\n\n### Feature Flags\n\n| Flag | Controls |\n|---|---|\n| `work-taxability-types` | Exposes Work Taxability fields on Job Templates, Jobs, SAs, Customers |\n| `ap-taxes` | Exposes AP tax configuration settings |\n\n## PPC's Three Core Scenarios\n\n| Scenario | AR | AP |\n|---|---|---|\n| Taxable Job | Tax collected (sales tax) | Tax-exempt (resale certificate) |\n| Non-Taxable Job | Tax-exempt | Taxable (consumption/use tax) |\n| Exempt Customer/Job | Tax-exempt | Tax-exempt |\n\n## New Screen: Tax Settings\n\n`Company → Tax Settings` consolidates:\n- Work Taxability configuration (when `work-taxability-types` = true)\n- Sales Tax list\n- AP Taxes configuration (when `ap-taxes` = true and Avalara = false)\n\n## Related Links\n\n- [IPP-337 - Job Taxability Settings PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4263018514)\n- [Job Taxability - Meeting Notes (PPC)](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4262461453)"
         }
-      ],
-      "ctx_links": [
-        {
-          "label": "PRD IPP-337",
-          "url": "https://buildops.atlassian.net/wiki/spaces/BPD/pages/4263018514"
-        },
-        {
-          "label": "Epic IP-5460",
-          "url": "https://buildops.atlassian.net/browse/IP-5460"
-        },
-        {
-          "label": "BuildOps - Job Taxability Guide",
-          "url": "https://docs.google.com/document/d/1JY3oGXB3S3Mwl-j84FUTzaepSz_o9JEW/edit"
-        }
       ]
     },
     "vendors-unified": {
@@ -12499,14 +12521,7 @@ function generateConfluenceContent(featureId, f) {
           "title": "Feature Brief",
           "content": "# Pricebook Separation (Split by Cost Type) — Domain Docs\n\n## Problem\n\nToday, a single pricebook bundles **Labor + Materials + Equipment** pricing together, causing combinatorial explosion.\n\n> Service Logic example: 118 labor rate structures × 42 material markups = **4,956 pricebooks** required. Impossible to maintain.\n\n## Solution: One Pricebook Per Cost Type\n\nEach pricebook has exactly **one cost type**:\n\n| Cost Type | What it covers |\n|---|---|\n| **Material** | Parts, inventory items, purchased materials |\n| **Labor** | Labor rates, hour types, labor groups |\n| **Equipment** | Equipment rental, usage rates |\n\n> ⚠️ Multi-cost-type pricebooks will NOT be allowed under the new model. Existing \"full\" pricebooks remain backward compatible during migration.\n\n## Key Architectural Decisions\n\n### Cost Type Composition\n- Each new pricebook selects exactly 1 cost type on creation\n- Cost type cannot be changed after creation\n- Existing full pricebooks continue working (backward compatibility)\n\n### Job-Level Selection\n- When creating a job, user selects up to 3 pricebooks (one per cost type)\n- If a full pricebook is selected → populates labor and equipment fields too (backward compat)\n- Each entity resolves pricing from the matching cost-type pricebook\n\n### Pricing Resolution Logic\n\n```\nInventory Part added → resolve from Material pricebook\nLabor line added    → resolve from Labor pricebook\nEquipment added     → resolve from Equipment pricebook\n```\n\n### Inheritance Chain\n\n- Invoice created from a job → inherits all three pricebook IDs from the job\n- Invoice created from SA → inherits from SA → Customer → Company\n- Ad-hoc invoice → inherits from Customer → Company\n\n## What's Out of Scope (Phase 1)\n\n- Splitting out existing pricebooks into separate cost-type books\n- Archiving partial pricebooks\n- Multi-select vendor types in all reporting surfaces\n\n## Related Links\n\n- [PRD - Splitting Pricebook Components](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4153737329)"
         }
-      ],
-      "implementation": {
-        "epicUrl": "",
-        "epicKey": "",
-        "epicTitle": "",
-        "domain": "",
-        "items": []
-      }
+      ]
     },
     "pricebook-bulk-edits": {
       "tasks": [
