@@ -126,6 +126,9 @@ const server = http.createServer((req, res) => {
   if (req.method === 'GET' && req.url.startsWith('/api/confluence/fetch')) return handleCFFetch(req, res);
   if (req.method === 'POST' && req.url === '/api/confluence/update') return handleCFUpdate(req, res);
   if (req.method === 'POST' && req.url === '/api/claude/parse') return handleClaudeParse(req, res);
+  if (req.method === 'GET'  && req.url.startsWith('/api/jira/epic'))       return handleJiraEpicFetch(req, res);
+  if (req.method === 'GET'  && req.url.startsWith('/api/jira/ticket'))     return handleJiraTicketFetch(req, res);
+  if (req.method === 'POST' && req.url === '/api/jira/ticket/push')        return handleJiraTicketPush(req, res);
 
 
 
@@ -295,5 +298,111 @@ ${content.slice(0, 60000)}`;
     } catch (e) {
       sendJSON(res, 500, { ok: false, error: e.message });
     }
+  });
+}
+
+// ── /api/jira/epic GET ──────────────────────────────────────────────────────
+async function handleJiraEpicFetch(req, res) {
+  const params = new URL(req.url, 'http://x').searchParams;
+  const epicUrl = params.get('url');
+  if (!epicUrl) return sendJSON(res, 400, { ok: false, error: 'Missing url' });
+  const email = req.headers['x-cf-email'];
+  const token = req.headers['x-cf-token'];
+  if (!email || !token) return sendJSON(res, 400, { ok: false, error: 'Missing credentials' });
+  try {
+    const parsed = new URL(epicUrl);
+    const domain = parsed.hostname;
+    const auth = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
+    const keyMatch = (parsed.pathname + parsed.search).match(/\/browse\/([A-Z]+-\d+)/i);
+    if (!keyMatch) return sendJSON(res, 400, { ok: false, error: 'Could not extract issue key from URL' });
+    const epicKey = keyMatch[1].toUpperCase();
+    // Fetch epic details
+    const epicRes = await httpsReq({
+      hostname: domain, method: 'GET',
+      path: `/rest/api/2/issue/${epicKey}?fields=summary,issuetype,status`,
+      headers: { Authorization: auth, Accept: 'application/json' }
+    });
+    if (epicRes.status !== 200) return sendJSON(res, epicRes.status, { ok: false, error: 'Could not fetch epic', details: epicRes.body });
+    const epicData = JSON.parse(epicRes.body);
+    // Fetch child tickets via JQL
+    const jql = encodeURIComponent(`parent=${epicKey} ORDER BY created ASC`);
+    const searchRes = await httpsReq({
+      hostname: domain, method: 'GET',
+      path: `/rest/api/2/search?jql=${jql}&fields=id,key,summary,status,issuetype&maxResults=100`,
+      headers: { Authorization: auth, Accept: 'application/json' }
+    });
+    if (searchRes.status !== 200) return sendJSON(res, searchRes.status, { ok: false, error: 'Could not fetch child tickets', details: searchRes.body });
+    const searchData = JSON.parse(searchRes.body);
+    const items = searchData.issues.map(issue => ({
+      id: issue.id, key: issue.key,
+      summary: issue.fields.summary,
+      status: issue.fields.status.name,
+      type: issue.fields.issuetype.name,
+      url: `https://${domain}/browse/${issue.key}`
+    }));
+    sendJSON(res, 200, { ok: true, epicKey, epicTitle: epicData.fields.summary, epicUrl: `https://${domain}/browse/${epicKey}`, domain, items });
+  } catch(e) { sendJSON(res, 500, { ok: false, error: e.message }); }
+}
+
+// ── /api/jira/ticket GET ─────────────────────────────────────────────────────
+async function handleJiraTicketFetch(req, res) {
+  const params = new URL(req.url, 'http://x').searchParams;
+  const key = params.get('key');
+  const domain = params.get('domain');
+  if (!key || !domain) return sendJSON(res, 400, { ok: false, error: 'Missing key or domain' });
+  const email = req.headers['x-cf-email'];
+  const token = req.headers['x-cf-token'];
+  if (!email || !token) return sendJSON(res, 400, { ok: false, error: 'Missing credentials' });
+  try {
+    const auth = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
+    const r = await httpsReq({
+      hostname: domain, method: 'GET',
+      path: `/rest/api/2/issue/${key}?fields=summary,status,issuetype`,
+      headers: { Authorization: auth, Accept: 'application/json' }
+    });
+    if (r.status !== 200) return sendJSON(res, r.status, { ok: false, error: 'Ticket not found' });
+    const d = JSON.parse(r.body);
+    sendJSON(res, 200, { ok: true, key: d.key, summary: d.fields.summary, status: d.fields.status.name, url: `https://${domain}/browse/${d.key}` });
+  } catch(e) { sendJSON(res, 500, { ok: false, error: e.message }); }
+}
+
+// ── /api/jira/ticket/push POST ───────────────────────────────────────────────
+function handleJiraTicketPush(req, res) {
+  let body = '';
+  req.on('data', c => { body += c; });
+  req.on('end', async () => {
+    try {
+      const { domain, email, token, ticketKey, designLink, requirements, specNotes } = JSON.parse(body);
+      const auth = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
+      const MARKER = '[Feature Hub Design Spec]';
+      const lines = [MARKER];
+      if (designLink)   lines.push('\nDesign: ' + designLink);
+      if (requirements) lines.push('\nRequirements:\n' + requirements);
+      if (specNotes)    lines.push('\nSpec Notes:\n' + specNotes);
+      lines.push('\n_Last synced from Feature Hub: ' + new Date().toISOString().replace('T',' ').slice(0,16) + '_');
+      const commentBody = lines.join('\n');
+      // Check for existing Feature Hub comment
+      const commentsRes = await httpsReq({
+        hostname: domain, method: 'GET',
+        path: `/rest/api/2/issue/${ticketKey}/comment?maxResults=100`,
+        headers: { Authorization: auth, Accept: 'application/json' }
+      });
+      let commentId = null;
+      if (commentsRes.status === 200) {
+        const cd = JSON.parse(commentsRes.body);
+        const existing = cd.comments.find(c => (c.body || '').includes(MARKER));
+        if (existing) commentId = existing.id;
+      }
+      const payload = JSON.stringify({ body: commentBody });
+      const pushRes = await httpsReq({
+        hostname: domain,
+        path: commentId ? `/rest/api/2/issue/${ticketKey}/comment/${commentId}` : `/rest/api/2/issue/${ticketKey}/comment`,
+        method: commentId ? 'PUT' : 'POST',
+        headers: { Authorization: auth, 'Content-Type': 'application/json', Accept: 'application/json', 'Content-Length': Buffer.byteLength(payload) }
+      }, payload);
+      if (![200, 201].includes(pushRes.status)) return sendJSON(res, pushRes.status, { ok: false, error: 'Jira comment error', details: pushRes.body });
+      const pd = JSON.parse(pushRes.body);
+      sendJSON(res, 200, { ok: true, commentId: pd.id });
+    } catch(e) { sendJSON(res, 500, { ok: false, error: e.message }); }
   });
 }
