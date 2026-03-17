@@ -351,6 +351,20 @@
           "title": "Feature Brief",
           "content": "# Job Taxability Settings — Domain Docs (IPP-337 — PPC)\n\n## Problem\n\nService contractors operate on a simple, all-or-nothing tax model. PPC's current system (IFS) supports three clear states: **Taxable / Non-Taxable / Exempt**. Today in BuildOps, this is fragmented across multiple steps and configuration points.\n\nPPC's core rule:\n> \"The job is either taxable or not, and therefore, the things we purchase are the opposite.\"\n\n| Job Type | AR (Customer Invoice) | AP (Vendor Purchases) |\n|---|---|---|\n| **Taxable** | Charge sales tax to customer | Tax-exempt (resale certificate) |\n| **Non-Taxable** | No sales tax | Taxable (consumption/use tax) |\n| **Exempt Customer/Job** | No tax | No tax (government, nonprofit, etc.) |\n\n## Solution: Work Taxability Types\n\nA structured, hierarchical system for controlling AP and AR taxability across the entire job lifecycle.\n\n### New Concept: Work Taxability Type\n\nConfigurable value (set in Tax Settings) that controls:\n- **Line Taxability Rule:** Always Taxable / Always Non-Taxable / Inherit from Item List\n\n### New Entity Fields\n\n| Entity | New Fields |\n|---|---|\n| `WorkTaxabilityType` | `lineTaxabilityRule` (ALWAYS_TAXABLE / ALWAYS_NON_TAXABLE / INHERIT) |\n| `JobBlueprint` (Job Template) | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `Job` | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `ServiceAgreement` | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `Customer` | `apWorkTaxabilityTypeId` + `arWorkTaxabilityTypeId` |\n\n### Defaulting Hierarchy\n\n```\nCustomer defaults → Job Template re-defaults → SA re-defaults → Job (manual override)\n```\n\n### PO/Invoice Line Behavior\n\nWhen a PO is created for a job:\n- ALWAYS_TAXABLE → all lines `Taxable = true`\n- ALWAYS_NON_TAXABLE → all lines `Taxable = false`\n- INHERIT → each line inherits from the Item List `taxable` setting\n\n### Feature Flags\n\n| Flag | Controls |\n|---|---|\n| `work-taxability-types` | Exposes Work Taxability fields on Job Templates, Jobs, SAs, Customers |\n| `ap-taxes` | Exposes AP tax configuration settings |\n\n## PPC's Three Core Scenarios\n\n| Scenario | AR | AP |\n|---|---|---|\n| Taxable Job | Tax collected (sales tax) | Tax-exempt (resale certificate) |\n| Non-Taxable Job | Tax-exempt | Taxable (consumption/use tax) |\n| Exempt Customer/Job | Tax-exempt | Tax-exempt |\n\n## New Screen: Tax Settings\n\n`Company → Tax Settings` consolidates:\n- Work Taxability configuration (when `work-taxability-types` = true)\n- Sales Tax list\n- AP Taxes configuration (when `ap-taxes` = true and Avalara = false)\n\n## Related Links\n\n- [IPP-337 - Job Taxability Settings PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4263018514)\n- [Job Taxability - Meeting Notes (PPC)](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4262461453)"
         }
+      ],
+      "ctx_links": [
+        {
+          "label": "PRD IPP-337",
+          "url": "https://buildops.atlassian.net/wiki/spaces/BPD/pages/4263018514"
+        },
+        {
+          "label": "Epic IP-5460",
+          "url": "https://buildops.atlassian.net/browse/IP-5460"
+        },
+        {
+          "label": "BuildOps - Job Taxability Guide",
+          "url": "https://docs.google.com/document/d/1JY3oGXB3S3Mwl-j84FUTzaepSz_o9JEW/edit"
+        }
       ]
     },
     "vendors-unified": {
