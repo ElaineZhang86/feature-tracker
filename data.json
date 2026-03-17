@@ -592,7 +592,9 @@
             "syncStatus": "empty",
             "lastSynced": null,
             "commentId": null,
-            "syncError": null
+            "syncError": null,
+            "_expanded": true,
+            "description": ""
           },
           {
             "id": "224371",
