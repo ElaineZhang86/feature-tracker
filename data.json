@@ -1061,7 +1061,7 @@
             "lastSynced": "2026-03-17T20:07:13.701Z",
             "commentId": "535034",
             "syncError": null,
-            "_expanded": false,
+            "_expanded": true,
             "description": "Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only).&nbsp;<div><strong style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;\">Design:</strong><span style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;\"> </span><a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186\" target=\"_blank\" style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;\">Figma design</a></div>",
             "_descEdited": false,
             "dod": [],
