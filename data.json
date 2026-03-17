@@ -1067,8 +1067,8 @@
             "designLink": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186",
             "requirements": "here is the test",
             "specNotes": "spec notes here",
-            "syncStatus": "dirty",
-            "lastSynced": "2026-03-17T20:50:35.452Z",
+            "syncStatus": "synced",
+            "lastSynced": "2026-03-17T20:50:50.215Z",
             "commentId": "535034",
             "syncError": null,
             "_expanded": true,
@@ -1086,7 +1086,7 @@
                 "pendingRemove": false
               }
             ],
-            "_designLinksEdited": true
+            "_designLinksEdited": false
           },
           {
             "id": "250570",
