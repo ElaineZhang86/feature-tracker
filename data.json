@@ -1067,7 +1067,7 @@
             "designLink": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186",
             "requirements": "here is the test",
             "specNotes": "spec notes here",
-            "syncStatus": "synced",
+            "syncStatus": "dirty",
             "lastSynced": "2026-03-17T20:50:35.452Z",
             "commentId": "535034",
             "syncError": null,
@@ -1084,17 +1084,9 @@
                 "label": "Figma design",
                 "fromJira": false,
                 "pendingRemove": false
-              },
-              {
-                "id": "local_1773780632022_bufl",
-                "jiraId": null,
-                "url": "https://www.figma.com/design/V1ZxFG4R6UGH7mg1A2ojIz/%F0%9F%9A%A7-Procurement-Settings?node-id=3993-38701&t=qhFyEjlYcs5FDn1O-1",
-                "label": "Figma design",
-                "fromJira": false,
-                "pendingRemove": false
               }
             ],
-            "_designLinksEdited": false
+            "_designLinksEdited": true
           },
           {
             "id": "250570",
