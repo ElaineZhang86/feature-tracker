@@ -95,14 +95,7 @@
           "title": "Feature Brief",
           "content": "# Index Cost — Customer Discovery & SIP Evidence\n\n**Design Ticket:** [SERVICE-4335](https://buildops.atlassian.net/browse/SERVICE-4335)\n**Epic:** [SERVICE-4214](https://buildops.atlassian.net/browse/SERVICE-4214)\n**SIP Issues:** SIP-8787 · SIP (Index Cost Bulk Updates)\n\n---\n\n## What Customers Are Saying\n\n### SIP: \"Ability to Use Index Cost for Pricing on Job Report\"\n**Customer:** SmartCare (and others adopting Index Cost)\n\n**Problem:**\nJob Reports today continue to rely on costs from source purchasing documents (POs, AP Bills) or Inventory Issues — **not** from the Index Cost. This undermines the entire purpose of Index Cost and creates an inconsistency between the pricing strategy set in the Cost Catalogue and what actually appears on the job report.\n\n**Business Impact:**\n- Margins are frequently eroded or inconsistently applied\n- Pricing accuracy depends on individual vigilance rather than system enforcement\n- Teams spend excessive time validating costs and markups instead of higher-value work\n- Customers adopting Index Cost do not realize its full value until Job Report uses it\n\n**Current Workaround:**\nSupervisors, managers, or billing clerks manually verify that pricing is calculated using the correct cost before invoicing — highly manual and error-prone.\n\n---\n\n### SIP: \"Item-Level Index Cost Bulk Updates Applied to Pricebooks\"\n\n**Problem:**\nCustomers need to update pricing for a specific item when its supplier cost changes due to an external index, and apply that change **only to selected pricebooks**. BuildOps does not support targeted, item-level bulk updates tied to index cost changes.\n\n**Business Impact:**\n- Manual updates for every high-frequency cost change on indexed items\n- Risk of inconsistent pricing across pricebooks when updates are missed\n\n**Current Workaround:**\nManually identify impacted pricebooks, then update the item price one pricebook at a time. Some customers maintain separate tracking outside BuildOps to manage index changes.\n\n**Context:**\n- Customers using Inventory, Procurement, and multiple pricebooks tied to different customers/regions/contracts\n- Index-based cost changes on individual items are common and recurring — not an edge case\n- Under contract with due date **2026-06-30**\n\n---\n\n## Design Scope (SERVICE-4335)\n\nThe design ticket covers:\n1. **Cost Catalogue UI** — list view, create/edit cost catalogue entries\n2. **Job Report integration** — using index cost as markup base (max(Index Cost, Purchase Cost))\n3. **Property-level inheritance** — property inherits a Cost Catalogue; job inherits from property\n4. **Phase 1 only**: No manual override at job level, no pricebook-level cost override\n\n## What's Built (feature/index-cost branch)\n- `CostCatalogueList` UI with mock data (commit c7d322ae)\n- Index cost design spec (commit 48f9ea65)\n- Component preview: `docs/index-cost-component-preview.html`"
         }
-      ],
-      "implementation": {
-        "epicUrl": "",
-        "epicKey": "",
-        "epicTitle": "",
-        "domain": "",
-        "items": []
-      }
+      ]
     },
     "bulk-po": {
       "tasks": [
@@ -351,20 +344,6 @@
           "title": "Feature Brief",
           "content": "# Job Taxability Settings — Domain Docs (IPP-337 — PPC)\n\n## Problem\n\nService contractors operate on a simple, all-or-nothing tax model. PPC's current system (IFS) supports three clear states: **Taxable / Non-Taxable / Exempt**. Today in BuildOps, this is fragmented across multiple steps and configuration points.\n\nPPC's core rule:\n> \"The job is either taxable or not, and therefore, the things we purchase are the opposite.\"\n\n| Job Type | AR (Customer Invoice) | AP (Vendor Purchases) |\n|---|---|---|\n| **Taxable** | Charge sales tax to customer | Tax-exempt (resale certificate) |\n| **Non-Taxable** | No sales tax | Taxable (consumption/use tax) |\n| **Exempt Customer/Job** | No tax | No tax (government, nonprofit, etc.) |\n\n## Solution: Work Taxability Types\n\nA structured, hierarchical system for controlling AP and AR taxability across the entire job lifecycle.\n\n### New Concept: Work Taxability Type\n\nConfigurable value (set in Tax Settings) that controls:\n- **Line Taxability Rule:** Always Taxable / Always Non-Taxable / Inherit from Item List\n\n### New Entity Fields\n\n| Entity | New Fields |\n|---|---|\n| `WorkTaxabilityType` | `lineTaxabilityRule` (ALWAYS_TAXABLE / ALWAYS_NON_TAXABLE / INHERIT) |\n| `JobBlueprint` (Job Template) | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `Job` | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `ServiceAgreement` | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `Customer` | `apWorkTaxabilityTypeId` + `arWorkTaxabilityTypeId` |\n\n### Defaulting Hierarchy\n\n```\nCustomer defaults → Job Template re-defaults → SA re-defaults → Job (manual override)\n```\n\n### PO/Invoice Line Behavior\n\nWhen a PO is created for a job:\n- ALWAYS_TAXABLE → all lines `Taxable = true`\n- ALWAYS_NON_TAXABLE → all lines `Taxable = false`\n- INHERIT → each line inherits from the Item List `taxable` setting\n\n### Feature Flags\n\n| Flag | Controls |\n|---|---|\n| `work-taxability-types` | Exposes Work Taxability fields on Job Templates, Jobs, SAs, Customers |\n| `ap-taxes` | Exposes AP tax configuration settings |\n\n## PPC's Three Core Scenarios\n\n| Scenario | AR | AP |\n|---|---|---|\n| Taxable Job | Tax collected (sales tax) | Tax-exempt (resale certificate) |\n| Non-Taxable Job | Tax-exempt | Taxable (consumption/use tax) |\n| Exempt Customer/Job | Tax-exempt | Tax-exempt |\n\n## New Screen: Tax Settings\n\n`Company → Tax Settings` consolidates:\n- Work Taxability configuration (when `work-taxability-types` = true)\n- Sales Tax list\n- AP Taxes configuration (when `ap-taxes` = true and Avalara = false)\n\n## Related Links\n\n- [IPP-337 - Job Taxability Settings PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4263018514)\n- [Job Taxability - Meeting Notes (PPC)](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4262461453)"
         }
-      ],
-      "ctx_links": [
-        {
-          "label": "PRD IPP-337",
-          "url": "https://buildops.atlassian.net/wiki/spaces/BPD/pages/4263018514"
-        },
-        {
-          "label": "Epic IP-5460",
-          "url": "https://buildops.atlassian.net/browse/IP-5460"
-        },
-        {
-          "label": "BuildOps - Job Taxability Guide",
-          "url": "https://docs.google.com/document/d/1JY3oGXB3S3Mwl-j84FUTzaepSz_o9JEW/edit"
-        }
       ]
     },
     "vendors-unified": {
@@ -572,14 +551,7 @@
           "title": "Feature Brief",
           "content": "# Pricebook Separation (Split by Cost Type) — Domain Docs\n\n## Problem\n\nToday, a single pricebook bundles **Labor + Materials + Equipment** pricing together, causing combinatorial explosion.\n\n> Service Logic example: 118 labor rate structures × 42 material markups = **4,956 pricebooks** required. Impossible to maintain.\n\n## Solution: One Pricebook Per Cost Type\n\nEach pricebook has exactly **one cost type**:\n\n| Cost Type | What it covers |\n|---|---|\n| **Material** | Parts, inventory items, purchased materials |\n| **Labor** | Labor rates, hour types, labor groups |\n| **Equipment** | Equipment rental, usage rates |\n\n> ⚠️ Multi-cost-type pricebooks will NOT be allowed under the new model. Existing \"full\" pricebooks remain backward compatible during migration.\n\n## Key Architectural Decisions\n\n### Cost Type Composition\n- Each new pricebook selects exactly 1 cost type on creation\n- Cost type cannot be changed after creation\n- Existing full pricebooks continue working (backward compatibility)\n\n### Job-Level Selection\n- When creating a job, user selects up to 3 pricebooks (one per cost type)\n- If a full pricebook is selected → populates labor and equipment fields too (backward compat)\n- Each entity resolves pricing from the matching cost-type pricebook\n\n### Pricing Resolution Logic\n\n```\nInventory Part added → resolve from Material pricebook\nLabor line added    → resolve from Labor pricebook\nEquipment added     → resolve from Equipment pricebook\n```\n\n### Inheritance Chain\n\n- Invoice created from a job → inherits all three pricebook IDs from the job\n- Invoice created from SA → inherits from SA → Customer → Company\n- Ad-hoc invoice → inherits from Customer → Company\n\n## What's Out of Scope (Phase 1)\n\n- Splitting out existing pricebooks into separate cost-type books\n- Archiving partial pricebooks\n- Multi-select vendor types in all reporting surfaces\n\n## Related Links\n\n- [PRD - Splitting Pricebook Components](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4153737329)"
         }
-      ],
-      "implementation": {
-        "epicUrl": "",
-        "epicKey": "",
-        "epicTitle": "",
-        "domain": "",
-        "items": []
-      }
+      ]
     },
     "pricebook-bulk-edits": {
       "tasks": [
