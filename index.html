@@ -9306,9 +9306,13 @@ async function _fetchTicketDesc(featureId, key) {
     });
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'Failed');
-    // Convert ADF to HTML for the rich text editor
-    t.description = data.descriptionAdf ? adfToHtml(data.descriptionAdf) : '';
+    // Extract DoD section from ADF, then convert remaining ADF to HTML for the editor
+    const { cleanAdf, dodItems } = _extractDodFromAdf(data.descriptionAdf);
+    t.description = cleanAdf ? adfToHtml(cleanAdf) : '';
+    if (!t.dod || !t.dod.length) t.dod = dodItems; // populate from Jira if not already set locally
     saveImpl(featureId, impl);
+    const dodDiv = document.getElementById(featureId + '_dod_' + key);
+    if (dodDiv) dodDiv.innerHTML = _renderDodItems(featureId, t);
     if (wrap) wrap.innerHTML = `
       <div style="display:flex;align-items:center;gap:2px;flex-wrap:wrap;margin-bottom:6px;padding:4px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px">
         ${rtBtn('bold','Bold','<b style="font-size:12px">B</b>')}
@@ -9356,7 +9360,7 @@ async function importEpic(featureId) {
     if (!data.ok) throw new Error(data.error || 'Import failed');
     const impl = {
       epicUrl: data.epicUrl, epicKey: data.epicKey, epicTitle: data.epicTitle, domain: data.domain,
-      items: data.items.map(t => ({ ...t, _origSummary: t.summary, description: null, designLink:'', requirements:'', specNotes:'', syncStatus:'empty', lastSynced:null, commentId:null, syncError:null }))
+      items: data.items.map(t => ({ ...t, _origSummary: t.summary, description: null, dod:[], _descEdited:false, _dodEdited:false, designLink:'', requirements:'', specNotes:'', syncStatus:'empty', lastSynced:null, commentId:null, syncError:null }))
     };
     saveImpl(featureId, impl);
     renderImplementationTab(featureId);
@@ -9459,7 +9463,7 @@ async function syncTicket(featureId, key) {
     showToast('Connect Confluence in Settings first'); openSettings(); return;
   }
   const summaryChanged = t._origSummary !== undefined && t.summary !== t._origSummary;
-  const hasAnything = !!(summaryChanged || t._descEdited);
+  const hasAnything = !!(summaryChanged || t._descEdited || t._dodEdited);
   if (!hasAnything) { showToast('Nothing to sync — edit the title or description first'); return; }
   const wasOpen = document.getElementById(featureId + '_ticket_body_' + key)?.style.display !== 'none';
   t.syncStatus = 'syncing'; t._expanded = wasOpen;
@@ -9469,8 +9473,21 @@ async function syncTicket(featureId, key) {
   try {
     const body = { domain: impl.domain || creds.domain, email: creds.email, token: creds.token, ticketKey: t.key };
     if (summaryChanged) body.summary = t.summary;
-    if (t._descEdited && t.description !== null && t.description !== undefined) {
-      body.descriptionAdf = htmlToAdf(t.description); // Convert editor HTML → ADF for Jira
+    if (t._descEdited || t._dodEdited) {
+      const descAdf = (t.description !== null && t.description !== undefined)
+        ? htmlToAdf(t.description)
+        : { type: 'doc', version: 1, content: [] };
+      const cleanBlocks = _stripDodBlocks(descAdf.content || []);
+      const dodBlocks = (t.dod && t.dod.length) ? [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Definition of Done' }] },
+        { type: 'taskList', attrs: { localId: 'fh-dod' },
+          content: t.dod.map((item, i) => ({
+            type: 'taskItem', attrs: { localId: 'fh-dod-' + i, state: item.done ? 'DONE' : 'TODO' },
+            content: [{ type: 'text', text: item.text }]
+          }))
+        }
+      ] : [];
+      body.descriptionAdf = { type: 'doc', version: 1, content: [...cleanBlocks, ...dodBlocks] };
     }
     const res = await fetch('/api/jira/ticket/push', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -9482,7 +9499,7 @@ async function syncTicket(featureId, key) {
     t.syncError = null;
     // Lock in synced values as the new originals
     if (summaryChanged) t._origSummary = t.summary;
-    t._descEdited = false;
+    t._descEdited = false; t._dodEdited = false;
     saveImpl(featureId, impl);
     const updated = document.getElementById(featureId + '_ticket_' + key);
     if (updated) updated.outerHTML = _renderTicketRow(featureId, t);
@@ -12662,7 +12679,8 @@ function generateConfluenceContent(featureId, f) {
             "lastSynced": "2026-03-17T19:34:09.865Z",
             "commentId": "535027",
             "syncError": null,
-            "_expanded": false
+            "_expanded": true,
+            "description": "<p>Update Pricebook list table layout to accommodate new Cost Component column, Default tag, and updated status indicators (Active / Archived / Default). Existing table behavior (search, sort, pagination) must remain intact. New layout only renders for tenants with the feature flag enabled. Rollout: Behind feature flag (new PB model only). </p><p>Figma: <a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186\" target=\"_blank\">https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186</a> </p>"
           },
           {
             "id": "250578",
