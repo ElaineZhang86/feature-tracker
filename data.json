@@ -1057,12 +1057,13 @@
             "designLink": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186",
             "requirements": "here is the test",
             "specNotes": "spec notes here",
-            "syncStatus": "unsynced",
-            "lastSynced": null,
-            "commentId": null,
+            "syncStatus": "synced",
+            "lastSynced": "2026-03-17T19:47:15.194Z",
+            "commentId": "535033",
             "syncError": null,
             "_expanded": true,
-            "description": "Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only). Figma: https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186 "
+            "description": "Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only). Figma: https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186 ",
+            "_descEdited": false
           },
           {
             "id": "250570",
