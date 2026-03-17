@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Feature Tracker — local git-sync server
 // Run with: node server.js
-// Then open: http://localhost:3456
+// Then open: http://localhost:3457
 
 const http = require('http');
 const fs = require('fs');
@@ -123,6 +123,9 @@ const server = http.createServer((req, res) => {
 
   if (req.method === 'POST' && req.url === '/sync') return handleSync(req, res);
   if (req.method === 'GET' && req.url === '/api/check-update') return handleCheckUpdate(req, res);
+  if (req.method === 'GET' && req.url.startsWith('/api/confluence/fetch')) return handleCFFetch(req, res);
+  if (req.method === 'POST' && req.url === '/api/confluence/update') return handleCFUpdate(req, res);
+  if (req.method === 'POST' && req.url === '/api/claude/parse') return handleClaudeParse(req, res);
 
 
 
@@ -145,6 +148,152 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`Feature Tracker running at http://localhost:${PORT}`);
+  console.log(`Feature Hub running at http://localhost:${PORT}`);
   console.log('Auto-sync will commit to git every 30 s after a change.');
 });
+
+// ── HTTPS helper ────────────────────────────────────────────────────────────
+const https = require('https');
+
+function httpsReq(options, body) {
+  return new Promise((resolve, reject) => {
+    const req = https.request(options, res => {
+      const chunks = [];
+      res.on('data', c => chunks.push(c));
+      res.on('end', () => resolve({
+        status: res.statusCode,
+        headers: res.headers,
+        body: Buffer.concat(chunks).toString()
+      }));
+    });
+    req.on('error', reject);
+    if (body) req.write(body);
+    req.end();
+  });
+}
+
+// ── Resolve Confluence tiny/short URL to page ID ────────────────────────────
+async function resolvePageId(domain, urlPath, auth) {
+  // Follow up to 5 redirects, extracting page ID along the way
+  let currentPath = urlPath;
+  for (let i = 0; i < 5; i++) {
+    // Check current path for page ID
+    const direct = currentPath.match(/\/pages\/(\d+)/);
+    if (direct) return direct[1];
+    const qm = currentPath.match(/[?&]pageId=(\d+)/);
+    if (qm) return qm[1];
+
+    // Make request and follow redirect
+    const res = await httpsReq({ hostname: domain, path: currentPath, method: 'GET', headers: { Authorization: auth } });
+    if (![301, 302, 307, 308].includes(res.status) || !res.headers.location) break;
+
+    const loc = res.headers.location;
+    // Check redirect target for page ID immediately
+    const m = loc.match(/\/pages\/(\d+)/) || loc.match(/[?&]pageId=(\d+)/);
+    if (m) return m[1];
+    // Continue following
+    currentPath = loc.startsWith('http') ? new URL(loc).pathname + new URL(loc).search : loc;
+  }
+  throw new Error('Could not resolve Confluence page ID from: ' + urlPath);
+}
+
+// ── /api/confluence/fetch ───────────────────────────────────────────────────
+async function handleCFFetch(req, res) {
+  const qUrl = new URL(req.url, 'http://x').searchParams.get('url');
+  if (!qUrl) return sendJSON(res, 400, { ok: false, error: 'Missing url' });
+  const email = req.headers['x-cf-email'];
+  const token = req.headers['x-cf-token'];
+  if (!email || !token) return sendJSON(res, 400, { ok: false, error: 'Missing Confluence credentials' });
+  try {
+    const parsed = new URL(qUrl);
+    const domain = parsed.hostname;
+    const auth = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
+    const pageId = await resolvePageId(domain, parsed.pathname + parsed.search, auth);
+    const apiRes = await httpsReq({
+      hostname: domain,
+      path: `/wiki/rest/api/content/${pageId}?expand=body.storage,version`,
+      method: 'GET',
+      headers: { Authorization: auth, Accept: 'application/json' }
+    });
+    if (apiRes.status !== 200) return sendJSON(res, apiRes.status, { ok: false, error: 'Confluence API error', details: apiRes.body });
+    const data = JSON.parse(apiRes.body);
+    sendJSON(res, 200, { ok: true, pageId: data.id, title: data.title, version: data.version.number, content: data.body.storage.value });
+  } catch (e) {
+    sendJSON(res, 500, { ok: false, error: e.message });
+  }
+}
+
+// ── /api/confluence/update ──────────────────────────────────────────────────
+function handleCFUpdate(req, res) {
+  let body = '';
+  req.on('data', c => { body += c; });
+  req.on('end', async () => {
+    try {
+      const { domain, pageId, title, content, email, token } = JSON.parse(body);
+      const auth = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
+
+      // Always fetch the live version first to avoid stale-version 409 conflicts
+      const getRes = await httpsReq({
+        hostname: domain,
+        path: `/wiki/rest/api/content/${pageId}?expand=version`,
+        method: 'GET',
+        headers: { Authorization: auth, Accept: 'application/json' }
+      });
+      if (getRes.status !== 200) return sendJSON(res, getRes.status, { ok: false, error: 'Could not fetch current page version', details: getRes.body });
+      const currentVersion = JSON.parse(getRes.body).version.number;
+
+      const payload = JSON.stringify({ version: { number: currentVersion + 1 }, title, type: 'page', body: { storage: { value: content, representation: 'storage' } } });
+      const r = await httpsReq({
+        hostname: domain,
+        path: `/wiki/rest/api/content/${pageId}`,
+        method: 'PUT',
+        headers: { Authorization: auth, 'Content-Type': 'application/json', Accept: 'application/json', 'Content-Length': Buffer.byteLength(payload) }
+      }, payload);
+      if (r.status !== 200) return sendJSON(res, r.status, { ok: false, error: 'Confluence update error', details: r.body });
+      sendJSON(res, 200, { ok: true, newVersion: currentVersion + 1 });
+    } catch (e) {
+      sendJSON(res, 500, { ok: false, error: e.message });
+    }
+  });
+}
+
+// ── /api/claude/parse ───────────────────────────────────────────────────────
+function handleClaudeParse(req, res) {
+  let body = '';
+  req.on('data', c => { body += c; });
+  req.on('end', async () => {
+    try {
+      const { content, apiKey } = JSON.parse(body);
+      const prompt = `You are parsing a Confluence PRD. Extract structured information and return ONLY a valid JSON object with no markdown fences or explanation.
+
+Fields (use empty string/array if not present):
+{
+  "summary": "one paragraph problem statement",
+  "keyDecisions": ["decision text"],
+  "team": [{"name": "...", "role": "..."}],
+  "links": [{"label": "...", "url": "..."}],
+  "featureBriefEntries": [{"title": "...", "content": "..."}],
+  "domainKnowledge": [{"title": "...", "content": "..."}],
+  "questions": ["question text"],
+  "tasks": ["task text"]
+}
+
+Confluence page content:
+${content.slice(0, 60000)}`;
+
+      const payload = JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4096, messages: [{ role: 'user', content: prompt }] });
+      const r = await httpsReq({
+        hostname: 'api.anthropic.com',
+        path: '/v1/messages',
+        method: 'POST',
+        headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json', 'content-length': Buffer.byteLength(payload) }
+      }, payload);
+      if (r.status !== 200) return sendJSON(res, r.status, { ok: false, error: 'Claude API error', details: r.body });
+      const d = JSON.parse(r.body);
+      const text = d.content[0].text.trim().replace(/^```json\s*/,'').replace(/\s*```$/,'');
+      sendJSON(res, 200, { ok: true, data: JSON.parse(text) });
+    } catch (e) {
+      sendJSON(res, 500, { ok: false, error: e.message });
+    }
+  });
+}

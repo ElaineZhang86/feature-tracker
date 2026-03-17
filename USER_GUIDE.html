@@ -258,6 +258,21 @@
   .callout-danger .material-symbols-rounded { color: #ef4444; }
 
   hr.divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  .badge-optional {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    background: var(--surface2);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    vertical-align: middle;
+    margin-left: 6px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
 </style>
 </head>
 <body>
@@ -288,6 +303,10 @@
     <a class="nav-item" href="#navigation" onclick="setActive(this)">
       <span class="material-symbols-rounded nav-icon">menu</span>
       <span class="nav-label">Navigation</span>
+    </a>
+    <a class="nav-item" href="#integrations" onclick="setActive(this)">
+      <span class="material-symbols-rounded nav-icon">cloud_sync</span>
+      <span class="nav-label">Integrations</span>
     </a>
     <a class="nav-item" href="#identity" onclick="setActive(this)">
       <span class="material-symbols-rounded nav-icon">account_circle</span>
@@ -322,6 +341,10 @@
     <a class="nav-item" href="#feature-brief" onclick="setActive(this)">
       <span class="material-symbols-rounded nav-icon">description</span>
       <span class="nav-label">Feature Brief</span>
+    </a>
+    <a class="nav-item" href="#prd" onclick="setActive(this)">
+      <span class="material-symbols-rounded nav-icon">article</span>
+      <span class="nav-label">PRD</span>
     </a>
     <a class="nav-item" href="#calls" onclick="setActive(this)">
       <span class="material-symbols-rounded nav-icon">phone</span>
@@ -387,13 +410,13 @@
 
     <h3>Stay oriented across 5–8 features simultaneously</h3>
     <p>At any given time, you might be deep in discovery for one feature, reviewing specs for another, and answering Slack questions about a third. Without a dedicated system, the mental overhead of context-switching compounds into real productivity loss.</p>
-    <p><strong>Schedule Overview</strong> is the antidote to Monday morning confusion. Open it once, scan every feature's status, current focus, and task progress in one view — no Jira, no Confluence, no Slack scrolling.</p>
+    <p><strong>Schedule Overview</strong> is the antidote to Monday morning confusion. Open it once, scan every feature's status, current focus, and task progress in one view. No Jira, no Confluence, no Slack scrolling.</p>
 
     <h3>Context-switch without losing your place</h3>
-    <p>The biggest tax on design work isn't the switching itself — it's the ramp-up time after. Every feature has a <strong>Current Focus ribbon</strong> — one sentence: what specifically needs to happen next. Update it before you switch away. When you come back, you know exactly where to pick up.</p>
+    <p>The biggest tax on design work isn't the switching itself. It's the ramp-up time after. Every feature has a <strong>Current Focus ribbon</strong>: one sentence on what specifically needs to happen next. Update it before you switch away. When you come back, you know exactly where to pick up.</p>
 
     <h3>Never lose domain knowledge you worked hard to earn</h3>
-    <p>Tax law nuances. API quirks. Edge cases your PM didn't know about until you surfaced them in a discovery call. This kind of knowledge is invisible in PRDs — it lives in your head, or gets buried in a Notion page nobody finds again.</p>
+    <p>Tax law nuances. API quirks. Edge cases your PM didn't know about until you surfaced them in a discovery call. This kind of knowledge is invisible in PRDs. It lives in your head, or gets buried in a Notion page nobody finds again.</p>
     <p>The <strong>Domain Knowledge tab</strong> keeps it next to the feature it belongs to, making your future self faster, your design rationale sharper, and your call prep significantly better.</p>
 
     <h3>Hand off to another designer without a 2-hour catch-up call</h3>
@@ -417,7 +440,7 @@
     <h3>2. Connect GitHub Sync (recommended backup)</h3>
     <div class="callout callout-danger">
       <span class="material-symbols-rounded">error</span>
-      <span><strong>Don't connect to the public <code>feature-tracker</code> repo</strong> — your workspace data would be visible to anyone who clones it. Instead, create a private repo of your own (e.g. <code>feature-tracker-data</code>) and connect to that.</span>
+      <span><strong>Don't connect to the public <code>feature-hub</code> repo.</strong> Your workspace data would be visible to anyone who clones it. Instead, create a private repo of your own (e.g. <code>feature-hub-data</code>) and connect to that.</span>
     </div>
     <p><strong>What you need:</strong> a GitHub account, a repository (can be private), and a Personal Access Token with repo write access.</p>
 
@@ -425,48 +448,73 @@
     <ol>
       <li>Go to <strong>GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)</strong></li>
       <li>Click <strong>Generate new token (classic)</strong></li>
-      <li>Give it a name (e.g. <em>feature-tracker-sync</em>)</li>
+      <li>Give it a name (e.g. <em>feature-hub-sync</em>)</li>
       <li>Check the <strong>repo</strong> scope</li>
-      <li>Click <strong>Generate token</strong> and copy it immediately — GitHub only shows it once</li>
+      <li>Click <strong>Generate token</strong> and copy it immediately (GitHub only shows it once)</li>
     </ol>
 
     <p><strong>Connect in Settings</strong></p>
     <ol>
       <li>Open the app and click the <strong>⚙ icon</strong> in the sidebar footer</li>
       <li>Go to <strong>GitHub Sync</strong></li>
-      <li>Fill in: Owner (your GitHub username), Repo, Branch (e.g. <code>main</code>), and File Path (e.g. <code>feature-tracker-data.json</code>)</li>
+      <li>Fill in: Owner (your GitHub username), Repo, Branch (e.g. <code>main</code>), and File Path (e.g. <code>feature-hub-data.json</code>)</li>
       <li>Paste your Personal Access Token and click <strong>Connect</strong></li>
     </ol>
-    <p>The app verifies access and writes an initial snapshot to GitHub immediately. From then on, it automatically saves snapshots in the background — no action required.</p>
+    <p>The app verifies access and writes an initial snapshot to GitHub immediately. From then on, it saves snapshots in the background automatically.</p>
 
     <div class="callout callout-success">
       <span class="material-symbols-rounded">cloud_done</span>
-      <span>Once connected, your workspace follows you to any machine — open the app, reconnect with the same GitHub Sync settings, and the latest snapshot is restored into your browser automatically.</span>
+      <span>Once connected, your workspace follows you to any machine. Open the app, reconnect with the same GitHub Sync settings, and the latest snapshot is restored into your browser automatically.</span>
     </div>
     <div class="callout callout-warn">
       <span class="material-symbols-rounded">lock</span>
       <span>Your token is stored in your browser only and is never sent anywhere except directly to the GitHub API.</span>
     </div>
 
-    <h3>3. Optional — Data File backup</h3>
-    <p>In addition to GitHub Sync, you can connect a local JSON file as a second backup copy — useful if you also want a file you can put in iCloud Drive or Dropbox. See <a href="#data-file" onclick="setActive(document.querySelector('[href=\'#data-file\']'))">Data File</a> for details and how to restore from a backup.</p>
+    <h3>3. Connect Confluence <span class="badge-optional">optional</span></h3>
+    <p>To use the PRD tab (importing, editing, and pushing pages), you need to save your Confluence credentials once in <strong>Settings → Integrations</strong>.</p>
+    <p><strong>What you need:</strong></p>
+    <ul>
+      <li>Your Atlassian domain (e.g. <code>yourcompany.atlassian.net</code>)</li>
+      <li>The email address you use to log in to Confluence</li>
+      <li>An Atlassian API token</li>
+    </ul>
+    <p><strong>Create an API token:</strong></p>
+    <ol>
+      <li>Go to <a href="https://id.atlassian.com" target="_blank">id.atlassian.com</a> → <strong>Manage account → Security → API tokens</strong></li>
+      <li>Click <strong>Create API token</strong>, give it a name (e.g. <em>feature-hub</em>), and copy it</li>
+    </ol>
+    <p><strong>Save in the app:</strong></p>
+    <ol>
+      <li>Click the <strong>⚙ icon</strong> in the sidebar footer to open Settings</li>
+      <li>Go to <strong>Integrations</strong></li>
+      <li>Fill in your domain, email, and API token</li>
+      <li>Click <strong>Connect</strong>. The section shows a connected status.</li>
+    </ol>
+    <div class="callout callout-warn">
+      <span class="material-symbols-rounded">lock</span>
+      <span>Credentials are stored in your browser only and are never sent anywhere except the Confluence API when you fetch or push a page.</span>
+    </div>
+
+    <h3>4. Data File backup <span class="badge-optional">optional</span></h3>
+    <p>In addition to GitHub Sync, you can connect a local JSON file as a second backup copy, useful if you also want a file in iCloud Drive or Dropbox. See <a href="#data-file" onclick="setActive(document.querySelector('[href=\'#data-file\']'))">Data File</a> for details and how to restore from a backup.</p>
   </div>
 
   <!-- NAVIGATION -->
   <div class="section" id="faq">
     <h2 class="section-title">Common Questions</h2>
       <h3>Does the app need internet to work?</h3>
-      <p>The app runs entirely in your browser — no internet required. If GitHub Sync is configured, it saves snapshots to GitHub when you're online. The app continues to work offline and saves the next time a connection is available.</p>
+      <p>The app runs entirely in your browser. No internet required. If GitHub Sync is configured, it saves snapshots to GitHub when you're online. The app continues to work offline and saves the next time a connection is available.</p>
       <h3>Where is my data stored?</h3>
-      <p>localStorage is always the live working copy — every edit lands there instantly. If GitHub Sync is configured, the app automatically saves snapshots to your GitHub repo. Your data can be restored from GitHub on any machine as long as GitHub Sync was set up before the data was lost.</p>
+      <p>localStorage is always the live working copy. Every edit lands there instantly. If GitHub Sync is configured, the app automatically saves snapshots to your GitHub repo. Your data can be restored from GitHub on any machine as long as GitHub Sync was set up before the data was lost.</p>
       <h3>How do I move to a new machine?</h3>
-      <p>Open the app on your new machine, go to <strong>Settings → GitHub Sync</strong>, and enter the same owner, repo, branch, file path, and token. Click Connect — the app fetches the latest snapshot from GitHub and restores it into localStorage automatically.</p>
+      <p>Open the app on your new machine, go to <strong>Settings → GitHub Sync</strong>, and enter the same owner, repo, branch, file path, and token. Click Connect. The app fetches the latest snapshot from GitHub and restores it into localStorage automatically.</p>
       <h3>Is my data safe if I accidentally clear my browser?</h3>
-      <p>If GitHub Sync was configured, your data can be restored — reconnect with the same settings and the latest snapshot is loaded from GitHub. Without GitHub Sync, clearing browser data will erase your work.</p>
-      <h3>How do I share my work with another person — and what's the difference between sharing a feature vs the whole workspace?</h3>
+      <p>If GitHub Sync was configured, your data can be restored. Reconnect with the same settings and the latest snapshot is loaded from GitHub. Without GitHub Sync, clearing browser data will erase your work.</p>
+      <h3>How do I share my work with another person, and what's the difference between sharing a feature vs the whole workspace?</h3>
       <p>There are two different ways to share, depending on what you want to hand off:</p>
-      <p><strong>Feature by feature (recommended for handoffs)</strong> — click the <strong>↓ download icon</strong> on any feature header to export that one feature as a <code>.json</code> file. The other person clicks the <strong>↑ upload icon</strong> next to "Features" in their sidebar to import it. Their existing features are untouched — the new feature is simply added alongside them. Works in all browsers.</p>
-      <p><strong>Full workspace</strong> — go to <strong>Settings → Data File</strong>, click <strong>Connect file</strong> to connect a save location, then click <strong>Download</strong> to get a <code>feature-tracker-data.json</code> file. Send that file to the other person. They go to <strong>Settings → Data File → Load from backup</strong> and pick the file. This replaces their entire workspace with yours. Use this for a full handoff or onboarding a new designer — not for sharing a single feature. Chrome and Edge only.</p>
+      <p><strong>Feature by feature (recommended for handoffs):</strong> click the <strong>↓ download icon</strong> on any feature header to export that one feature as a <code>.json</code> file. The other person clicks the <strong>↑ upload icon</strong> next to "Features" in their sidebar to import it. Their existing features are untouched. The new feature is simply added alongside them. Works in all browsers.</p>
+      <p><strong>Full workspace:</strong> go to <strong>Settings → Data File</strong>, click <strong>Connect file</strong> to connect a save location, then click <strong>Download</strong> to get a <code>feature-hub-data.json</code> file. Send that file to the other person. They go to <strong>Settings → Data File → Load from backup</strong> and pick the file. This replaces their entire workspace with yours. Use this for a full handoff or onboarding a new designer, not for sharing a single feature. Chrome and Edge only.</p>
   </div>
 
   <div class="section" id="navigation">
@@ -479,9 +527,9 @@
     <p>When GitHub Sync is active, a small status dot appears next to the ⚙ button:</p>
     <table>
       <tr><th>Dot color</th><th>Meaning</th></tr>
-      <tr><td>Blue (pulsing)</td><td>Saving to GitHub…</td></tr>
-      <tr><td>Green</td><td>Saved — shows the time of the last successful sync</td></tr>
-      <tr><td>Red</td><td>Sync failed — check your GitHub Sync settings</td></tr>
+      <tr><td>Blue (pulsing)</td><td>Loading from GitHub… or Saving to GitHub…</td></tr>
+      <tr><td>Green</td><td>GitHub saved HH:MM (time of last successful sync)</td></tr>
+      <tr><td>Red</td><td>GitHub sync failed (check your settings)</td></tr>
     </table>
   </div>
 
@@ -490,13 +538,13 @@
     <h2 class="section-title">Your Identity</h2>
     <p>On first launch, a two-step welcome modal appears:</p>
     <ul>
-      <li><strong>Step 1 — Name &amp; Role</strong> — enter your name (required) and role (optional). Click <strong>Next →</strong> to continue.</li>
-      <li><strong>Step 2 — GitHub Sync (optional)</strong> — connect a GitHub repo for automatic backup. You can skip this and set it up later in <strong>Settings → GitHub Sync</strong>.</li>
+      <li><strong>Step 1: Name &amp; Role.</strong> Enter your name (required) and role (optional). Click <strong>Next</strong> to continue.</li>
+      <li><strong>Step 2: GitHub Sync <span class="badge-optional">optional</span>.</strong> Connect a GitHub repo for automatic backup. You can skip this and set it up later in <strong>Settings → GitHub Sync</strong>.</li>
     </ul>
     <p>Your name and role appear in the sidebar header. Edit at any time by clicking your name in the sidebar or going to <strong>Settings → Account</strong>.</p>
     <div class="callout callout-success">
       <span class="material-symbols-rounded">account_circle</span>
-      <span>Identity is stored locally in your browser only — it is not included in GitHub Sync.</span>
+      <span>Identity is stored locally in your browser only. It is not included in GitHub Sync.</span>
     </div>
   </div>
 
@@ -506,25 +554,56 @@
     <p>Click the <strong>⚙ icon</strong> in the sidebar footer to open the Settings panel.</p>
     <table>
       <tr><th>Section</th><th>What you can do</th></tr>
-      <tr><td><strong>Account</strong></td><td>Update your name and role — all in one row with Save</td></tr>
+      <tr><td><strong>Account</strong></td><td>Update your name and role</td></tr>
+      <tr><td><strong>Help</strong></td><td>Open this User Guide in a new tab</td></tr>
       <tr><td><strong>GitHub Sync</strong></td><td>Connect a GitHub repo to automatically back up your data on every change</td></tr>
       <tr><td><strong>Data File</strong></td><td>Auto-save your full workspace to a local JSON file, or restore from a backup</td></tr>
-      <tr><td><strong>Help</strong></td><td>Open this User Guide in a new tab</td></tr>
+      <tr><td><strong>Integrations</strong></td><td>Enter your Confluence domain, email, and API token so PRD import and push can authenticate</td></tr>
       <tr><td><strong>Appearance</strong></td><td>Toggle light / dark theme</td></tr>
     </table>
 
     <h3>GitHub Sync</h3>
-    <p>Fill in your Owner, Repository, Branch, File path, and Personal Access Token. The <strong>Connect</strong> button is disabled until all three required fields (owner, repo, token) are filled. Click Connect — the app verifies credentials, writes your data to GitHub, and collapses the form.</p>
-    <p>When connected, the status row shows a green dot with your repo name and the last save time. A <strong>Disconnect</strong> button appears in the section header. Clicking it shows a confirmation modal before disconnecting — your field values are preserved so you can reconnect without retyping.</p>
+    <p>Fill in Owner, Repository, Branch, File path, and Personal Access Token. The <strong>Connect</strong> button is disabled until Owner, Repository, and Token are all filled. Click <strong>Connect</strong>. The app immediately loads your saved data from GitHub and merges it into your workspace.</p>
+    <h4>Status indicators</h4>
+    <p>The sync status appears both in the sidebar footer and inside the Settings panel:</p>
+    <table>
+      <thead><tr><th>Status</th><th>Dot</th><th>Label</th></tr></thead>
+      <tbody>
+        <tr><td>Loading data from GitHub on connect</td><td>Blue (pulsing)</td><td>Loading from GitHub…</td></tr>
+        <tr><td>Saving a change</td><td>Blue (pulsing)</td><td>Saving to GitHub…</td></tr>
+        <tr><td>Last save succeeded</td><td>Green</td><td>GitHub saved HH:MM</td></tr>
+        <tr><td>Save failed</td><td>Red</td><td>GitHub sync failed: &lt;reason&gt;</td></tr>
+        <tr><td>Connected but idle</td><td>—</td><td>GitHub sync idle</td></tr>
+        <tr><td>Not connected</td><td>—</td><td>Not connected</td></tr>
+      </tbody>
+    </table>
+    <h4>Disconnecting</h4>
+    <p>Click <strong>Disconnect</strong> (top-right of the GitHub Sync section). A confirmation modal appears. Your data on GitHub is not deleted and your local data is not affected. After confirming, the fields are repopulated with your previous values so you can reconnect without retyping them.</p>
 
     <h3 id="data-file">Data File</h3>
     <p>The Data File section has two actions:</p>
-    <p><strong>Connect file / Download</strong> — when no file is connected, clicking <strong>Connect file</strong> prompts you to pick a save location. The app automatically writes updated snapshots to that file. Once connected, the button becomes <strong>Download</strong> — clicking it downloads the current workspace as <code>feature-tracker-data.json</code>. The status row shows the connected filename and file size.</p>
-    <p><strong>Load from backup</strong> — pick any <code>.json</code> backup file to restore your full workspace. This replaces everything in your current session. Useful after clearing the browser, moving to a new machine, or receiving a workspace export from a teammate.</p>
+    <p><strong>Connect file / Download:</strong> when no file is connected, clicking <strong>Connect file</strong> prompts you to pick a save location. The app automatically writes updated snapshots to that file. Once connected, the button becomes <strong>Download</strong>. Clicking it downloads the current workspace as <code>feature-hub-data.json</code>. The status row shows the connected filename and file size.</p>
+    <p><strong>Load from backup:</strong> pick any <code>.json</code> backup file to restore your full workspace. This replaces everything in your current session. Useful after clearing the browser, moving to a new machine, or receiving a workspace export from a teammate.</p>
     <div class="callout callout-warn">
       <span class="material-symbols-rounded">warning</span>
       <span>The File System Access API (Connect file / Download / Load from backup) is only available in Chrome and Edge. It will not work in Safari or Firefox.</span>
     </div>
+  </div>
+
+  <!-- INTEGRATIONS -->
+  <div class="section" id="integrations">
+    <h2 class="section-title">Integrations: Confluence</h2>
+    <p>Enter your Confluence credentials in <strong>Settings → Integrations</strong> so the PRD import and push flows can authenticate:</p>
+    <table>
+      <thead><tr><th>Field</th><th>What to enter</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Confluence Domain</strong></td><td>Your Atlassian domain, e.g. <code>yourcompany.atlassian.net</code></td></tr>
+        <tr><td><strong>Email</strong></td><td>The email address you use to log in to Confluence</td></tr>
+        <tr><td><strong>API Token</strong></td><td>An Atlassian API token. Click <strong>Get token ↗</strong> in Settings to create one.</td></tr>
+      </tbody>
+    </table>
+    <p>Fill in all three fields and click <strong>Connect</strong>. The section collapses and shows a connected status. Credentials are stored locally in your browser. They are never sent anywhere except the Confluence API when you fetch or push a page.</p>
+    <p>To update credentials, click <strong>Disconnect</strong>, edit the fields, and click <strong>Connect</strong> again.</p>
   </div>
 
   <!-- SCHEDULE OVERVIEW -->
@@ -534,20 +613,19 @@
     <table>
       <thead><tr><th>View</th><th>Description</th></tr></thead>
       <tbody>
-        <tr><td><strong>Cards</strong></td><td>Grid of cards, each showing status, customer, current focus, and progress</td></tr>
+        <tr><td><strong>Cards</strong></td><td>Grid of cards, each showing status, customer, and progress</td></tr>
         <tr><td><strong>List</strong></td><td>Table layout with columns: Feature, Status, Customer, Due Date, Progress</td></tr>
         <tr><td><strong>Timeline</strong></td><td>Kanban board grouped by status</td></tr>
       </tbody>
     </table>
     <p>Each card or row shows:</p>
     <ul>
-      <li><strong>Status badge</strong> — Discovery / Design / Dev / QA / Done</li>
+      <li><strong>Status badge:</strong> Discovery, Design, Dev, QA, Done</li>
       <li><strong>Customer</strong> and <strong>due date</strong></li>
-      <li><strong>Current Focus</strong> — what you are actively working on right now</li>
-      <li><strong>Progress bar</strong> — percentage of To Do tasks marked Done (postponed tasks excluded)</li>
+      <li><strong>Progress bar:</strong> percentage of To Do tasks marked Done (postponed tasks excluded)</li>
     </ul>
     <p>Click any card or row to jump to that feature's detail page.</p>
-    <p><strong>Drag to reorder</strong> — drag any card or list row to rearrange the feature order. The order is saved automatically and persists across sessions.</p>
+    <p><strong>Drag to reorder:</strong> drag any card or list row to rearrange the feature order. The order is saved automatically and persists across sessions.</p>
     <div class="callout">
       <span class="material-symbols-rounded">tips_and_updates</span>
       <span>Start every week here. Scan current focus and progress for all features. Update anything stale before diving into work.</span>
@@ -560,7 +638,6 @@
     <p>Click the <strong>+</strong> button next to "Features" in the sidebar. Fill in:</p>
     <ul>
       <li>Title, icon, status, customer, due date</li>
-      <li>Summary, current focus</li>
       <li>Team members</li>
     </ul>
 
@@ -579,7 +656,7 @@
   <!-- FEATURE DETAIL PAGE -->
   <div class="section" id="feature-detail">
     <h2 class="section-title">Feature Detail Page</h2>
-    <p>Each feature has a header with an editable <strong>status dropdown</strong> and <strong>due date picker</strong>, then a <strong>Current Focus ribbon</strong> you can update at any time.</p>
+    <p>Each feature has a sticky header bar showing the title, editable <strong>status dropdown</strong>, <strong>due date picker</strong>, and action buttons. The header and tab row stay visible as you scroll through long content.</p>
     <p>Below that are tabs, each covering a different dimension of the feature.</p>
   </div>
 
@@ -588,11 +665,11 @@
     <h2 class="section-title">Context</h2>
     <p>A reference card showing the core feature brief:</p>
     <ul>
-      <li><strong>Summary</strong> — one-paragraph problem statement</li>
-      <li><strong>Key Decisions</strong> — confirmed design/product decisions</li>
-      <li><strong>Constraints</strong> — known limitations and out-of-scope items</li>
-      <li><strong>Links</strong> — Jira tickets, PRDs, Gong calls, design files</li>
-      <li><strong>Team</strong> — PM, Eng, stakeholders with their roles</li>
+      <li><strong>Summary:</strong> one-paragraph problem statement</li>
+      <li><strong>Key Decisions:</strong> confirmed design/product decisions</li>
+      <li><strong>Constraints:</strong> known limitations and out-of-scope items</li>
+      <li><strong>Links:</strong> Jira tickets, PRDs, Gong calls, design files</li>
+      <li><strong>Team:</strong> PM, Eng, stakeholders with their roles</li>
     </ul>
     <div class="callout callout-success">
       <span class="material-symbols-rounded">check_circle</span>
@@ -603,7 +680,7 @@
   <!-- DOMAIN KNOWLEDGE -->
   <div class="section" id="domain-knowledge">
     <h2 class="section-title">Domain Knowledge</h2>
-    <p>A personal notebook for context you have built up over time — edge cases, mental models, integration quirks, anything not in the PRD.</p>
+    <p>A personal notebook for context you have built up over time: edge cases, mental models, integration quirks, anything not in the PRD.</p>
     <ul>
       <li>Click <strong>+ Add</strong> to create a new entry</li>
       <li>Entries are collapsible, editable, and deletable</li>
@@ -618,35 +695,86 @@
   <!-- FEATURE BRIEF -->
   <div class="section" id="feature-brief">
     <h2 class="section-title">Feature Brief</h2>
-    <p>Structured background context — architecture decisions, data models, domain deep-dives.</p>
+    <p>Structured background context: architecture decisions, data models, domain deep-dives.</p>
     <ul>
       <li>Click <strong>+ Add</strong> to create a new entry</li>
       <li>Same collapsible / editable / deletable pattern as Domain Knowledge</li>
     </ul>
   </div>
 
+  <!-- PRD -->
+  <div class="section" id="prd">
+    <h2 class="section-title">PRD</h2>
+    <p>A live view of your Confluence PRD, pulled directly into Feature Hub. It stays isolated from your other tabs. Syncs and edits here never touch your Notes, Q&amp;A, or To Do.</p>
+
+    <h3>Connecting a PRD</h3>
+    <p>Click the <strong>cloud download icon</strong> in the feature header, or the <strong>Import from Confluence</strong> button on the empty PRD tab. The import modal walks you through two steps:</p>
+    <ol>
+      <li><strong>Fetch page</strong> — paste your Confluence page URL and click <strong>Fetch</strong>. The app resolves the page ID automatically, including short URLs and redirects.</li>
+      <li><strong>Preview &amp; import</strong> — review the page title and content, then click <strong>Import</strong>. The PRD is saved to the feature and displayed immediately.</li>
+    </ol>
+    <p>Confluence credentials must be set in <strong>Settings → Integrations</strong> before fetching.</p>
+
+    <h3>PRD header bar</h3>
+    <p>Once a PRD is connected, a header bar appears inside the sticky header (visible while scrolling):</p>
+    <table>
+      <thead><tr><th>Button</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Push</strong></td><td>Publishes your edited PRD content back to Confluence, replacing the page</td></tr>
+        <tr><td><strong>Edit</strong></td><td>Opens the PRD in the rich-text editor</td></tr>
+        <tr><td><strong>↓☁ (cloud download)</strong></td><td>Re-imports the latest version from Confluence, replacing local content</td></tr>
+      </tbody>
+    </table>
+    <p>The header also shows a connection status dot and the date/time of the last sync.</p>
+    <table>
+      <thead><tr><th>Dot</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>Green</td><td>Connected (Confluence page ID is stored)</td></tr>
+        <tr><td>Gray</td><td>Disconnected (no page linked)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Editing the PRD</h3>
+    <p>Click <strong>Edit</strong> to enter edit mode. A rich-text toolbar appears in the sticky header with:</p>
+    <ul>
+      <li><strong>Paragraph styles:</strong> Normal, Heading 1, Heading 2, Heading 3, Blockquote, Code block</li>
+      <li><strong>Inline formatting:</strong> Bold, Italic, Underline, Strikethrough, Inline code</li>
+      <li><strong>Lists:</strong> Bullet list, Numbered list</li>
+      <li><strong>Insert:</strong> Link, Horizontal rule</li>
+      <li><strong>History:</strong> Undo, Redo</li>
+    </ul>
+    <p>Content autosaves to localStorage as you type. No data is lost if you refresh. Click <strong>Save</strong> to commit the edit, or <strong>Cancel</strong> to discard changes.</p>
+
+    <h3>Pushing back to Confluence</h3>
+    <p>Click <strong>Push</strong> to publish your edited content back to Confluence. The server always fetches the latest page version before writing, so stale-version conflicts are avoided automatically.</p>
+    <div class="callout">
+      <span class="material-symbols-rounded">tips_and_updates</span>
+      <span>Re-import after stakeholder edits — if the PM or engineer updates the Confluence page, hit the cloud download icon to pull in the latest before your next edit.</span>
+    </div>
+  </div>
+
   <!-- CALLS -->
   <div class="section" id="calls">
     <h2 class="section-title">Calls</h2>
-    <p>Log all calls related to a feature — customer discovery, internal syncs, design reviews.</p>
+    <p>Log all calls related to a feature: customer discovery, internal syncs, design reviews.</p>
 
     <h3>Creating a call</h3>
-    <p>Click <strong>+ Add</strong> and choose <strong>Customer Call</strong> or <strong>Internal Call</strong>. The call opens immediately in edit mode — no modal or popup. Fill in the fields directly:</p>
+    <p>Click <strong>+ Add</strong> and choose <strong>Customer Call</strong> or <strong>Internal Call</strong>. The call opens immediately in edit mode. No modal or popup. Fill in the fields directly:</p>
     <ul>
-      <li><strong>Call Name</strong> — primary identifier</li>
-      <li><strong>Type</strong> — Customer or Internal</li>
-      <li><strong>Category</strong> — Customer Discovery, Design Review, Internal Sync, etc.</li>
-      <li><strong>Status</strong> — Scheduled / Completed / Action Items Pending</li>
+      <li><strong>Call Name:</strong> primary identifier</li>
+      <li><strong>Type:</strong> Customer or Internal</li>
+      <li><strong>Category:</strong> Customer Discovery, Design Review, Internal Sync, etc.</li>
+      <li><strong>Status:</strong> Scheduled, Completed, or Action Items Pending</li>
       <li><strong>Date</strong>, <strong>Customer</strong>, <strong>Attendees</strong>, <strong>Notes Link</strong></li>
-      <li><strong>External Resources</strong> — attach slides, recordings, or docs with a label and URL</li>
+      <li><strong>External Resources:</strong> attach slides, recordings, or docs with a label and URL</li>
     </ul>
     <p>Click the <strong>edit icon</strong> (pencil) on any existing call card to switch it to edit mode. When editing, click <strong>Save</strong> to confirm your changes or <strong>Discard</strong> to revert them. Discarding a brand new call removes it entirely.</p>
 
-    <h3>Inside each call — three tabs</h3>
+    <h3>Three tabs inside each call</h3>
     <ul>
-      <li><strong>General Info</strong> — call details, attendees, resources</li>
-      <li><strong>Call Prep</strong> — Research Questions, Interviewee Background, Warm-up Questions, Topic Questions, Look For / Listen For. Use <strong>Copy prep prompt to Claude.ai</strong> to generate AI-assisted prep.</li>
-      <li><strong>Post Meeting</strong> — paste the transcript; generate an AI summary with Claude</li>
+      <li><strong>General Info:</strong> call details, attendees, resources</li>
+      <li><strong>Call Prep:</strong> Research Questions, Interviewee Background, Warm-up Questions, Topic Questions, Look For / Listen For. Use <strong>Copy prep prompt to Claude.ai</strong> to generate AI-assisted prep.</li>
+      <li><strong>Post Meeting:</strong> paste the transcript; generate an AI summary with Claude</li>
     </ul>
     <div class="callout">
       <span class="material-symbols-rounded">tips_and_updates</span>
@@ -703,21 +831,21 @@
       <tr><th>Status</th><th>Meaning</th></tr>
       <tr><td><strong>To Do</strong></td><td>Not started</td></tr>
       <tr><td><strong>Done</strong></td><td>Completed</td></tr>
-      <tr><td><strong>Postponed</strong></td><td>Deferred — stores a reason</td></tr>
+      <tr><td><strong>Postponed</strong></td><td>Deferred (stores a reason)</td></tr>
     </table>
     <ul>
       <li>Add tasks with <strong>+ Task</strong></li>
-      <li><strong>Edit a task</strong> — click the task text to edit it inline; press Enter or Escape to save, or click away</li>
+      <li><strong>Edit a task:</strong> click the task text to edit it inline; press Enter or Escape to save, or click away</li>
       <li>Postpone a task to record why it is blocked</li>
-      <li>Progress bar on Schedule Overview counts Done / (To Do + Done) — postponed tasks excluded</li>
+      <li>Progress bar on Schedule Overview counts Done / (To Do + Done); postponed tasks excluded</li>
     </ul>
     <h3 class="subsection-title">Sections</h3>
     <p>Group tasks with section headers to organize your list.</p>
     <ul>
       <li>Click <strong>+ Section</strong> to add a new section header</li>
-      <li><strong>Rename a section</strong> — click the section title to edit it inline</li>
-      <li><strong>Delete a section</strong> — click the trash icon on the section header (tasks inside are not deleted)</li>
-      <li><strong>Drag to reorder</strong> — drag any task above or below another task, or drop it onto a section header to place it directly below that section</li>
+      <li><strong>Rename a section:</strong> click the section title to edit it inline</li>
+      <li><strong>Delete a section:</strong> click the trash icon on the section header (tasks inside are not deleted)</li>
+      <li><strong>Drag to reorder:</strong> drag any task above or below another task, or drop it onto a section header to place it directly below that section</li>
     </ul>
     <div class="callout">
       <span class="material-symbols-rounded">handshake</span>
@@ -730,7 +858,7 @@
     <h2 class="section-title">Getting Updates</h2>
     <p>If you cloned the repo, you can pull in the latest version of the app at any time:</p>
     <ol>
-      <li>Open your terminal and navigate to the <code>feature-tracker</code> folder</li>
+      <li>Open your terminal and navigate to the <code>feature-hub</code> folder</li>
       <li>Run <code>git pull</code></li>
       <li>Refresh the page in your browser</li>
     </ol>
@@ -742,8 +870,8 @@
     <h2 class="section-title">Deleted Features</h2>
     <p>Deleted features appear in the <strong>Deleted</strong> section at the bottom of the sidebar.</p>
     <ul>
-      <li><strong>Restore</strong> — brings the feature back</li>
-      <li><strong>Delete forever</strong> — permanent removal (confirmation required)</li>
+      <li><strong>Restore:</strong> brings the feature back</li>
+      <li><strong>Delete forever:</strong> permanent removal (requires confirmation)</li>
     </ul>
   </div>
 
@@ -767,7 +895,8 @@
     <ul>
       <li><strong>Set up GitHub Sync first</strong> — open Settings → GitHub Sync and connect a repo before you start adding features. Takes 2 minutes once, then runs silently in the background forever.</li>
       <li><strong>Start every week on Schedule Overview</strong> — scan current focus and progress, update anything stale before diving in</li>
-      <li><strong>Use Current Focus as a daily intent</strong> — one sentence: what specifically needs to happen on this feature today</li>
+      <li><strong>Connect the PRD early</strong> — import the Confluence page as soon as the PRD exists; having it inline saves constant tab-switching during design</li>
+      <li><strong>Edit in Feature Hub, push to Confluence</strong> — use the rich-text editor to keep your PRD up to date, then Push to publish; no need to open Confluence separately</li>
       <li><strong>Log calls even before they happen</strong> — create as Scheduled, fill in prep, paste the transcript after</li>
       <li><strong>Postpone, don't delete</strong> — if a task is blocked, postpone it with a reason so the context survives a handoff</li>
       <li><strong>Use markdown in Q&amp;A answers</strong> — tables work well for comparing options; headers make long answers scannable</li>
