@@ -8940,51 +8940,261 @@ function _ticketInsertLink(featureId, key) {
   updateTicketField(featureId, key, 'description', el.innerHTML);
 }
 
-function _addDesignLink(featureId, key) {
-  const el = document.getElementById(featureId + '_desc_' + key);
-  if (!el) return;
-  // Remove any existing design link panel
+// ── Design Links ────────────────────────────────────────────────────────────
+function _renderDesignLinksSection(featureId, t) {
+  const links = t.designLinks || [];
+  const rows = links.map(dl => {
+    if (dl.pendingRemove) return `
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;opacity:0.5;border-bottom:1px solid var(--border)">
+        <span class="material-symbols-rounded" style="font-size:14px;color:var(--text-dim);flex-shrink:0">link_off</span>
+        <span style="flex:1;font-size:12px;color:var(--text-dim);text-decoration:line-through;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(dl.label || dl.url)}</span>
+        <button onclick="restoreDesignLink('${featureId}','${t.key}','${dl.id}')"
+          style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;white-space:nowrap;padding:2px 0">Undo</button>
+      </div>`;
+    const isFigma = dl.url.includes('figma.com');
+    return `
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+        <span class="material-symbols-rounded" style="font-size:14px;color:var(--accent);flex-shrink:0">${isFigma ? 'design_services' : 'link'}</span>
+        <a href="${escHtml(dl.url)}" target="_blank"
+          style="flex:1;font-size:13px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+          title="${escHtml(dl.url)}">${escHtml(dl.label || dl.url)}</a>
+        ${!dl.jiraId ? '<span style="font-size:10px;color:var(--yellow);background:var(--yellow-bg);border-radius:3px;padding:1px 5px;flex-shrink:0;white-space:nowrap">not synced</span>' : ''}
+        <button onclick="removeDesignLink('${featureId}','${t.key}','${dl.id}')"
+          style="flex-shrink:0;border:none;background:none;cursor:pointer;color:var(--text-dim);padding:0 2px;line-height:1;font-size:16px;opacity:.5"
+          onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5">×</button>
+      </div>`;
+  }).join('');
+  return `<div id="${featureId}_design_links_${t.key}">
+    ${rows || '<div style="font-size:12px;color:var(--text-dim);padding:4px 0 6px">No design links yet.</div>'}
+    <button onclick="openAddDesignLink('${featureId}','${t.key}')"
+      style="margin-top:4px;padding:5px 10px;font-size:11px;border-radius:6px;background:var(--surface);border:1px dashed var(--border);cursor:pointer;color:var(--text-dim);display:inline-flex;align-items:center;gap:4px">
+      <span class="material-symbols-rounded" style="font-size:13px">add_link</span>Add design link
+    </button>
+  </div>`;
+}
+
+function openAddDesignLink(featureId, key) {
   document.getElementById('_design_link_panel')?.remove();
   const panel = document.createElement('div');
   panel.id = '_design_link_panel';
   panel.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;display:flex;align-items:center;justify-content:center';
   panel.innerHTML = `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:560px;max-width:calc(100vw - 48px);box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:hidden">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 10px">
-        <span style="font-size:16px;font-weight:700;color:var(--text)">Designs</span>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:520px;max-width:calc(100vw - 48px);box-shadow:0 8px 32px rgba(0,0,0,0.18)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px">
+        <span style="font-size:15px;font-weight:700;color:var(--text)">Add design link</span>
         <button id="_dlp_close" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:4px;display:flex;align-items:center">
-          <span class="material-symbols-rounded" style="font-size:20px">keyboard_arrow_up</span>
+          <span class="material-symbols-rounded" style="font-size:20px">close</span>
         </button>
       </div>
-      <div style="padding:0 20px 20px">
-        <div style="font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:8px">Link a Figma URL</div>
-        <input id="_dlp_input" type="url" placeholder="https://www.figma.com/file/xxx/my-file?node-id=xxx"
-          style="width:100%;box-sizing:border-box;padding:10px 12px;font-size:13px;border:2px solid var(--accent);border-radius:6px;background:var(--surface);color:var(--text);outline:none"/>
-        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px">
-          <button id="_dlp_cancel" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-dim);padding:6px 12px;border-radius:6px">Cancel</button>
-          <button id="_dlp_confirm" style="background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:13px;padding:6px 18px;border-radius:6px;font-weight:600">Link</button>
+      <div style="padding:0 20px 20px;display:flex;flex-direction:column;gap:10px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-dim);margin-bottom:5px">URL</div>
+          <input id="_dlp_url" type="url" placeholder="https://www.figma.com/file/…"
+            style="width:100%;box-sizing:border-box;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none"/>
+          <div id="_dlp_url_err" style="font-size:11px;color:var(--red);margin-top:3px;display:none"></div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-dim);margin-bottom:5px">Label <span style="font-weight:400;color:var(--text-dim)">(optional)</span></div>
+          <input id="_dlp_label" type="text" placeholder="e.g. Figma – v3 flows"
+            style="width:100%;box-sizing:border-box;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none"/>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:2px">
+          <button id="_dlp_cancel" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-dim);padding:7px 14px;border-radius:6px">Cancel</button>
+          <button id="_dlp_confirm" style="background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:13px;padding:7px 18px;border-radius:6px;font-weight:600">Add link</button>
         </div>
       </div>
     </div>`;
   document.body.appendChild(panel);
-  const input = panel.querySelector('#_dlp_input');
-  input.focus();
+  const urlInput = panel.querySelector('#_dlp_url');
+  const labelInput = panel.querySelector('#_dlp_label');
+  const errEl = panel.querySelector('#_dlp_url_err');
+  urlInput.focus();
   const close = () => panel.remove();
   panel.querySelector('#_dlp_close').onclick = close;
   panel.querySelector('#_dlp_cancel').onclick = close;
   panel.addEventListener('mousedown', e => { if (e.target === panel) close(); });
-  const confirm = () => {
-    const url = (input.value || '').trim();
-    if (!url) return;
+  const confirmAdd = () => {
+    const url = (urlInput.value || '').trim();
+    if (!url) { errEl.style.display = ''; errEl.textContent = 'URL is required'; return; }
+    try { new URL(url); } catch { errEl.style.display = ''; errEl.textContent = 'Enter a valid URL'; return; }
+    const label = (labelInput.value || '').trim() || (url.includes('figma.com') ? 'Figma design' : 'Design link');
+    addDesignLink(featureId, key, url, label);
     close();
-    el.focus();
-    const label = url.includes('figma.com') ? 'Figma design' : 'Design link';
-    document.execCommand('insertHTML', false,
-      `<p><strong>Design:</strong> <a href="${escHtml(url)}" target="_blank">${escHtml(label)}</a></p>`);
-    updateTicketField(featureId, key, 'description', el.innerHTML);
   };
-  panel.querySelector('#_dlp_confirm').onclick = confirm;
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') confirm(); if (e.key === 'Escape') close(); });
+  panel.querySelector('#_dlp_confirm').onclick = confirmAdd;
+  urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirmAdd(); if (e.key === 'Escape') close(); });
+  labelInput.addEventListener('keydown', e => { if (e.key === 'Enter') confirmAdd(); if (e.key === 'Escape') close(); });
+}
+
+function addDesignLink(featureId, key, url, label) {
+  const impl = loadImpl(featureId);
+  const t = impl.items.find(t => t.key === key);
+  if (!t) return;
+  if (!t.designLinks) t.designLinks = [];
+  if (t.designLinks.find(dl => dl.url === url && !dl.pendingRemove)) {
+    showToast('This link is already added');
+    return;
+  }
+  const id = 'local_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+  t.designLinks.push({ id, jiraId: null, url, label, fromJira: false, pendingRemove: false });
+  t._designLinksEdited = true;
+  _updateTicketSyncStatus(featureId, t);
+  saveImpl(featureId, impl);
+  const sectionEl = document.getElementById(featureId + '_design_links_' + key);
+  if (sectionEl) sectionEl.outerHTML = _renderDesignLinksSection(featureId, t);
+  _implRefreshSyncAllBtn(featureId);
+}
+
+function removeDesignLink(featureId, key, dlId) {
+  const impl = loadImpl(featureId);
+  const t = impl.items.find(t => t.key === key);
+  if (!t) return;
+  const dl = (t.designLinks || []).find(l => l.id === dlId);
+  if (!dl) return;
+  if (!dl.jiraId) {
+    t.designLinks = t.designLinks.filter(l => l.id !== dlId);
+  } else {
+    dl.pendingRemove = true;
+  }
+  t._designLinksEdited = true;
+  _updateTicketSyncStatus(featureId, t);
+  saveImpl(featureId, impl);
+  const sectionEl = document.getElementById(featureId + '_design_links_' + key);
+  if (sectionEl) sectionEl.outerHTML = _renderDesignLinksSection(featureId, t);
+  _implRefreshSyncAllBtn(featureId);
+}
+
+function restoreDesignLink(featureId, key, dlId) {
+  const impl = loadImpl(featureId);
+  const t = impl.items.find(t => t.key === key);
+  if (!t) return;
+  const dl = (t.designLinks || []).find(l => l.id === dlId);
+  if (dl) dl.pendingRemove = false;
+  t._designLinksEdited = (t.designLinks || []).some(l => l.pendingRemove || !l.jiraId);
+  _updateTicketSyncStatus(featureId, t);
+  saveImpl(featureId, impl);
+  const sectionEl = document.getElementById(featureId + '_design_links_' + key);
+  if (sectionEl) sectionEl.outerHTML = _renderDesignLinksSection(featureId, t);
+  _implRefreshSyncAllBtn(featureId);
+}
+
+// ── Related Work ────────────────────────────────────────────────────────────
+function _renderRelatedWorkSection(featureId, t) {
+  const rw = t.relatedWork || [];
+  if (!rw.length) return '<div style="font-size:12px;color:var(--text-dim)">No linked issues.</div>';
+  const sColors = { 'To Do':'#6b7280','In Progress':'#3b82f6','Done':'#22c55e','In Review':'#f59e0b','Closed':'#22c55e','Resolved':'#22c55e' };
+  const domain = loadImpl(featureId).domain || '';
+  return rw.map(l => `
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:10px;color:var(--text-dim);white-space:nowrap;min-width:56px;flex-shrink:0">${escHtml(l.label || l.type)}</span>
+      <span style="font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap;flex-shrink:0">${escHtml(l.key)}</span>
+      <span style="flex:1;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(l.summary)}</span>
+      ${l.status ? `<span style="font-size:10px;color:${sColors[l.status]||'#6b7280'};background:${sColors[l.status]||'#6b7280'}1a;border-radius:3px;padding:1px 6px;white-space:nowrap;flex-shrink:0">${escHtml(l.status)}</span>` : ''}
+      ${domain && l.key ? `<a href="https://${escHtml(domain)}/browse/${escHtml(l.key)}" target="_blank" style="color:var(--text-dim);flex-shrink:0;display:flex;align-items:center">
+        <span class="material-symbols-rounded" style="font-size:14px">open_in_new</span>
+      </a>` : ''}
+    </div>`).join('');
+}
+
+// ── Comments ────────────────────────────────────────────────────────────────
+function _renderCommentsSection(featureId, t) {
+  if (t.comments === null || t.comments === undefined) {
+    return `<div id="${featureId}_comments_${t.key}">
+      <button onclick="_loadComments('${featureId}','${t.key}')"
+        style="padding:6px 12px;font-size:12px;border-radius:6px;background:var(--surface);border:1px solid var(--border);cursor:pointer;color:var(--text-dim);display:inline-flex;align-items:center;gap:6px">
+        <span class="material-symbols-rounded" style="font-size:14px">chat_bubble_outline</span>Load comments
+      </button>
+    </div>`;
+  }
+  const comments = t.comments || [];
+  const rows = comments.map(c => `
+    <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:var(--accent)">
+        ${escHtml((c.author||'?').slice(0,1).toUpperCase())}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">
+          <span style="font-size:12px;font-weight:600;color:var(--text)">${escHtml(c.author||'Unknown')}</span>
+          <span style="font-size:11px;color:var(--text-dim)">${_implFmtTime(c.created)}</span>
+        </div>
+        <div class="prd-content" style="font-size:13px;line-height:1.5">${c.bodyHtml||''}</div>
+      </div>
+    </div>`).join('');
+  return `<div id="${featureId}_comments_${t.key}">
+    <div style="display:flex;flex-direction:column">${rows || '<div style="font-size:12px;color:var(--text-dim);padding:4px 0 8px">No comments yet.</div>'}</div>
+    <div style="margin-top:10px">
+      <textarea id="${featureId}_comment_input_${t.key}" placeholder="Add a comment…"
+        style="width:100%;box-sizing:border-box;padding:9px 12px;font-size:13px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);outline:none;resize:vertical;min-height:64px;font-family:inherit"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+      <div style="display:flex;justify-content:flex-end;margin-top:6px">
+        <button onclick="postComment('${featureId}','${t.key}')"
+          style="padding:6px 16px;font-size:12px;font-weight:600;border-radius:6px;background:var(--accent);color:#fff;border:none;cursor:pointer">
+          Post comment
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function _loadComments(featureId, key) {
+  const impl = loadImpl(featureId);
+  const t = impl.items.find(t => t.key === key);
+  if (!t) return;
+  const wrap = document.getElementById(featureId + '_comments_' + key);
+  if (wrap) wrap.innerHTML = '<span style="font-size:12px;color:var(--text-dim)">Loading comments…</span>';
+  const creds = _jiraCreds();
+  try {
+    const res = await fetch(`/api/jira/comments?key=${encodeURIComponent(key)}&domain=${encodeURIComponent(impl.domain)}`, {
+      headers: { 'x-cf-email': creds.email, 'x-cf-token': creds.token }
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Failed');
+    t.comments = data.comments.map(c => ({
+      ...c,
+      bodyHtml: c.bodyAdf ? adfToHtml(c.bodyAdf) : escHtml(c.body || '')
+    }));
+    saveImpl(featureId, impl);
+    if (wrap) wrap.outerHTML = _renderCommentsSection(featureId, t);
+  } catch(e) {
+    if (wrap) wrap.innerHTML = `<div style="font-size:12px;color:var(--red);display:flex;align-items:center;gap:8px">
+      Failed to load: ${escHtml(e.message)}
+      <button onclick="_loadComments('${featureId}','${key}')" style="font-size:11px;padding:3px 10px;border-radius:4px;background:var(--surface);border:1px solid var(--border);cursor:pointer;color:var(--text-dim)">Retry</button>
+    </div>`;
+  }
+}
+
+async function postComment(featureId, key) {
+  const impl = loadImpl(featureId);
+  const t = impl.items.find(t => t.key === key);
+  if (!t) return;
+  const textarea = document.getElementById(featureId + '_comment_input_' + key);
+  const text = (textarea?.value || '').trim();
+  if (!text) return;
+  const submitBtn = textarea?.parentElement?.querySelector('button');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Posting…'; }
+  const creds = _jiraCreds();
+  try {
+    const res = await fetch('/api/jira/comment', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain: impl.domain, email: creds.email, token: creds.token, ticketKey: key, text })
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Failed');
+    if (!Array.isArray(t.comments)) t.comments = [];
+    t.comments.push({
+      id: data.id,
+      author: 'You',
+      created: data.created || new Date().toISOString(),
+      bodyHtml: escHtml(text).replace(/\n/g, '<br>')
+    });
+    saveImpl(featureId, impl);
+    const wrap = document.getElementById(featureId + '_comments_' + key);
+    if (wrap) wrap.outerHTML = _renderCommentsSection(featureId, t);
+    showToast('Comment posted to Jira');
+  } catch(e) {
+    showToast('Failed to post comment: ' + e.message);
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Post comment'; }
+  }
 }
 
 function renderImplementationTab(featureId) {
@@ -9107,12 +9317,6 @@ function _renderTicketRow(featureId, t) {
         <span class="prd-rt-sep"></span>
         <button type="button" class="prd-rt-btn" title="Insert link" onmousedown="event.preventDefault()"
           onclick="_ticketInsertLink('${featureId}','${t.key}')">${ic('link')}</button>
-        <span class="prd-rt-sep"></span>
-        <button type="button" class="prd-rt-btn" title="Add design link" onmousedown="event.preventDefault()"
-          onclick="_addDesignLink('${featureId}','${t.key}')"
-          style="font-size:11px;font-weight:600;padding:0 8px;color:var(--accent);gap:4px;display:inline-flex;align-items:center">
-          ${ic('add_link')}&nbsp;Add design link
-        </button>
       </div>
       <div id="${featureId}_desc_${t.key}"
         class="prd-content prd-content-edit"
@@ -9164,10 +9368,26 @@ function _renderTicketRow(featureId, t) {
             <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Description</div>
             <div id="${featureId}_desc_wrap_${t.key}">${descContent}</div>
           </div>
+          <!-- Design Links -->
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Design Links</div>
+            ${_renderDesignLinksSection(featureId, t)}
+          </div>
           <!-- Definition of Done -->
           <div>
             <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Definition of Done</div>
-            <div id="${featureId}_dod_${t.key}">${_renderDodItems(featureId, t)}</div>
+            <div id="${featureId}_dod_wrap_${t.key}">${_renderDodRichText(featureId, t)}</div>
+          </div>
+          <!-- Related Work -->
+          ${(t.relatedWork && t.relatedWork.length) ? `
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Related Work</div>
+            <div>${_renderRelatedWorkSection(featureId, t)}</div>
+          </div>` : ''}
+          <!-- Comments -->
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Comments</div>
+            ${_renderCommentsSection(featureId, t)}
           </div>
           <!-- Footer -->
           <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px;border-top:1px solid var(--border)">
@@ -9197,31 +9417,56 @@ function _implFmtTime(iso) {
   } catch { return ''; }
 }
 
-// ── Definition of Done helpers ─────────────────────────────────────────────
-function _renderDodItems(featureId, t) {
-  const items = t.dod || [];
-  const rows = items.map(item => `
-    <div style="display:flex;align-items:center;gap:8px;padding:3px 0">
-      <input type="checkbox" ${item.done?'checked':''} onchange="toggleDodItem('${featureId}','${t.key}','${item.id}',this.checked)"
-        style="margin:0;accent-color:var(--accent);flex-shrink:0;cursor:pointer;width:14px;height:14px"/>
-      <span contenteditable="true" id="${featureId}_dod_item_${item.id}"
-        style="flex:1;outline:none;font-size:13px;line-height:1.5;min-width:0;cursor:text;${item.done?'text-decoration:line-through;color:var(--text-dim)':''}"
-        onblur="updateDodItem('${featureId}','${t.key}','${item.id}',this.textContent)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();addDodItem('${featureId}','${t.key}')}">${escHtml(item.text)}</span>
-      <button onclick="removeDodItem('${featureId}','${t.key}','${item.id}')"
-        style="flex-shrink:0;border:none;background:none;cursor:pointer;color:var(--text-dim);font-size:16px;padding:0 4px;line-height:1;opacity:.5"
-        onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5">×</button>
-    </div>`).join('');
-  return `<div style="display:flex;flex-direction:column">${rows}</div>
-    <button onclick="addDodItem('${featureId}','${t.key}')"
-      style="margin-top:6px;padding:5px 10px;font-size:11px;border-radius:6px;background:var(--surface);border:1px dashed var(--border);cursor:pointer;color:var(--text-dim);display:flex;align-items:center;gap:4px">
-      <span class="material-symbols-rounded" style="font-size:13px">add</span>Add item
-    </button>`;
+// ── Definition of Done — rich text ─────────────────────────────────────────
+function _renderDodRichText(featureId, t) {
+  // Migration: if dod is still an old array (checkbox format), convert to HTML
+  let dodHtml = '';
+  if (Array.isArray(t.dod)) {
+    dodHtml = t.dod.map(i => `<p>${escHtml(i.text || '')}</p>`).join('');
+    t.dod = dodHtml;
+  } else {
+    dodHtml = t.dod || '';
+  }
+  const ic = n => `<span class="material-symbols-rounded" style="font-size:15px;vertical-align:middle">${n}</span>`;
+  const rtBtn = (cmd, title, inner) =>
+    `<button type="button" class="prd-rt-btn" title="${title}" onmousedown="event.preventDefault()" onclick="_dodExecCmd('${featureId}','${t.key}','${cmd}')">${inner}</button>`;
+  return `
+    <div style="display:flex;align-items:center;gap:2px;flex-wrap:wrap;margin-bottom:6px;padding:4px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px">
+      ${rtBtn('bold','Bold','<b style="font-size:12px">B</b>')}
+      ${rtBtn('italic','Italic','<i style="font-size:12px">I</i>')}
+      ${rtBtn('underline','Underline','<u style="font-size:12px">U</u>')}
+      <span class="prd-rt-sep"></span>
+      ${rtBtn('insertUnorderedList','Bullet list',ic('format_list_bulleted'))}
+      ${rtBtn('insertOrderedList','Numbered list',ic('format_list_numbered'))}
+    </div>
+    <div id="${featureId}_dod_editor_${t.key}"
+      class="prd-content prd-content-edit"
+      contenteditable="true" spellcheck="true"
+      style="min-height:60px;font-size:13px;border-radius:6px;padding:10px 12px;box-sizing:border-box"
+      oninput="updateDodRichText('${featureId}','${t.key}',this.innerHTML)">${dodHtml}</div>`;
+}
+
+function _dodExecCmd(featureId, key, cmd) {
+  const el = document.getElementById(featureId + '_dod_editor_' + key);
+  if (!el) return;
+  el.focus();
+  document.execCommand(cmd, false, null);
+}
+
+function updateDodRichText(featureId, key, html) {
+  const impl = loadImpl(featureId);
+  const t = impl.items.find(t => t.key === key);
+  if (!t) return;
+  t.dod = html;
+  t._dodEdited = true;
+  _updateTicketSyncStatus(featureId, t);
+  saveImpl(featureId, impl);
+  _implRefreshSyncAllBtn(featureId);
 }
 
 function _updateTicketSyncStatus(featureId, t) {
   const summaryChanged = t._origSummary !== undefined && t.summary !== t._origSummary;
-  const hasContent = !!(summaryChanged || t._descEdited || t._dodEdited);
+  const hasContent = !!(summaryChanged || t._descEdited || t._dodEdited || t._designLinksEdited);
   if (t.syncStatus === 'synced' && hasContent) t.syncStatus = 'dirty';
   else if (t.syncStatus === 'empty' && hasContent) t.syncStatus = 'unsynced';
   else if (t.syncStatus === 'unsynced' && !hasContent) t.syncStatus = 'empty';
@@ -9230,63 +9475,6 @@ function _updateTicketSyncStatus(featureId, t) {
   if (rowEl) { const dot = rowEl.querySelector('.sync-dot'); if (dot) dot.className = 'sync-dot ' + (statusMap[t.syncStatus]||''); }
 }
 
-function addDodItem(featureId, key) {
-  const impl = loadImpl(featureId);
-  const t = impl.items.find(t => t.key === key); if (!t) return;
-  const id = 'dod_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
-  if (!t.dod) t.dod = [];
-  t.dod.push({ id, text: '', done: false });
-  t._dodEdited = true;
-  _updateTicketSyncStatus(featureId, t);
-  saveImpl(featureId, impl);
-  const div = document.getElementById(featureId + '_dod_' + key);
-  if (div) div.innerHTML = _renderDodItems(featureId, t);
-  setTimeout(() => { const el = document.getElementById(featureId + '_dod_item_' + id); if (el) el.focus(); }, 50);
-  _implRefreshSyncAllBtn(featureId);
-}
-
-function updateDodItem(featureId, key, id, text) {
-  const impl = loadImpl(featureId);
-  const t = impl.items.find(t => t.key === key); if (!t) return;
-  const item = (t.dod || []).find(i => i.id === id); if (!item) return;
-  const trimmed = text.trim();
-  if (!trimmed && !item.text) {
-    t.dod = t.dod.filter(i => i.id !== id);
-    const div = document.getElementById(featureId + '_dod_' + key);
-    if (div) div.innerHTML = _renderDodItems(featureId, t);
-  } else {
-    item.text = trimmed || item.text;
-  }
-  t._dodEdited = true;
-  _updateTicketSyncStatus(featureId, t);
-  saveImpl(featureId, impl);
-  _implRefreshSyncAllBtn(featureId);
-}
-
-function toggleDodItem(featureId, key, id, done) {
-  const impl = loadImpl(featureId);
-  const t = impl.items.find(t => t.key === key); if (!t) return;
-  const item = (t.dod || []).find(i => i.id === id); if (!item) return;
-  item.done = done;
-  t._dodEdited = true;
-  _updateTicketSyncStatus(featureId, t);
-  saveImpl(featureId, impl);
-  const textEl = document.getElementById(featureId + '_dod_item_' + id);
-  if (textEl) { textEl.style.textDecoration = done ? 'line-through' : ''; textEl.style.color = done ? 'var(--text-dim)' : ''; }
-  _implRefreshSyncAllBtn(featureId);
-}
-
-function removeDodItem(featureId, key, id) {
-  const impl = loadImpl(featureId);
-  const t = impl.items.find(t => t.key === key); if (!t) return;
-  t.dod = (t.dod || []).filter(i => i.id !== id);
-  t._dodEdited = true;
-  _updateTicketSyncStatus(featureId, t);
-  saveImpl(featureId, impl);
-  const div = document.getElementById(featureId + '_dod_' + key);
-  if (div) div.innerHTML = _renderDodItems(featureId, t);
-  _implRefreshSyncAllBtn(featureId);
-}
 
 function _stripDodBlocks(blocks) {
   const idx = blocks.findIndex(b =>
@@ -9294,34 +9482,49 @@ function _stripDodBlocks(blocks) {
     (b.content || []).map(n => n.text || '').join('').trim() === 'Definition of Done'
   );
   if (idx === -1) return blocks;
+  const dodHeadingLevel = blocks[idx].attrs?.level || 2;
   let end = idx + 1;
-  while (end < blocks.length && blocks[end].type === 'taskList') end++;
+  while (end < blocks.length) {
+    const b = blocks[end];
+    if (b.type === 'heading' && (b.attrs?.level || 1) <= dodHeadingLevel) break;
+    end++;
+  }
   return [...blocks.slice(0, idx), ...blocks.slice(end)];
 }
 
 function _extractDodFromAdf(adf) {
-  if (!adf || !adf.content) return { cleanAdf: adf, dodItems: [] };
+  if (!adf || !adf.content) return { cleanAdf: adf, dodHtml: '' };
   const blocks = adf.content;
   const idx = blocks.findIndex(b =>
     b.type === 'heading' &&
     (b.content || []).map(n => n.text || '').join('').trim() === 'Definition of Done'
   );
-  if (idx === -1) return { cleanAdf: adf, dodItems: [] };
-  const dodItems = [];
+  if (idx === -1) return { cleanAdf: adf, dodHtml: '' };
+  // Find end: next heading of same or higher level, or end of doc
+  const dodHeadingLevel = blocks[idx].attrs?.level || 2;
   let end = idx + 1;
-  while (end < blocks.length && blocks[end].type === 'taskList') {
-    (blocks[end].content || []).forEach(item => {
-      dodItems.push({
-        id: 'dod_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
-        text: (item.content || []).map(n => n.text || '').join(''),
-        done: item.attrs?.state === 'DONE'
-      });
-    });
+  while (end < blocks.length) {
+    const b = blocks[end];
+    if (b.type === 'heading' && (b.attrs?.level || 1) <= dodHeadingLevel) break;
     end++;
   }
+  const dodBlocks = blocks.slice(idx + 1, end);
+  // Convert taskList blocks (old format) to paragraphs for display
+  const normalizedBlocks = dodBlocks.flatMap(b => {
+    if (b.type === 'taskList') {
+      return (b.content || []).map(item => ({
+        type: 'paragraph',
+        content: item.content || []
+      }));
+    }
+    return [b];
+  });
+  const dodHtml = normalizedBlocks.length
+    ? adfToHtml({ type: 'doc', version: 1, content: normalizedBlocks })
+    : '';
   return {
     cleanAdf: { type: 'doc', version: 1, content: [...blocks.slice(0, idx), ...blocks.slice(end)] },
-    dodItems
+    dodHtml
   };
 }
 
@@ -9341,13 +9544,50 @@ async function _fetchTicketDesc(featureId, key) {
     });
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'Failed');
+
     // Extract DoD section from ADF, then convert remaining ADF to HTML for the editor
-    const { cleanAdf, dodItems } = _extractDodFromAdf(data.descriptionAdf);
+    const { cleanAdf, dodHtml } = _extractDodFromAdf(data.descriptionAdf);
     t.description = cleanAdf ? adfToHtml(cleanAdf) : '';
-    if (!t.dod || !t.dod.length) t.dod = dodItems; // populate from Jira if not already set locally
+    if (!t._dodEdited) t.dod = dodHtml;  // populate from Jira only if not already locally edited
+
+    // Refresh summary + status from Jira (always authoritative on a content load)
+    if (data.summary && data.summary !== t.summary) {
+      t.summary = data.summary;
+      const titleEl = document.getElementById(featureId + '_ticket_title_' + key);
+      if (titleEl) { titleEl.textContent = data.summary; titleEl.title = data.summary; }
+      const summaryInput = document.getElementById(featureId + '_summary_' + key);
+      if (summaryInput) summaryInput.value = data.summary;
+    }
+    t._origSummary = data.summary || t._origSummary;
+    if (data.status) t.status = data.status;
+
+    // Store metadata for conflict detection + related work
+    t._jiraUpdatedAt = data.updatedAt || null;
+    t.relatedWork = data.relatedWork || [];
+
+    // Populate design links from Jira if not already locally edited
+    if (!t._designLinksEdited && data.designLinks) {
+      t.designLinks = data.designLinks.map(dl => ({
+        id: 'jira_' + dl.id,
+        jiraId: dl.id,
+        url: dl.url,
+        label: dl.label || dl.url,
+        fromJira: true,
+        pendingRemove: false
+      }));
+    }
+
     saveImpl(featureId, impl);
-    const dodDiv = document.getElementById(featureId + '_dod_' + key);
-    if (dodDiv) dodDiv.innerHTML = _renderDodItems(featureId, t);
+
+    // Update DoD editor
+    const dodWrap = document.getElementById(featureId + '_dod_wrap_' + key);
+    if (dodWrap) dodWrap.innerHTML = _renderDodRichText(featureId, t);
+
+    // Update design links section
+    const dlSection = document.getElementById(featureId + '_design_links_' + key);
+    if (dlSection) dlSection.outerHTML = _renderDesignLinksSection(featureId, t);
+
+    // Show description editor
     if (wrap) wrap.innerHTML = `
       <div style="display:flex;align-items:center;gap:2px;flex-wrap:wrap;margin-bottom:6px;padding:4px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px">
         ${rtBtn('bold','Bold','<b style="font-size:12px">B</b>')}
@@ -9360,12 +9600,6 @@ async function _fetchTicketDesc(featureId, key) {
         <span class="prd-rt-sep"></span>
         <button type="button" class="prd-rt-btn" title="Insert link" onmousedown="event.preventDefault()"
           onclick="_ticketInsertLink('${featureId}','${key}')">${ic('link')}</button>
-        <span class="prd-rt-sep"></span>
-        <button type="button" class="prd-rt-btn" title="Add design link" onmousedown="event.preventDefault()"
-          onclick="_addDesignLink('${featureId}','${key}')"
-          style="font-size:11px;font-weight:600;padding:0 8px;color:var(--accent);gap:4px;display:inline-flex;align-items:center">
-          ${ic('add_link')}&nbsp;Add design link
-        </button>
       </div>
       <div id="${featureId}_desc_${key}"
         class="prd-content prd-content-edit"
@@ -9395,7 +9629,7 @@ async function importEpic(featureId) {
     if (!data.ok) throw new Error(data.error || 'Import failed');
     const impl = {
       epicUrl: data.epicUrl, epicKey: data.epicKey, epicTitle: data.epicTitle, domain: data.domain,
-      items: data.items.map(t => ({ ...t, _origSummary: t.summary, description: null, dod:[], _descEdited:false, _dodEdited:false, designLink:'', requirements:'', specNotes:'', syncStatus:'empty', lastSynced:null, commentId:null, syncError:null }))
+      items: data.items.map(t => ({ ...t, _origSummary: t.summary, description: null, dod:'', _descEdited:false, _dodEdited:false, designLinks:[], _designLinksEdited:false, requirements:'', specNotes:'', syncStatus:'empty', lastSynced:null, commentId:null, syncError:null, _jiraUpdatedAt:null, relatedWork:[], comments:null }))
     };
     saveImpl(featureId, impl);
     renderImplementationTab(featureId);
@@ -9423,11 +9657,13 @@ async function reimportEpic(featureId) {
       return {
         ...t, _origSummary: ex._origSummary ?? t.summary,
         description: ex.description ?? null,
-        dod: ex.dod || [], _dodEdited: ex._dodEdited || false,
-        designLink: ex.designLink || '', requirements: ex.requirements || '', specNotes: ex.specNotes || '',
+        dod: ex.dod ?? '', _dodEdited: ex._dodEdited || false,
+        designLinks: ex.designLinks || [], _designLinksEdited: ex._designLinksEdited || false,
+        requirements: ex.requirements || '', specNotes: ex.specNotes || '',
         syncStatus: ex.syncStatus || 'empty', lastSynced: ex.lastSynced || null,
         commentId: ex.commentId || null, syncError: ex.syncError || null,
-        _descEdited: ex._descEdited || false, _expanded: ex._expanded || false
+        _descEdited: ex._descEdited || false, _expanded: ex._expanded || false,
+        _jiraUpdatedAt: ex._jiraUpdatedAt || null, relatedWork: ex.relatedWork || [], comments: null
       };
     });
     const manuals = impl.items.filter(t => t.manual && !data.items.find(i => i.key === t.key));
@@ -9499,41 +9735,101 @@ async function syncTicket(featureId, key) {
     showToast('Connect Confluence in Settings first'); openSettings(); return;
   }
   const summaryChanged = t._origSummary !== undefined && t.summary !== t._origSummary;
-  const hasAnything = !!(summaryChanged || t._descEdited || t._dodEdited);
-  if (!hasAnything) { showToast('Nothing to sync — edit the title or description first'); return; }
+  const hasAnything = !!(summaryChanged || t._descEdited || t._dodEdited || t._designLinksEdited);
+  if (!hasAnything) { showToast('Nothing to sync — make an edit first'); return; }
+
+  // Conflict check: if ticket was loaded before, verify Jira hasn't changed since
+  if (t._jiraUpdatedAt && _jiraIsConnected()) {
+    try {
+      const cr = await fetch(`/api/jira/ticket?key=${encodeURIComponent(key)}&domain=${encodeURIComponent(impl.domain)}`, {
+        headers: { 'x-cf-email': creds.email, 'x-cf-token': creds.token }
+      });
+      const cd = await cr.json();
+      if (cd.ok && cd.updatedAt && cd.updatedAt !== t._jiraUpdatedAt) {
+        if (!confirm(`${key} was updated in Jira after you loaded it.\n\nSync anyway? Your changes will overwrite the Jira version.`)) return;
+      }
+    } catch { /* network error — allow sync to proceed */ }
+  }
+
   const wasOpen = document.getElementById(featureId + '_ticket_body_' + key)?.style.display !== 'none';
   t.syncStatus = 'syncing'; t._expanded = wasOpen;
   saveImpl(featureId, impl);
   const rowEl = document.getElementById(featureId + '_ticket_' + key);
   if (rowEl) rowEl.outerHTML = _renderTicketRow(featureId, t);
   try {
-    const body = { domain: impl.domain || creds.domain, email: creds.email, token: creds.token, ticketKey: t.key };
+    const syncCreds = { domain: impl.domain || creds.domain, email: creds.email, token: creds.token };
+
+    // ── Sync issue fields (summary + description + DoD) ──────────────────────
+    const body = { ...syncCreds, ticketKey: t.key };
     if (summaryChanged) body.summary = t.summary;
     if (t._descEdited || t._dodEdited) {
-      const descAdf = (t.description !== null && t.description !== undefined)
-        ? htmlToAdf(t.description)
-        : { type: 'doc', version: 1, content: [] };
+      // If description hasn't been loaded yet, fetch it from Jira first so we
+      // don't wipe the existing Jira description when only DoD was edited.
+      let currentDescHtml = t.description;
+      if ((currentDescHtml === null || currentDescHtml === undefined) && _jiraIsConnected()) {
+        try {
+          const prefetchRes = await fetch(`/api/jira/ticket?key=${encodeURIComponent(t.key)}&domain=${encodeURIComponent(impl.domain)}`, {
+            headers: { 'x-cf-email': creds.email, 'x-cf-token': creds.token }
+          });
+          const prefetchData = await prefetchRes.json();
+          if (prefetchData.ok) {
+            const { cleanAdf } = _extractDodFromAdf(prefetchData.descriptionAdf);
+            currentDescHtml = cleanAdf ? adfToHtml(cleanAdf) : '';
+          }
+        } catch { currentDescHtml = ''; }
+      }
+      const descAdf = htmlToAdf(currentDescHtml || '');
       const cleanBlocks = _stripDodBlocks(descAdf.content || []);
-      const dodBlocks = (t.dod && t.dod.length) ? [
-        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Definition of Done' }] },
-        { type: 'taskList', attrs: { localId: 'fh-dod' },
-          content: t.dod.map((item, i) => ({
-            type: 'taskItem', attrs: { localId: 'fh-dod-' + i, state: item.done ? 'DONE' : 'TODO' },
-            content: [{ type: 'text', text: item.text }]
-          }))
+      let dodBlocks = [];
+      if (t._dodEdited && t.dod) {
+        const dodAdf = htmlToAdf(typeof t.dod === 'string' ? t.dod : '');
+        const dodContent = (dodAdf.content || []).filter(b => b.type !== 'paragraph' || (b.content && b.content.length > 0));
+        if (dodContent.length) {
+          dodBlocks = [
+            { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Definition of Done' }] },
+            ...dodContent
+          ];
         }
-      ] : [];
+      }
       body.descriptionAdf = { type: 'doc', version: 1, content: [...cleanBlocks, ...dodBlocks] };
     }
-    const res = await fetch('/api/jira/ticket/push', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error || 'Sync failed');
+    if (body.summary !== undefined || body.descriptionAdf !== undefined) {
+      const res = await fetch('/api/jira/ticket/push', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'Sync failed');
+    }
+
+    // ── Sync design links ─────────────────────────────────────────────────────
+    if (t._designLinksEdited) {
+      const newLinks = (t.designLinks || []).filter(dl => !dl.jiraId && !dl.pendingRemove);
+      const removedLinks = (t.designLinks || []).filter(dl => dl.jiraId && dl.pendingRemove);
+      for (const dl of newLinks) {
+        try {
+          const dlRes = await fetch('/api/jira/ticket/design-link', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...syncCreds, ticketKey: t.key, url: dl.url, label: dl.label })
+          });
+          const dlData = await dlRes.json();
+          if (dlData.ok) { dl.jiraId = dlData.id; dl.fromJira = true; }
+        } catch { /* individual link failure — continue */ }
+      }
+      for (const dl of removedLinks) {
+        try {
+          await fetch('/api/jira/ticket/design-link', {
+            method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...syncCreds, ticketKey: t.key, linkId: dl.jiraId })
+          });
+        } catch { /* individual link failure — continue */ }
+      }
+      t.designLinks = (t.designLinks || []).filter(dl => !dl.pendingRemove);
+      t._designLinksEdited = false;
+    }
+
     t.syncStatus = 'synced'; t.lastSynced = new Date().toISOString();
     t.syncError = null;
-    // Lock in synced values as the new originals
     if (summaryChanged) t._origSummary = t.summary;
     t._descEdited = false; t._dodEdited = false;
     saveImpl(featureId, impl);
@@ -9592,7 +9888,7 @@ async function confirmAddTicket(featureId) {
       if (d.ok) { ticketInfo.summary = d.summary; ticketInfo.status = d.status; ticketInfo.url = d.url; }
     } catch {}
   }
-  impl.items.push({ ...ticketInfo, dod:[], _descEdited:false, _dodEdited:false, designLink:'', requirements:'', specNotes:'', syncStatus:'empty', lastSynced:null, commentId:null, syncError:null });
+  impl.items.push({ ...ticketInfo, dod:'', _descEdited:false, _dodEdited:false, designLinks:[], _designLinksEdited:false, requirements:'', specNotes:'', syncStatus:'empty', lastSynced:null, commentId:null, syncError:null, _jiraUpdatedAt:null, relatedWork:[], comments:null });
   saveImpl(featureId, impl);
   cancelAddTicket(featureId);
   const list = document.getElementById(featureId + '_impl_tickets');
@@ -12619,7 +12915,12 @@ function generateConfluenceContent(featureId, f) {
             "syncStatus": "empty",
             "lastSynced": null,
             "commentId": null,
-            "syncError": null
+            "syncError": null,
+            "_expanded": false,
+            "description": "<p>Description:<br>When the PRICEBOOK_COMPONENT_SPLIT feature flag is ON, jobs accept separate pricebook IDs for labor, material, and equipment. Server-side validation is needed to ensure each assigned pricebook actually supports the cost type it is being assigned to (e.g., a pricebook set as materialPriceBookId must have isMaterial = true on the PriceBook record).<br>Requirements</p><ol><li><p>Shared validation utility</p></li></ol><ul><li><p>Create a reusable validatePricebookCostTypes(job, tenantId) function in the job utils module</p></li><li><p>For each non-null split pricebook ID (materialPriceBookId, laborPriceBookId, equipmentPriceBookId), query the PriceBook record and check its type flags (isMaterial, isLabor, isEquipment)</p></li><li><p>Query must be scoped by tenantId</p></li><li><p>Throw &quot;Pricebook {id} not found&quot; if the record does not exist</p></li><li><p>Throw &quot;Pricebook {id} does not support {type} pricing&quot; if the type flag is false</p></li><li><p>Use shared constants for the type flag column names (PRICE_BOOK_COST_TYPE)</p></li></ul><ol><li><p>Job creation flow (addJobsToCustomerPropertyPreHandler)</p></li></ol><ul><li><p>When flag is ON, call validatePricebookCostTypes for each job after split IDs are resolved via applyPricebookIds</p></li><li><p>Applies to both regular and maintenance job creation</p></li><li><p>When flag is OFF, skip validation entirely</p></li></ul><ol><li><p>Job update flow (updateJobAndRelatedPreHandler)</p></li></ol><ul><li><p>Replace inline validation with the shared validatePricebookCostTypes function</p></li><li><p>Only execute when flag is ON</p></li></ul><ol><li><p>Standalone pricebook update (updateJobPricebookWithSplit)</p></li></ol><ul><li><p>Replace inline validation with the shared validatePricebookCostTypes function</p></li><li><p>Remove priceBookId from destructured args (unused in split path)</p></li></ul><ol><li><p>Dispatcher input validation (updateJobPriceBookDispatcher)</p></li></ol><ul><li><p>Flag OFF: require priceBookId, throw if missing</p></li><li><p>Flag ON: require at least one of laborPriceBookId, materialPriceBookId, equipmentPriceBookId, throw if all missing</p></li><li><p>Evaluate feature flag before performing input validation</p></li></ul><ol><li><p>Bug fix: use context.tenantId in monolith updateJob</p></li></ol><ul><li><p>The LaunchDarkly flag check for PRICEBOOK_COMPONENT_SPLIT in the monolith updateJob resolver should use context.tenantId instead of jobFromDb.tenantId</p></li></ul>",
+            "dod": "",
+            "_jiraUpdatedAt": null,
+            "relatedWork": []
           },
           {
             "id": "250566",
@@ -12634,7 +12935,12 @@ function generateConfluenceContent(featureId, f) {
             "syncStatus": "empty",
             "lastSynced": null,
             "commentId": null,
-            "syncError": null
+            "syncError": null,
+            "_expanded": false,
+            "description": "<p>Update navigation hierarchy so that Pricebook lives under the Directory section. No changes to permissions are required as it already lives under Libraries. Rollout: All tenants. </p><p>Figma: <a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2574-29019&amp;t=2wk1psLEGG9LISOF-0\" target=\"_blank\">https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2574-29019</a></p>",
+            "dod": "",
+            "_jiraUpdatedAt": null,
+            "relatedWork": []
           },
           {
             "id": "250568",
@@ -12647,14 +12953,25 @@ function generateConfluenceContent(featureId, f) {
             "requirements": "here is the test",
             "specNotes": "spec notes here",
             "syncStatus": "synced",
-            "lastSynced": "2026-03-17T20:15:23.152Z",
+            "lastSynced": "2026-03-17T20:47:39.415Z",
             "commentId": "535034",
             "syncError": null,
             "_expanded": true,
             "description": "Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only).&nbsp;<br>",
             "_descEdited": false,
-            "dod": [],
-            "_dodEdited": false
+            "dod": "<br>",
+            "_dodEdited": false,
+            "designLinks": [
+              {
+                "id": "local_1773780279251_7r5e",
+                "jiraId": null,
+                "url": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&t=iicPOCVVGrVvUiu1-1",
+                "label": "Figma design",
+                "fromJira": false,
+                "pendingRemove": false
+              }
+            ],
+            "_designLinksEdited": false
           },
           {
             "id": "250570",
