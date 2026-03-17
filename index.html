@@ -9346,6 +9346,13 @@ function _renderTicketRow(featureId, t) {
         ${t.syncStatus==='synced'?`<span style="font-size:10px;color:var(--text-dim);white-space:nowrap;flex-shrink:0">✓ ${t.lastSynced?_implFmtTime(t.lastSynced):''}</span>`:''}
         ${t.syncStatus==='error'?`<span style="font-size:10px;color:#ef4444;white-space:nowrap;flex-shrink:0" title="${escHtml(t.syncError||'')}">✕ failed</span>`:''}
         ${isSyncing?`<span style="font-size:10px;color:var(--text-dim);white-space:nowrap;flex-shrink:0">syncing…</span>`:''}
+        ${!t.manual&&!isSyncing?`
+          <button onclick="event.stopPropagation();reloadTicketFromJira('${featureId}','${t.key}')"
+            title="Reload latest from Jira"
+            style="flex-shrink:0;border:none;background:none;cursor:pointer;color:var(--text-dim);padding:2px 4px;display:flex;align-items:center"
+            onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">
+            <span class="material-symbols-rounded" style="font-size:14px">sync</span>
+          </button>`:``}
       </div>
 
       <!-- Expanded body -->
@@ -9844,6 +9851,41 @@ async function syncTicket(featureId, key) {
     if (updated) updated.outerHTML = _renderTicketRow(featureId, t);
     showToast('Sync failed: ' + e.message);
   }
+}
+
+async function reloadTicketFromJira(featureId, key) {
+  const impl = loadImpl(featureId);
+  const t = impl.items.find(t => t.key === key);
+  if (!t || !_jiraIsConnected()) { showToast('Connect Jira in Settings first'); return; }
+
+  const hasPending = t._descEdited || t._dodEdited || t._designLinksEdited ||
+    (t._origSummary !== undefined && t.summary !== t._origSummary);
+  if (hasPending && !confirm(`Reload ${key} from Jira?\n\nYour unsaved edits will be discarded.`)) return;
+
+  const wasOpen = document.getElementById(featureId + '_ticket_body_' + key)?.style.display !== 'none';
+
+  // Reset all local content so _fetchTicketDesc will run
+  t.description = null;
+  t.dod = '';
+  t.designLinks = [];
+  t.relatedWork = [];
+  t.comments = null;
+  t._descEdited = false;
+  t._dodEdited = false;
+  t._designLinksEdited = false;
+  t._jiraUpdatedAt = null;
+  t._expanded = wasOpen;
+  // Reset summary to whatever was last synced so the input clears
+  if (t._origSummary !== undefined) t.summary = t._origSummary;
+  saveImpl(featureId, impl);
+
+  // Re-render the row (shows "Load description from Jira" in the body)
+  const rowEl = document.getElementById(featureId + '_ticket_' + key);
+  if (rowEl) rowEl.outerHTML = _renderTicketRow(featureId, t);
+
+  // Auto-fetch fresh data from Jira
+  await _fetchTicketDesc(featureId, key);
+  showToast(key + ' reloaded from Jira');
 }
 
 async function syncAllTickets(featureId) {
@@ -12953,7 +12995,7 @@ function generateConfluenceContent(featureId, f) {
             "requirements": "here is the test",
             "specNotes": "spec notes here",
             "syncStatus": "synced",
-            "lastSynced": "2026-03-17T20:47:39.415Z",
+            "lastSynced": "2026-03-17T20:51:29.653Z",
             "commentId": "535034",
             "syncError": null,
             "_expanded": true,
@@ -12963,7 +13005,7 @@ function generateConfluenceContent(featureId, f) {
             "_dodEdited": false,
             "designLinks": [
               {
-                "id": "local_1773780279251_7r5e",
+                "id": "local_1773780688070_3vg2",
                 "jiraId": null,
                 "url": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&t=iicPOCVVGrVvUiu1-1",
                 "label": "Figma design",
