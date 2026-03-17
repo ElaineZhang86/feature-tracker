@@ -8943,13 +8943,48 @@ function _ticketInsertLink(featureId, key) {
 function _addDesignLink(featureId, key) {
   const el = document.getElementById(featureId + '_desc_' + key);
   if (!el) return;
-  const url = prompt('Figma or design URL:', 'https://figma.com/');
-  if (!url || url === 'https://figma.com/') return;
-  el.focus();
-  const label = url.includes('figma.com') ? 'Figma design' : 'Design link';
-  document.execCommand('insertHTML', false,
-    `<p><strong>Design:</strong> <a href="${url}" target="_blank">${escHtml(label)}</a></p>`);
-  updateTicketField(featureId, key, 'description', el.innerHTML);
+  // Remove any existing design link panel
+  document.getElementById('_design_link_panel')?.remove();
+  const panel = document.createElement('div');
+  panel.id = '_design_link_panel';
+  panel.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;display:flex;align-items:center;justify-content:center';
+  panel.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:560px;max-width:calc(100vw - 48px);box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 10px">
+        <span style="font-size:16px;font-weight:700;color:var(--text)">Designs</span>
+        <button id="_dlp_close" style="background:none;border:none;cursor:pointer;color:var(--text-dim);padding:4px;display:flex;align-items:center">
+          <span class="material-symbols-rounded" style="font-size:20px">keyboard_arrow_up</span>
+        </button>
+      </div>
+      <div style="padding:0 20px 20px">
+        <div style="font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:8px">Link a Figma URL</div>
+        <input id="_dlp_input" type="url" placeholder="https://www.figma.com/file/xxx/my-file?node-id=xxx"
+          style="width:100%;box-sizing:border-box;padding:10px 12px;font-size:13px;border:2px solid var(--accent);border-radius:6px;background:var(--surface);color:var(--text);outline:none"/>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px">
+          <button id="_dlp_cancel" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-dim);padding:6px 12px;border-radius:6px">Cancel</button>
+          <button id="_dlp_confirm" style="background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:13px;padding:6px 18px;border-radius:6px;font-weight:600">Link</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(panel);
+  const input = panel.querySelector('#_dlp_input');
+  input.focus();
+  const close = () => panel.remove();
+  panel.querySelector('#_dlp_close').onclick = close;
+  panel.querySelector('#_dlp_cancel').onclick = close;
+  panel.addEventListener('mousedown', e => { if (e.target === panel) close(); });
+  const confirm = () => {
+    const url = (input.value || '').trim();
+    if (!url) return;
+    close();
+    el.focus();
+    const label = url.includes('figma.com') ? 'Figma design' : 'Design link';
+    document.execCommand('insertHTML', false,
+      `<p><strong>Design:</strong> <a href="${escHtml(url)}" target="_blank">${escHtml(label)}</a></p>`);
+    updateTicketField(featureId, key, 'description', el.innerHTML);
+  };
+  panel.querySelector('#_dlp_confirm').onclick = confirm;
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') confirm(); if (e.key === 'Escape') close(); });
 }
 
 function renderImplementationTab(featureId) {
@@ -9388,6 +9423,7 @@ async function reimportEpic(featureId) {
       return {
         ...t, _origSummary: ex._origSummary ?? t.summary,
         description: ex.description ?? null,
+        dod: ex.dod || [], _dodEdited: ex._dodEdited || false,
         designLink: ex.designLink || '', requirements: ex.requirements || '', specNotes: ex.specNotes || '',
         syncStatus: ex.syncStatus || 'empty', lastSynced: ex.lastSynced || null,
         commentId: ex.commentId || null, syncError: ex.syncError || null,
@@ -9556,7 +9592,7 @@ async function confirmAddTicket(featureId) {
       if (d.ok) { ticketInfo.summary = d.summary; ticketInfo.status = d.status; ticketInfo.url = d.url; }
     } catch {}
   }
-  impl.items.push({ ...ticketInfo, designLink:'', requirements:'', specNotes:'', syncStatus:'empty', lastSynced:null, commentId:null, syncError:null });
+  impl.items.push({ ...ticketInfo, dod:[], _descEdited:false, _dodEdited:false, designLink:'', requirements:'', specNotes:'', syncStatus:'empty', lastSynced:null, commentId:null, syncError:null });
   saveImpl(featureId, impl);
   cancelAddTicket(featureId);
   const list = document.getElementById(featureId + '_impl_tickets');
@@ -12610,15 +12646,15 @@ function generateConfluenceContent(featureId, f) {
             "designLink": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186",
             "requirements": "here is the test",
             "specNotes": "spec notes here",
-            "syncStatus": "dirty",
-            "lastSynced": "2026-03-17T20:00:31.008Z",
+            "syncStatus": "synced",
+            "lastSynced": "2026-03-17T20:07:13.701Z",
             "commentId": "535034",
             "syncError": null,
-            "_expanded": true,
+            "_expanded": false,
             "description": "Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only).&nbsp;<div><strong style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;\">Design:</strong><span style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;\"> </span><a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186\" target=\"_blank\" style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;\">Figma design</a></div>",
             "_descEdited": false,
             "dod": [],
-            "_dodEdited": true
+            "_dodEdited": false
           },
           {
             "id": "250570",
@@ -12679,7 +12715,7 @@ function generateConfluenceContent(featureId, f) {
             "lastSynced": "2026-03-17T19:34:09.865Z",
             "commentId": "535027",
             "syncError": null,
-            "_expanded": true,
+            "_expanded": false,
             "description": "<p>Update Pricebook list table layout to accommodate new Cost Component column, Default tag, and updated status indicators (Active / Archived / Default). Existing table behavior (search, sort, pagination) must remain intact. New layout only renders for tenants with the feature flag enabled. Rollout: Behind feature flag (new PB model only). </p><p>Figma: <a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186\" target=\"_blank\">https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186</a> </p>"
           },
           {
