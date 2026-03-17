@@ -319,21 +319,40 @@ async function handleJiraEpicFetch(req, res) {
     // Fetch epic details
     const epicRes = await httpsReq({
       hostname: domain, method: 'GET',
-      path: `/rest/api/2/issue/${epicKey}?fields=summary,issuetype,status`,
+      path: `/rest/api/3/issue/${epicKey}?fields=summary,issuetype,status`,
       headers: { Authorization: auth, Accept: 'application/json' }
     });
+    console.log(`[jira] epic fetch status=${epicRes.status} key=${epicKey}`);
     if (epicRes.status !== 200) return sendJSON(res, epicRes.status, { ok: false, error: 'Could not fetch epic', details: epicRes.body });
     const epicData = JSON.parse(epicRes.body);
-    // Fetch child tickets via JQL
-    const jql = encodeURIComponent(`parent=${epicKey} ORDER BY created ASC`);
-    const searchRes = await httpsReq({
-      hostname: domain, method: 'GET',
-      path: `/rest/api/2/search?jql=${jql}&fields=id,key,summary,status,issuetype&maxResults=100`,
-      headers: { Authorization: auth, Accept: 'application/json' }
+    // Fetch child tickets — use Jira API v3 (v2 search removed)
+    async function jiraSearch(jql) {
+      const payload = JSON.stringify({ jql, fields: ['id','key','summary','status','issuetype'], maxResults: 100 });
+      const r = await httpsReq({
+        hostname: domain, method: 'POST',
+        path: `/rest/api/3/search/jql`,
+        headers: { Authorization: auth, 'Content-Type': 'application/json', Accept: 'application/json', 'Content-Length': Buffer.byteLength(payload) }
+      }, payload);
+      console.log(`[jira] search jql="${jql.slice(0,50)}" status=${r.status} body=${r.body.slice(0,200)}`);
+      if (r.status !== 200) return [];
+      try { return JSON.parse(r.body).issues || []; } catch { return []; }
+    }
+    // Run both queries in parallel
+    const [byParent, byEpicLink] = await Promise.all([
+      jiraSearch(`parent=${epicKey} ORDER BY created ASC`),
+      jiraSearch(`"Epic Link"=${epicKey} ORDER BY created ASC`)
+    ]);
+    // Merge, deduplicate by key
+    const seen = new Set();
+    const allIssues = [...byParent, ...byEpicLink].filter(i => {
+      if (seen.has(i.key)) return false; seen.add(i.key); return true;
     });
-    if (searchRes.status !== 200) return sendJSON(res, searchRes.status, { ok: false, error: 'Could not fetch child tickets', details: searchRes.body });
-    const searchData = JSON.parse(searchRes.body);
-    const items = searchData.issues.map(issue => ({
+    if (allIssues.length === 0) {
+      // Last resort: try issueFunction subtasks
+      const subtasks = await jiraSearch(`issueFunction in subtasksOf("${epicKey}")`);
+      allIssues.push(...subtasks.filter(i => { if (seen.has(i.key)) return false; seen.add(i.key); return true; }));
+    }
+    const items = allIssues.map(issue => ({
       id: issue.id, key: issue.key,
       summary: issue.fields.summary,
       status: issue.fields.status.name,
@@ -357,7 +376,7 @@ async function handleJiraTicketFetch(req, res) {
     const auth = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
     const r = await httpsReq({
       hostname: domain, method: 'GET',
-      path: `/rest/api/2/issue/${key}?fields=summary,status,issuetype`,
+      path: `/rest/api/3/issue/${key}?fields=summary,status,issuetype`,
       headers: { Authorization: auth, Accept: 'application/json' }
     });
     if (r.status !== 200) return sendJSON(res, r.status, { ok: false, error: 'Ticket not found' });
