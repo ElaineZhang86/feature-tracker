@@ -9129,6 +9129,11 @@ function _renderTicketRow(featureId, t) {
             <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Description</div>
             <div id="${featureId}_desc_wrap_${t.key}">${descContent}</div>
           </div>
+          <!-- Definition of Done -->
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Definition of Done</div>
+            <div id="${featureId}_dod_${t.key}">${_renderDodItems(featureId, t)}</div>
+          </div>
           <!-- Footer -->
           <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px;border-top:1px solid var(--border)">
             <div style="font-size:11px;color:var(--text-dim)">
@@ -12473,11 +12478,11 @@ function generateConfluenceContent(featureId, f) {
             "requirements": "here is the test",
             "specNotes": "spec notes here",
             "syncStatus": "synced",
-            "lastSynced": "2026-03-17T19:48:48.730Z",
+            "lastSynced": "2026-03-17T20:00:31.008Z",
             "commentId": "535034",
             "syncError": null,
             "_expanded": true,
-            "description": "Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only).\n\nFigma: https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186 ",
+            "description": "Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only).&nbsp;<div><strong style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;\">Design:</strong><span style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;\"> </span><a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186\" target=\"_blank\" style=\"font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;\">Figma design</a></div>",
             "_descEdited": false
           },
           {
