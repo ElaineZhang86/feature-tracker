@@ -4522,7 +4522,7 @@ const TAB_CONFIG = [
   { id: 'design',     label: 'Design Files',     required: false },
   { id: 'notes',      label: 'Notes',            required: false },
   { id: 'tasks',      label: 'To Do',            required: false },
-  { id: 'implementation', label: 'Implementation',  required: false },
+  { id: 'implementation', label: 'Direct Tickets',   required: false },
 ];
 
 // All tabs visible by default — users can hide via +Tabs
@@ -8914,11 +8914,33 @@ function _renderImplConnected(featureId, impl) {
 function _renderTicketRow(featureId, t) {
   const statusMap = { empty:'', unsynced:'unsynced', synced:'synced', dirty:'saving', error:'error', syncing:'saving' };
   const dotClass = statusMap[t.syncStatus||'empty'];
-  const dotTitle = {empty:'No content yet',unsynced:'Has content — not synced',synced:'Synced to Jira',dirty:'Changed since last sync',error:'Sync failed',syncing:'Syncing…'}[t.syncStatus||'empty'];
+  const dotTitle = {
+    empty:'No local edits',unsynced:'Local edits — not synced',synced:'Synced to Jira',
+    dirty:'Changed since last sync',error:'Sync failed',syncing:'Syncing…'
+  }[t.syncStatus||'empty'];
   const sColor = {'To Do':'#6b7280','In Progress':'#3b82f6','Done':'#22c55e','In Review':'#f59e0b','Closed':'#22c55e','Resolved':'#22c55e'}[t.status]||'#6b7280';
   const isOpen = !!t._expanded;
+  const hasPending = t.syncStatus==='unsynced' || t.syncStatus==='dirty';
+  const isSyncing = t.syncStatus==='syncing';
+
+  // Description section content
+  let descContent;
+  if (t.description === null || t.description === undefined) {
+    descContent = t.manual
+      ? `<span style="font-size:12px;color:var(--text-dim)">Manually added — no description</span>`
+      : `<button onclick="_fetchTicketDesc('${featureId}','${t.key}')"
+           style="padding:5px 10px;font-size:11px;border-radius:6px;background:var(--surface);border:1px solid var(--border);cursor:pointer;color:var(--text-dim)">
+           Load description from Jira
+         </button>`;
+  } else {
+    descContent = `<textarea id="${featureId}_desc_${t.key}" placeholder="No description" rows="4"
+      style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);resize:vertical;line-height:1.5;outline:none"
+      oninput="updateTicketField('${featureId}','${t.key}','description',this.value)">${escHtml(t.description||'')}</textarea>`;
+  }
+
   return `
     <div id="${featureId}_ticket_${t.key}" style="border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)">
+      <!-- Header row -->
       <div onclick="toggleTicket('${featureId}','${t.key}')"
         style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;user-select:none"
         onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
@@ -8926,18 +8948,47 @@ function _renderTicketRow(featureId, t) {
         <div class="sync-dot ${dotClass}" title="${dotTitle}" style="flex-shrink:0"></div>
         <a href="${t.url}" target="_blank" onclick="event.stopPropagation()"
           style="font-size:12px;font-weight:700;color:var(--accent);text-decoration:none;white-space:nowrap;flex-shrink:0">${escHtml(t.key)}</a>
-        <span style="font-size:12px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(t.summary)}">${escHtml(t.summary)}</span>
+        <span id="${featureId}_ticket_title_${t.key}"
+          style="font-size:12px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+          title="${escHtml(t.summary)}">${escHtml(t.summary)}</span>
         ${t.manual?'<span style="font-size:10px;color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:0 4px;flex-shrink:0">manual</span>':''}
         ${t.status?`<span style="font-size:11px;color:${sColor};background:${sColor}1a;border-radius:4px;padding:1px 7px;white-space:nowrap;flex-shrink:0">${escHtml(t.status)}</span>`:''}
-        ${(t.syncStatus==='unsynced'||t.syncStatus==='dirty')?`
+        ${hasPending&&!isSyncing?`
           <button onclick="event.stopPropagation();syncTicket('${featureId}','${t.key}')"
             style="padding:3px 8px;font-size:11px;border-radius:5px;background:var(--accent);color:#fff;border:none;cursor:pointer;flex-shrink:0">↑ Sync</button>`:''}
         ${t.syncStatus==='synced'?`<span style="font-size:10px;color:var(--text-dim);white-space:nowrap;flex-shrink:0">✓ ${t.lastSynced?_implFmtTime(t.lastSynced):''}</span>`:''}
         ${t.syncStatus==='error'?`<span style="font-size:10px;color:#ef4444;white-space:nowrap;flex-shrink:0" title="${escHtml(t.syncError||'')}">✕ failed</span>`:''}
-        ${t.syncStatus==='syncing'?`<span style="font-size:10px;color:var(--text-dim);white-space:nowrap;flex-shrink:0">syncing…</span>`:''}
+        ${isSyncing?`<span style="font-size:10px;color:var(--text-dim);white-space:nowrap;flex-shrink:0">syncing…</span>`:''}
       </div>
-      <div id="${featureId}_ticket_body_${t.key}" style="display:${isOpen?'block':'none'};border-top:1px solid var(--border);padding:14px 14px 12px">
-        <div style="display:flex;flex-direction:column;gap:12px">
+
+      <!-- Expanded body -->
+      <div id="${featureId}_ticket_body_${t.key}" style="display:${isOpen?'block':'none'};border-top:1px solid var(--border)">
+
+        <!-- Section: Jira Fields -->
+        <div style="padding:14px 14px 12px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em">Jira fields</span>
+            ${t.status?`<span style="font-size:10px;color:${sColor};background:${sColor}1a;border-radius:3px;padding:1px 7px">${escHtml(t.status)}</span>`:''}
+            <span style="font-size:10px;color:var(--text-dim);margin-left:auto">Synced to Jira issue</span>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Title</div>
+            <input id="${featureId}_summary_${t.key}" value="${escHtml(t.summary||'')}" placeholder="Ticket title"
+              style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);outline:none"
+              oninput="updateTicketField('${featureId}','${t.key}','summary',this.value)"/>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Description</div>
+            <div id="${featureId}_desc_wrap_${t.key}">${descContent}</div>
+          </div>
+        </div>
+
+        <!-- Section: Design Annotations -->
+        <div style="padding:14px 14px 12px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em">Design annotations</span>
+            <span style="font-size:10px;color:var(--text-dim);margin-left:auto">Added as Jira comment</span>
+          </div>
           <div>
             <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Design link</div>
             <input value="${escHtml(t.designLink||'')}" placeholder="https://figma.com/…"
@@ -8946,17 +8997,19 @@ function _renderTicketRow(featureId, t) {
           </div>
           <div>
             <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Requirements</div>
-            <textarea placeholder="What this ticket needs to implement…" rows="4"
+            <textarea placeholder="What this ticket needs to implement…" rows="3"
               style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);resize:vertical;line-height:1.5;outline:none"
               oninput="updateTicketField('${featureId}','${t.key}','requirements',this.value)">${escHtml(t.requirements||'')}</textarea>
           </div>
           <div>
             <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Spec notes</div>
-            <textarea placeholder="Designer guidance, edge cases, states…" rows="4"
+            <textarea placeholder="Designer guidance, edge cases, states…" rows="3"
               style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);resize:vertical;line-height:1.5;outline:none"
               oninput="updateTicketField('${featureId}','${t.key}','specNotes',this.value)">${escHtml(t.specNotes||'')}</textarea>
           </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:2px;border-top:1px solid var(--border)">
+
+          <!-- Footer row -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px;border-top:1px solid var(--border)">
             <div style="font-size:11px;color:var(--text-dim)">
               ${t.syncStatus==='synced'&&t.lastSynced?`Last synced ${_implFmtTime(t.lastSynced)}`:''}
               ${t.syncStatus==='error'?`<span style="color:#ef4444">${escHtml(t.syncError||'Sync failed')}</span>`:''}
@@ -9051,6 +9104,10 @@ function toggleTicket(featureId, key) {
   const impl = loadImpl(featureId);
   const t = impl.items.find(t => t.key === key);
   if (t) { t._expanded = !isOpen; saveImpl(featureId, impl); }
+  // Auto-fetch description on first expand for Jira-linked tickets
+  if (!isOpen && t && (t.description === null || t.description === undefined) && !t.manual && _jiraIsConnected()) {
+    _fetchTicketDesc(featureId, key);
+  }
 }
 
 function updateTicketField(featureId, key, field, value) {
@@ -9058,12 +9115,21 @@ function updateTicketField(featureId, key, field, value) {
   const t = impl.items.find(t => t.key === key);
   if (!t) return;
   t[field] = value;
-  const hasContent = t.designLink || t.requirements || t.specNotes;
-  if (t.syncStatus === 'synced') t.syncStatus = 'dirty';
+  // Live-update the header title when summary is edited
+  if (field === 'summary') {
+    const titleEl = document.getElementById(featureId + '_ticket_title_' + key);
+    if (titleEl) { titleEl.textContent = value; titleEl.title = value; }
+  }
+  // Track whether description has been locally edited
+  if (field === 'description') t._descEdited = true;
+  // Determine if there is unsynced content
+  const summaryChanged = t._origSummary !== undefined && t.summary !== t._origSummary;
+  const hasContent = !!(t.designLink || t.requirements || t.specNotes || summaryChanged || t._descEdited);
+  if (t.syncStatus === 'synced' && hasContent) t.syncStatus = 'dirty';
   else if (t.syncStatus === 'empty' && hasContent) t.syncStatus = 'unsynced';
   else if (t.syncStatus === 'unsynced' && !hasContent) t.syncStatus = 'empty';
   saveImpl(featureId, impl);
-  // Update dot without re-render
+  // Update sync dot without full re-render
   const statusMap = {empty:'',unsynced:'unsynced',synced:'synced',dirty:'saving',error:'error'};
   const rowEl = document.getElementById(featureId + '_ticket_' + key);
   if (rowEl) {
@@ -9088,28 +9154,37 @@ async function syncTicket(featureId, key) {
   const impl = loadImpl(featureId);
   const t = impl.items.find(t => t.key === key);
   if (!t) return;
-  if (!t.designLink && !t.requirements && !t.specNotes) {
-    showToast('Nothing to sync — add content first'); return;
-  }
   const creds = _jiraCreds();
-  if (!creds.domain || !creds.email || !creds.token) {
+  if (!creds.email || !creds.token) {
     showToast('Connect Confluence in Settings first'); openSettings(); return;
   }
+  const summaryChanged = t._origSummary !== undefined && t.summary !== t._origSummary;
+  const hasAnything = !!(t.designLink || t.requirements || t.specNotes || summaryChanged || t._descEdited);
+  if (!hasAnything) { showToast('Nothing to sync — make some edits first'); return; }
   const wasOpen = document.getElementById(featureId + '_ticket_body_' + key)?.style.display !== 'none';
   t.syncStatus = 'syncing'; t._expanded = wasOpen;
   saveImpl(featureId, impl);
   const rowEl = document.getElementById(featureId + '_ticket_' + key);
   if (rowEl) rowEl.outerHTML = _renderTicketRow(featureId, t);
   try {
+    const body = {
+      domain: impl.domain || creds.domain, email: creds.email, token: creds.token,
+      ticketKey: t.key,
+      designLink: t.designLink, requirements: t.requirements, specNotes: t.specNotes
+    };
+    if (summaryChanged) body.summary = t.summary;
+    if (t._descEdited && t.description !== null && t.description !== undefined) body.description = t.description;
     const res = await fetch('/api/jira/ticket/push', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ domain: impl.domain || creds.domain, email: creds.email, token: creds.token,
-        ticketKey: t.key, designLink: t.designLink, requirements: t.requirements, specNotes: t.specNotes })
+      body: JSON.stringify(body)
     });
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'Sync failed');
     t.syncStatus = 'synced'; t.lastSynced = new Date().toISOString();
     t.commentId = data.commentId; t.syncError = null;
+    // Lock in synced values as the new originals
+    if (summaryChanged) t._origSummary = t.summary;
+    t._descEdited = false;
     saveImpl(featureId, impl);
     const updated = document.getElementById(featureId + '_ticket_' + key);
     if (updated) updated.outerHTML = _renderTicketRow(featureId, t);
@@ -11513,6 +11588,20 @@ function generateConfluenceContent(featureId, f) {
           "id": "dde_builtin",
           "title": "Feature Brief",
           "content": "# Job Taxability Settings — Domain Docs (IPP-337 — PPC)\n\n## Problem\n\nService contractors operate on a simple, all-or-nothing tax model. PPC's current system (IFS) supports three clear states: **Taxable / Non-Taxable / Exempt**. Today in BuildOps, this is fragmented across multiple steps and configuration points.\n\nPPC's core rule:\n> \"The job is either taxable or not, and therefore, the things we purchase are the opposite.\"\n\n| Job Type | AR (Customer Invoice) | AP (Vendor Purchases) |\n|---|---|---|\n| **Taxable** | Charge sales tax to customer | Tax-exempt (resale certificate) |\n| **Non-Taxable** | No sales tax | Taxable (consumption/use tax) |\n| **Exempt Customer/Job** | No tax | No tax (government, nonprofit, etc.) |\n\n## Solution: Work Taxability Types\n\nA structured, hierarchical system for controlling AP and AR taxability across the entire job lifecycle.\n\n### New Concept: Work Taxability Type\n\nConfigurable value (set in Tax Settings) that controls:\n- **Line Taxability Rule:** Always Taxable / Always Non-Taxable / Inherit from Item List\n\n### New Entity Fields\n\n| Entity | New Fields |\n|---|---|\n| `WorkTaxabilityType` | `lineTaxabilityRule` (ALWAYS_TAXABLE / ALWAYS_NON_TAXABLE / INHERIT) |\n| `JobBlueprint` (Job Template) | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `Job` | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `ServiceAgreement` | `workTaxabilityTypeId` (AP) + `arWorkTaxabilityTypeId` (AR) |\n| `Customer` | `apWorkTaxabilityTypeId` + `arWorkTaxabilityTypeId` |\n\n### Defaulting Hierarchy\n\n```\nCustomer defaults → Job Template re-defaults → SA re-defaults → Job (manual override)\n```\n\n### PO/Invoice Line Behavior\n\nWhen a PO is created for a job:\n- ALWAYS_TAXABLE → all lines `Taxable = true`\n- ALWAYS_NON_TAXABLE → all lines `Taxable = false`\n- INHERIT → each line inherits from the Item List `taxable` setting\n\n### Feature Flags\n\n| Flag | Controls |\n|---|---|\n| `work-taxability-types` | Exposes Work Taxability fields on Job Templates, Jobs, SAs, Customers |\n| `ap-taxes` | Exposes AP tax configuration settings |\n\n## PPC's Three Core Scenarios\n\n| Scenario | AR | AP |\n|---|---|---|\n| Taxable Job | Tax collected (sales tax) | Tax-exempt (resale certificate) |\n| Non-Taxable Job | Tax-exempt | Taxable (consumption/use tax) |\n| Exempt Customer/Job | Tax-exempt | Tax-exempt |\n\n## New Screen: Tax Settings\n\n`Company → Tax Settings` consolidates:\n- Work Taxability configuration (when `work-taxability-types` = true)\n- Sales Tax list\n- AP Taxes configuration (when `ap-taxes` = true and Avalara = false)\n\n## Related Links\n\n- [IPP-337 - Job Taxability Settings PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4263018514)\n- [Job Taxability - Meeting Notes (PPC)](https://buildops.atlassian.net/wiki/spaces/BPD/pages/4262461453)"
+        }
+      ],
+      "ctx_links": [
+        {
+          "label": "PRD IPP-337",
+          "url": "https://buildops.atlassian.net/wiki/spaces/BPD/pages/4263018514"
+        },
+        {
+          "label": "Epic IP-5460",
+          "url": "https://buildops.atlassian.net/browse/IP-5460"
+        },
+        {
+          "label": "BuildOps - Job Taxability Guide",
+          "url": "https://docs.google.com/document/d/1JY3oGXB3S3Mwl-j84FUTzaepSz_o9JEW/edit"
         }
       ]
     },
