@@ -8829,6 +8829,129 @@ function saveImpl(featureId, impl) {
   saveState(STATE);
 }
 
+// ── ADF ↔ HTML conversion (client-side) ────────────────────────────────────
+function adfToHtml(adf) {
+  if (!adf) return '';
+  if (typeof adf === 'string') return escHtml(adf);
+  function renderMark(t, mark) {
+    const wrap = {strong:['<strong>','</strong>'],em:['<em>','</em>'],underline:['<u>','</u>'],strike:['<s>','</s>'],code:['<code>','</code>']}[mark.type];
+    return wrap ? wrap[0]+t+wrap[1] : t;
+  }
+  function renderInline(nodes) {
+    return (nodes||[]).map(n=>{
+      if (n.type==='text') {
+        let t=escHtml(n.text||'');
+        const link=(n.marks||[]).find(m=>m.type==='link');
+        if (link) return `<a href="${escHtml(link.attrs?.href||'')}" target="_blank">${t}</a>`;
+        (n.marks||[]).forEach(m=>{ t=renderMark(t,m); }); return t;
+      }
+      if (n.type==='hardBreak') return '<br>';
+      if (n.type==='mention') return `<strong>@${escHtml(n.attrs?.text||'')}</strong>`;
+      if (n.type==='inlineCard') return `<a href="${escHtml(n.attrs?.url||'')}" target="_blank">${escHtml(n.attrs?.url||'')}</a>`;
+      return '';
+    }).join('');
+  }
+  function renderBlock(b) {
+    switch(b.type) {
+      case 'paragraph':   return `<p>${renderInline(b.content)||'<br>'}</p>`;
+      case 'heading':     return `<h${b.attrs?.level||1}>${renderInline(b.content)}</h${b.attrs?.level||1}>`;
+      case 'bulletList':  return `<ul>${(b.content||[]).map(li=>`<li>${(li.content||[]).map(renderBlock).join('')}</li>`).join('')}</ul>`;
+      case 'orderedList': return `<ol>${(b.content||[]).map(li=>`<li>${(li.content||[]).map(renderBlock).join('')}</li>`).join('')}</ol>`;
+      case 'listItem':    return (b.content||[]).map(renderBlock).join('');
+      case 'blockquote':  return `<blockquote>${(b.content||[]).map(renderBlock).join('')}</blockquote>`;
+      case 'codeBlock':   return `<pre><code>${escHtml((b.content||[]).map(n=>n.text||'').join(''))}</code></pre>`;
+      case 'rule':        return '<hr>';
+      case 'table': {
+        const rows=(b.content||[]).map(row=>`<tr>${(row.content||[]).map(cell=>{const tag=cell.type==='tableHeader'?'th':'td';return `<${tag}>${(cell.content||[]).map(renderBlock).join('')}</${tag}>`;}).join('')}</tr>`).join('');
+        return `<table>${rows}</table>`;
+      }
+      default: return renderInline(b.content);
+    }
+  }
+  return (adf.content||[]).map(renderBlock).join('');
+}
+
+function htmlToAdf(html) {
+  if (!html||!html.trim()) return {type:'doc',version:1,content:[{type:'paragraph',content:[]}]};
+  const tmp=document.createElement('div'); tmp.innerHTML=html;
+  function getInline(el) {
+    const nodes=[];
+    for (const c of el.childNodes) {
+      if (c.nodeType===3) { if(c.textContent) nodes.push({type:'text',text:c.textContent}); continue; }
+      if (c.nodeType!==1) continue;
+      const tag=c.tagName.toLowerCase();
+      if (tag==='br') { nodes.push({type:'hardBreak'}); continue; }
+      const inner=getInline(c);
+      if (tag==='a') {
+        const href=c.getAttribute('href')||'';
+        inner.forEach(n=>{ if(n.type==='text'){n.marks=[...(n.marks||[]),{type:'link',attrs:{href}}];} });
+        nodes.push(...inner);
+      } else {
+        const m={b:'strong',strong:'strong',i:'em',em:'em',u:'underline',s:'strike',strike:'strike',del:'strike',code:'code'}[tag];
+        if (m) inner.forEach(n=>{ if(n.type==='text'){n.marks=[...(n.marks||[]),{type:m}];} });
+        nodes.push(...inner);
+      }
+    }
+    return nodes;
+  }
+  function getBlocks(el) {
+    const blocks=[];
+    for (const c of el.childNodes) {
+      if (c.nodeType===3) { const t=c.textContent.replace(/\n/g,'').trim(); if(t) blocks.push({type:'paragraph',content:[{type:'text',text:t}]}); continue; }
+      if (c.nodeType!==1) continue;
+      const tag=c.tagName.toLowerCase();
+      if (tag==='p')    { const ct=getInline(c); blocks.push({type:'paragraph',content:ct.length?ct:[]}); }
+      else if (/^h[1-6]$/.test(tag)) blocks.push({type:'heading',attrs:{level:parseInt(tag[1])},content:getInline(c)});
+      else if (tag==='ul') blocks.push({type:'bulletList',content:Array.from(c.children).map(li=>({type:'listItem',content:[{type:'paragraph',content:getInline(li)}]}))});
+      else if (tag==='ol') blocks.push({type:'orderedList',content:Array.from(c.children).map(li=>({type:'listItem',content:[{type:'paragraph',content:getInline(li)}]}))});
+      else if (tag==='blockquote') blocks.push({type:'blockquote',content:getBlocks(c)});
+      else if (tag==='pre') { const code=c.querySelector('code')||c; blocks.push({type:'codeBlock',content:[{type:'text',text:code.textContent}]}); }
+      else if (tag==='hr')  blocks.push({type:'rule'});
+      else if (tag==='div') blocks.push(...getBlocks(c));
+      else if (tag==='br') { /* skip */ }
+      else { const ct=getInline(c); if(ct.length) blocks.push({type:'paragraph',content:ct}); }
+    }
+    return blocks;
+  }
+  const content=getBlocks(tmp);
+  if (!content.length) content.push({type:'paragraph',content:[]});
+  return {type:'doc',version:1,content};
+}
+
+// ── Ticket rich-text editor helpers ────────────────────────────────────────
+function _ticketExecCmd(featureId, key, cmd) {
+  const el = document.getElementById(featureId + '_desc_' + key);
+  if (!el) return;
+  el.focus();
+  document.execCommand(cmd, false, null);
+}
+
+function _ticketInsertLink(featureId, key) {
+  const el = document.getElementById(featureId + '_desc_' + key);
+  if (!el) return;
+  el.focus();
+  const sel = window.getSelection();
+  const anchor = sel?.anchorNode?.parentElement?.closest('a');
+  if (anchor) { document.execCommand('unlink', false, null); return; }
+  const url = prompt('Enter URL:', 'https://');
+  if (!url || url === 'https://') return;
+  const text = sel?.toString() || url;
+  document.execCommand('insertHTML', false, `<a href="${url}" target="_blank">${escHtml(text)}</a>`);
+  updateTicketField(featureId, key, 'description', el.innerHTML);
+}
+
+function _addDesignLink(featureId, key) {
+  const el = document.getElementById(featureId + '_desc_' + key);
+  if (!el) return;
+  const url = prompt('Figma or design URL:', 'https://figma.com/');
+  if (!url || url === 'https://figma.com/') return;
+  el.focus();
+  const label = url.includes('figma.com') ? 'Figma design' : 'Design link';
+  document.execCommand('insertHTML', false,
+    `<p><strong>Design:</strong> <a href="${url}" target="_blank">${escHtml(label)}</a></p>`);
+  updateTicketField(featureId, key, 'description', el.innerHTML);
+}
+
 function renderImplementationTab(featureId) {
   const panel = document.getElementById(featureId + '_impl_panel');
   if (!panel) return;
@@ -8923,19 +9046,44 @@ function _renderTicketRow(featureId, t) {
   const hasPending = t.syncStatus==='unsynced' || t.syncStatus==='dirty';
   const isSyncing = t.syncStatus==='syncing';
 
-  // Description section content
+  const ic = n => `<span class="material-symbols-rounded" style="font-size:15px;vertical-align:middle">${n}</span>`;
+  const rtBtn = (cmd,title,inner) =>
+    `<button type="button" class="prd-rt-btn" title="${title}" onmousedown="event.preventDefault()" onclick="_ticketExecCmd('${featureId}','${t.key}','${cmd}')">${inner}</button>`;
+
+  // Description editor or load prompt
   let descContent;
   if (t.description === null || t.description === undefined) {
     descContent = t.manual
-      ? `<span style="font-size:12px;color:var(--text-dim)">Manually added — no description</span>`
+      ? `<div style="font-size:12px;color:var(--text-dim);padding:10px 0">Manually added ticket — no description to load.</div>`
       : `<button onclick="_fetchTicketDesc('${featureId}','${t.key}')"
-           style="padding:5px 10px;font-size:11px;border-radius:6px;background:var(--surface);border:1px solid var(--border);cursor:pointer;color:var(--text-dim)">
-           Load description from Jira
+           style="padding:6px 12px;font-size:12px;border-radius:6px;background:var(--surface);border:1px solid var(--border);cursor:pointer;color:var(--text-dim);display:flex;align-items:center;gap:6px">
+           ${ic('cloud_download')} Load description from Jira
          </button>`;
   } else {
-    descContent = `<textarea id="${featureId}_desc_${t.key}" placeholder="No description" rows="4"
-      style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);resize:vertical;line-height:1.5;outline:none"
-      oninput="updateTicketField('${featureId}','${t.key}','description',this.value)">${escHtml(t.description||'')}</textarea>`;
+    descContent = `
+      <div style="display:flex;align-items:center;gap:2px;flex-wrap:wrap;margin-bottom:6px;padding:4px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px">
+        ${rtBtn('bold','Bold','<b style="font-size:12px">B</b>')}
+        ${rtBtn('italic','Italic','<i style="font-size:12px">I</i>')}
+        ${rtBtn('underline','Underline','<u style="font-size:12px">U</u>')}
+        ${rtBtn('strikeThrough','Strikethrough','<s style="font-size:12px">S</s>')}
+        <span class="prd-rt-sep"></span>
+        ${rtBtn('insertUnorderedList','Bullet list',ic('format_list_bulleted'))}
+        ${rtBtn('insertOrderedList','Numbered list',ic('format_list_numbered'))}
+        <span class="prd-rt-sep"></span>
+        <button type="button" class="prd-rt-btn" title="Insert link" onmousedown="event.preventDefault()"
+          onclick="_ticketInsertLink('${featureId}','${t.key}')">${ic('link')}</button>
+        <span class="prd-rt-sep"></span>
+        <button type="button" class="prd-rt-btn" title="Add design link" onmousedown="event.preventDefault()"
+          onclick="_addDesignLink('${featureId}','${t.key}')"
+          style="font-size:11px;font-weight:600;padding:0 8px;color:var(--accent);gap:4px;display:inline-flex;align-items:center">
+          ${ic('add_link')}&nbsp;Add design link
+        </button>
+      </div>
+      <div id="${featureId}_desc_${t.key}"
+        class="prd-content prd-content-edit"
+        contenteditable="true" spellcheck="true"
+        style="min-height:100px;font-size:13px;border-radius:6px;padding:10px 12px;box-sizing:border-box"
+        oninput="updateTicketField('${featureId}','${t.key}','description',this.innerHTML)">${t.description||''}</div>`;
   }
 
   return `
@@ -8962,53 +9110,26 @@ function _renderTicketRow(featureId, t) {
       </div>
 
       <!-- Expanded body -->
-      <div id="${featureId}_ticket_body_${t.key}" style="display:${isOpen?'block':'none'};border-top:1px solid var(--border)">
-
-        <!-- Section: Jira Fields -->
-        <div style="padding:14px 14px 12px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em">Jira fields</span>
-            ${t.status?`<span style="font-size:10px;color:${sColor};background:${sColor}1a;border-radius:3px;padding:1px 7px">${escHtml(t.status)}</span>`:''}
-            <span style="font-size:10px;color:var(--text-dim);margin-left:auto">Synced to Jira issue</span>
-          </div>
+      <div id="${featureId}_ticket_body_${t.key}" style="display:${isOpen?'block':'none'};border-top:1px solid var(--border);padding:14px 14px 12px">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <!-- Status badge -->
+          ${t.status?`<div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em">Status</span>
+            <span style="font-size:11px;color:${sColor};background:${sColor}1a;border-radius:4px;padding:2px 9px">${escHtml(t.status)}</span>
+          </div>`:''}
+          <!-- Title -->
           <div>
             <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Title</div>
             <input id="${featureId}_summary_${t.key}" value="${escHtml(t.summary||'')}" placeholder="Ticket title"
-              style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);outline:none"
+              style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--surface);color:var(--text);outline:none"
               oninput="updateTicketField('${featureId}','${t.key}','summary',this.value)"/>
           </div>
+          <!-- Description rich-text editor -->
           <div>
-            <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Description</div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Description</div>
             <div id="${featureId}_desc_wrap_${t.key}">${descContent}</div>
           </div>
-        </div>
-
-        <!-- Section: Design Annotations -->
-        <div style="padding:14px 14px 12px;display:flex;flex-direction:column;gap:12px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:10px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em">Design annotations</span>
-            <span style="font-size:10px;color:var(--text-dim);margin-left:auto">Added as Jira comment</span>
-          </div>
-          <div>
-            <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Design link</div>
-            <input value="${escHtml(t.designLink||'')}" placeholder="https://figma.com/…"
-              style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);outline:none"
-              oninput="updateTicketField('${featureId}','${t.key}','designLink',this.value)"/>
-          </div>
-          <div>
-            <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Requirements</div>
-            <textarea placeholder="What this ticket needs to implement…" rows="3"
-              style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);resize:vertical;line-height:1.5;outline:none"
-              oninput="updateTicketField('${featureId}','${t.key}','requirements',this.value)">${escHtml(t.requirements||'')}</textarea>
-          </div>
-          <div>
-            <div style="font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Spec notes</div>
-            <textarea placeholder="Designer guidance, edge cases, states…" rows="3"
-              style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);resize:vertical;line-height:1.5;outline:none"
-              oninput="updateTicketField('${featureId}','${t.key}','specNotes',this.value)">${escHtml(t.specNotes||'')}</textarea>
-          </div>
-
-          <!-- Footer row -->
+          <!-- Footer -->
           <div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px;border-top:1px solid var(--border)">
             <div style="font-size:11px;color:var(--text-dim)">
               ${t.syncStatus==='synced'&&t.lastSynced?`Last synced ${_implFmtTime(t.lastSynced)}`:''}
@@ -9039,24 +9160,51 @@ function _implFmtTime(iso) {
 async function _fetchTicketDesc(featureId, key) {
   const impl = loadImpl(featureId);
   const t = impl.items.find(t => t.key === key);
-  if (!t || t.description !== null && t.description !== undefined) return;
+  if (!t || (t.description !== null && t.description !== undefined)) return;
   const wrap = document.getElementById(featureId + '_desc_wrap_' + key);
   if (wrap) wrap.innerHTML = '<span style="font-size:12px;color:var(--text-dim)">Loading…</span>';
   const creds = _jiraCreds();
+  const ic = n => `<span class="material-symbols-rounded" style="font-size:15px;vertical-align:middle">${n}</span>`;
+  const rtBtn = (cmd,title,inner) =>
+    `<button type="button" class="prd-rt-btn" title="${title}" onmousedown="event.preventDefault()" onclick="_ticketExecCmd('${featureId}','${key}','${cmd}')">${inner}</button>`;
   try {
     const res = await fetch(`/api/jira/ticket?key=${encodeURIComponent(key)}&domain=${encodeURIComponent(impl.domain)}`, {
       headers: { 'x-cf-email': creds.email, 'x-cf-token': creds.token }
     });
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'Failed');
-    t.description = data.description ?? '';
+    // Convert ADF to HTML for the rich text editor
+    t.description = data.descriptionAdf ? adfToHtml(data.descriptionAdf) : '';
     saveImpl(featureId, impl);
-    if (wrap) wrap.innerHTML = `<textarea id="${featureId}_desc_${key}" placeholder="No description" rows="4"
-      style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);resize:vertical;line-height:1.5;outline:none"
-      oninput="updateTicketField('${featureId}','${key}','description',this.value)">${escHtml(t.description)}</textarea>`;
+    if (wrap) wrap.innerHTML = `
+      <div style="display:flex;align-items:center;gap:2px;flex-wrap:wrap;margin-bottom:6px;padding:4px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px">
+        ${rtBtn('bold','Bold','<b style="font-size:12px">B</b>')}
+        ${rtBtn('italic','Italic','<i style="font-size:12px">I</i>')}
+        ${rtBtn('underline','Underline','<u style="font-size:12px">U</u>')}
+        ${rtBtn('strikeThrough','Strikethrough','<s style="font-size:12px">S</s>')}
+        <span class="prd-rt-sep"></span>
+        ${rtBtn('insertUnorderedList','Bullet list',ic('format_list_bulleted'))}
+        ${rtBtn('insertOrderedList','Numbered list',ic('format_list_numbered'))}
+        <span class="prd-rt-sep"></span>
+        <button type="button" class="prd-rt-btn" title="Insert link" onmousedown="event.preventDefault()"
+          onclick="_ticketInsertLink('${featureId}','${key}')">${ic('link')}</button>
+        <span class="prd-rt-sep"></span>
+        <button type="button" class="prd-rt-btn" title="Add design link" onmousedown="event.preventDefault()"
+          onclick="_addDesignLink('${featureId}','${key}')"
+          style="font-size:11px;font-weight:600;padding:0 8px;color:var(--accent);gap:4px;display:inline-flex;align-items:center">
+          ${ic('add_link')}&nbsp;Add design link
+        </button>
+      </div>
+      <div id="${featureId}_desc_${key}"
+        class="prd-content prd-content-edit"
+        contenteditable="true" spellcheck="true"
+        style="min-height:100px;font-size:13px;border-radius:6px;padding:10px 12px;box-sizing:border-box"
+        oninput="updateTicketField('${featureId}','${key}','description',this.innerHTML)">${t.description}</div>`;
   } catch(e) {
-    if (wrap) wrap.innerHTML = `<span style="font-size:12px;color:#ef4444">Failed to load: ${escHtml(e.message)}
-      <button onclick="_fetchTicketDesc('${featureId}','${key}')" style="margin-left:8px;font-size:11px;padding:2px 8px;border-radius:4px;background:var(--surface);border:1px solid var(--border);cursor:pointer;color:var(--text-dim)">Retry</button></span>`;
+    if (wrap) wrap.innerHTML = `<div style="font-size:12px;color:#ef4444;display:flex;align-items:center;gap:8px">
+      Failed to load: ${escHtml(e.message)}
+      <button onclick="_fetchTicketDesc('${featureId}','${key}')" style="font-size:11px;padding:3px 10px;border-radius:4px;background:var(--surface);border:1px solid var(--border);cursor:pointer;color:var(--text-dim)">Retry</button>
+    </div>`;
   }
 }
 
@@ -9155,7 +9303,7 @@ function updateTicketField(featureId, key, field, value) {
   if (field === 'description') t._descEdited = true;
   // Determine if there is unsynced content
   const summaryChanged = t._origSummary !== undefined && t.summary !== t._origSummary;
-  const hasContent = !!(t.designLink || t.requirements || t.specNotes || summaryChanged || t._descEdited);
+  const hasContent = !!(summaryChanged || t._descEdited);
   if (t.syncStatus === 'synced' && hasContent) t.syncStatus = 'dirty';
   else if (t.syncStatus === 'empty' && hasContent) t.syncStatus = 'unsynced';
   else if (t.syncStatus === 'unsynced' && !hasContent) t.syncStatus = 'empty';
@@ -9190,21 +9338,19 @@ async function syncTicket(featureId, key) {
     showToast('Connect Confluence in Settings first'); openSettings(); return;
   }
   const summaryChanged = t._origSummary !== undefined && t.summary !== t._origSummary;
-  const hasAnything = !!(t.designLink || t.requirements || t.specNotes || summaryChanged || t._descEdited);
-  if (!hasAnything) { showToast('Nothing to sync — make some edits first'); return; }
+  const hasAnything = !!(summaryChanged || t._descEdited);
+  if (!hasAnything) { showToast('Nothing to sync — edit the title or description first'); return; }
   const wasOpen = document.getElementById(featureId + '_ticket_body_' + key)?.style.display !== 'none';
   t.syncStatus = 'syncing'; t._expanded = wasOpen;
   saveImpl(featureId, impl);
   const rowEl = document.getElementById(featureId + '_ticket_' + key);
   if (rowEl) rowEl.outerHTML = _renderTicketRow(featureId, t);
   try {
-    const body = {
-      domain: impl.domain || creds.domain, email: creds.email, token: creds.token,
-      ticketKey: t.key,
-      designLink: t.designLink, requirements: t.requirements, specNotes: t.specNotes
-    };
+    const body = { domain: impl.domain || creds.domain, email: creds.email, token: creds.token, ticketKey: t.key };
     if (summaryChanged) body.summary = t.summary;
-    if (t._descEdited && t.description !== null && t.description !== undefined) body.description = t.description;
+    if (t._descEdited && t.description !== null && t.description !== undefined) {
+      body.descriptionAdf = htmlToAdf(t.description); // Convert editor HTML → ADF for Jira
+    }
     const res = await fetch('/api/jira/ticket/push', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -9212,7 +9358,7 @@ async function syncTicket(featureId, key) {
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'Sync failed');
     t.syncStatus = 'synced'; t.lastSynced = new Date().toISOString();
-    t.commentId = data.commentId; t.syncError = null;
+    t.syncError = null;
     // Lock in synced values as the new originals
     if (summaryChanged) t._origSummary = t.summary;
     t._descEdited = false;
