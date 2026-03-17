@@ -1101,7 +1101,7 @@
             "designLink": "",
             "requirements": "here is a test for feature hub",
             "specNotes": "",
-            "syncStatus": "unsynced",
+            "syncStatus": "syncing",
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
