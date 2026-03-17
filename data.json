@@ -1343,7 +1343,7 @@
             "_origSummary": "[FE] Pricebook Settings – Archive Configuration",
             "description": "<p>Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only).</p>",
             "dod": "test<div><br></div>",
-            "_dodEdited": true,
+            "_dodEdited": false,
             "designLinks": [
               {
                 "id": "local_1773782647204_dwgp",
@@ -1357,8 +1357,8 @@
             "_designLinksEdited": false,
             "requirements": "",
             "specNotes": "",
-            "syncStatus": "dirty",
-            "lastSynced": "2026-03-17T21:24:18.916Z",
+            "syncStatus": "synced",
+            "lastSynced": "2026-03-17T21:25:03.350Z",
             "commentId": null,
             "syncError": null,
             "_descEdited": false,
