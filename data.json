@@ -1054,7 +1054,7 @@
             "status": "To Do",
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/SERVICE-4402",
-            "designLink": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186 l",
+            "designLink": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2514-21186",
             "requirements": "here is the test",
             "specNotes": "spec notes here",
             "syncStatus": "unsynced",
