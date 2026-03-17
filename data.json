@@ -1056,7 +1056,7 @@
             "url": "https://buildops.atlassian.net/browse/SERVICE-4402",
             "designLink": "",
             "requirements": "here is the test",
-            "specNotes": "",
+            "specNotes": "spec notes",
             "syncStatus": "unsynced",
             "lastSynced": null,
             "commentId": null,
