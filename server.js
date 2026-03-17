@@ -363,6 +363,40 @@ async function handleJiraEpicFetch(req, res) {
   } catch(e) { sendJSON(res, 500, { ok: false, error: e.message }); }
 }
 
+// ── ADF helpers ──────────────────────────────────────────────────────────────
+function adfToText(adf) {
+  if (!adf) return '';
+  if (typeof adf === 'string') return adf;
+  const lines = [];
+  for (const block of (adf.content || [])) {
+    const inline = (block.content || []).map(n => {
+      if (n.type === 'text') return n.text || '';
+      if (n.type === 'hardBreak') return '\n';
+      if (n.type === 'mention') return '@' + (n.attrs?.text || '');
+      return '';
+    }).join('');
+    lines.push(inline);
+  }
+  return lines.join('\n\n');
+}
+
+function textToAdf(text) {
+  if (!text || !text.trim()) return { type: 'doc', version: 1, content: [{ type: 'paragraph', content: [] }] };
+  const paras = text.split(/\n\n+/).filter(p => p.trim());
+  return {
+    type: 'doc', version: 1,
+    content: paras.map(p => ({
+      type: 'paragraph',
+      content: p.split('\n').flatMap((line, i, arr) => {
+        const nodes = [];
+        if (line) nodes.push({ type: 'text', text: line });
+        if (i < arr.length - 1) nodes.push({ type: 'hardBreak' });
+        return nodes;
+      })
+    }))
+  };
+}
+
 // ── /api/jira/ticket GET ─────────────────────────────────────────────────────
 async function handleJiraTicketFetch(req, res) {
   const params = new URL(req.url, 'http://x').searchParams;
@@ -376,12 +410,18 @@ async function handleJiraTicketFetch(req, res) {
     const auth = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
     const r = await httpsReq({
       hostname: domain, method: 'GET',
-      path: `/rest/api/3/issue/${key}?fields=summary,status,issuetype`,
+      path: `/rest/api/3/issue/${key}?fields=summary,status,issuetype,description`,
       headers: { Authorization: auth, Accept: 'application/json' }
     });
     if (r.status !== 200) return sendJSON(res, r.status, { ok: false, error: 'Ticket not found' });
     const d = JSON.parse(r.body);
-    sendJSON(res, 200, { ok: true, key: d.key, summary: d.fields.summary, status: d.fields.status.name, url: `https://${domain}/browse/${d.key}` });
+    sendJSON(res, 200, {
+      ok: true, key: d.key,
+      summary: d.fields.summary,
+      status: d.fields.status.name,
+      description: adfToText(d.fields.description),
+      url: `https://${domain}/browse/${d.key}`
+    });
   } catch(e) { sendJSON(res, 500, { ok: false, error: e.message }); }
 }
 
@@ -391,8 +431,30 @@ function handleJiraTicketPush(req, res) {
   req.on('data', c => { body += c; });
   req.on('end', async () => {
     try {
-      const { domain, email, token, ticketKey, designLink, requirements, specNotes } = JSON.parse(body);
+      const { domain, email, token, ticketKey, summary, description, designLink, requirements, specNotes } = JSON.parse(body);
       const auth = 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64');
+
+      // 1. Update Jira issue fields (summary and/or description) if provided
+      const issueFields = {};
+      if (summary !== undefined && summary !== null) issueFields.summary = summary;
+      if (description !== undefined && description !== null) issueFields.description = textToAdf(description);
+      if (Object.keys(issueFields).length > 0) {
+        const issuePayload = JSON.stringify({ fields: issueFields });
+        const issueRes = await httpsReq({
+          hostname: domain, method: 'PUT',
+          path: `/rest/api/3/issue/${ticketKey}`,
+          headers: { Authorization: auth, 'Content-Type': 'application/json', Accept: 'application/json', 'Content-Length': Buffer.byteLength(issuePayload) }
+        }, issuePayload);
+        // Jira returns 204 No Content on success
+        if (![200, 201, 204].includes(issueRes.status)) {
+          return sendJSON(res, issueRes.status, { ok: false, error: 'Failed to update Jira issue fields', details: issueRes.body });
+        }
+      }
+
+      // 2. Push design annotations as a Jira comment
+      const hasAnnotations = !!(designLink || requirements || specNotes);
+      if (!hasAnnotations) return sendJSON(res, 200, { ok: true, commentId: null });
+
       const MARKER = '[Feature Hub Design Spec]';
       const lines = [MARKER];
       if (designLink)   lines.push('\nDesign: ' + designLink);
@@ -400,7 +462,8 @@ function handleJiraTicketPush(req, res) {
       if (specNotes)    lines.push('\nSpec Notes:\n' + specNotes);
       lines.push('\n_Last synced from Feature Hub: ' + new Date().toISOString().replace('T',' ').slice(0,16) + '_');
       const commentBody = lines.join('\n');
-      // Check for existing Feature Hub comment
+
+      // Check for existing Feature Hub comment to update in-place
       const commentsRes = await httpsReq({
         hostname: domain, method: 'GET',
         path: `/rest/api/2/issue/${ticketKey}/comment?maxResults=100`,
