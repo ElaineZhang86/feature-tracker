@@ -1341,7 +1341,7 @@
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/SERVICE-4402",
             "_origSummary": "[FE] Pricebook Settings – Archive Configuration",
-            "description": "<p>Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only). </p><p>test</p>",
+            "description": "<p>Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only). </p><p>test test</p>",
             "dod": "",
             "_dodEdited": false,
             "designLinks": [],
@@ -1354,9 +1354,9 @@
             "syncError": null,
             "_descEdited": false,
             "_expanded": true,
-            "_jiraUpdatedAt": "2026-03-17T20:47:19.464-0700",
+            "_jiraUpdatedAt": "2026-03-17T20:47:53.154-0700",
             "relatedWork": [],
-            "comments": []
+            "comments": null
           },
           {
             "id": "250570",
