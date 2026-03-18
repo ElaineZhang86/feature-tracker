@@ -1532,7 +1532,10 @@
             "comments": null
           }
         ]
-      }
+      },
+      "_hiddenTabs": [
+        "implementation"
+      ]
     },
     "pricebook-bulk-edits": {
       "tasks": [
