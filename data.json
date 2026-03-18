@@ -1356,7 +1356,14 @@
             "_expanded": true,
             "_jiraUpdatedAt": "2026-03-17T20:42:17.148-0700",
             "relatedWork": [],
-            "comments": []
+            "comments": [
+              {
+                "id": "535441",
+                "author": "You",
+                "created": "2026-03-17T20:46:12.029-0700",
+                "bodyHtml": "test"
+              }
+            ]
           },
           {
             "id": "250570",
