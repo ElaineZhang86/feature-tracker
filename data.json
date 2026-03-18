@@ -2077,18 +2077,7 @@
             "description": "<h2>Context</h2><p>When a T&amp;M invoice is generated from a mobile job report, invoice lines should inherit the AR Work Taxability Type from the job and the Taxable checkbox should be auto-set based on the lineTaxabilityRule. For lines not originating from the job report (labor, etc.) and newly added lines - inherit the AR Work Taxability Type from the related job. The Taxable boolean will be automatically set based on <code>workTaxabilityType.lineTaxabilityRule</code>. This is a backend-driven change but mobile may need to ensure the invoice creation request and the invoice detail display are updated.</p><h2>Requirements</h2><p>Gate on: <a href=\"https://app.launchdarkly.com/projects/default/flags/work-taxability-types/targeting?env=production&amp;selected-env=production\" target=\"_blank\">work-taxability-types</a> = True AND <a href=\"https://app.launchdarkly.com/projects/default/flags/mobile-invoicing/targeting?env=production&amp;selected-env=production\" target=\"_blank\">mobile-invoicing</a> = True</p><ul><li><p>Invoice lines generated from the mobile T&amp;M job report must include <code>workTaxabilityTypeId</code> = <code>Job.arWorkTaxabilityTypeId</code>. Confirm whether this is handled entirely by the backend on invoice generation, or whether mobile needs to pass this explicitly.</p></li><li><p>Invoice line Taxable value must be auto-set per lineTaxabilityRule: TAXABLE → true, NON_TAXABLE → false. Confirm backend handles this or mobile must set it.</p><ul><li><p>Taxable checkbox is applicable ONLY when Avalara is disabled</p></li><li><p>If Avalara is enabled, provider tax code must be used, but it has not been implemented on mobile yet</p></li></ul></li><li><p>Invoice View (mobile): Show <strong>Work Taxability Type</strong> column/label on invoice line items when work-taxability-types = True (read-only on mobile invoice view.</p></li><li><p>Quoted job invoice (mobile): N/A  - no mobile quoted invoice exists yet.</p></li></ul><h2>Backend Changes</h2><p>Backend invoice generation endpoint should populate <code>InvoiceItem.workTaxabilityTypeId</code> from <code>Job.arWorkTaxabilityTypeId</code> and set <code>InvoiceItem.taxable</code> based on <code>WorkTaxabilityType.lineTaxabilityRule</code>. Confirm with <strong>@@Samuel Seo</strong>  whether this is already handled server-side or requires mobile to pass it. Mobile invoice-related changes are in packages/mobile/app/screens (Invoices or JobReport).</p><h2>Acceptance Criteria</h2><ul><li><p>After generating a T&amp;M invoice from a mobile job report, each invoice line has workTaxabilityTypeId matching the job's AR Work Taxability Type.</p></li><li><p>Taxable flag on each invoice line is set correctly per lineTaxabilityRule.</p></li><li><p>Work Taxability Type label is shown (read-only) on invoice lines in mobile invoice view when flag is on.</p></li><li><p>Make sure the following is observed (when Avalara is disabled  ): </p><ul><li><p><strong>Taxable Amount</strong> = SUM(<code>InvoiceItem.amount</code>, where <code>InvoiceItem.taxable</code> = True)</p><ul><li><p>If all lines are Non-Taxable: Taxable Amount = 0, Tax Amount = 0</p></li><li><p>If all lines are Taxable: Taxable Amount = pre-tax total SUM(<code>InvoiceItem.amount</code>), Tax Amount = tax rate × taxable amount</p></li></ul></li><li><p><strong>Tax Amount</strong> = <strong>Taxable Amount</strong> * <code>Invoice.taxRateId</code> → <code>TaxRate.taxRate</code></p></li></ul></li></ul>",
             "dod": "",
             "_dodEdited": false,
-            "designLinks": [
-              {
-                "id": "jira_52484",
-                "jiraId": 52484,
-                "url": "https://buildops.atlassian.net/wiki/pages/viewpage.action?pageId=4263018514",
-                "label": "IPP-337 - Job Taxability Settings",
-                "source": "remotelink",
-                "propertyKey": null,
-                "fromJira": true,
-                "pendingRemove": false
-              }
-            ],
+            "designLinks": [],
             "_designLinksEdited": false,
             "requirements": "",
             "specNotes": "",
@@ -2097,10 +2086,11 @@
             "commentId": null,
             "syncError": null,
             "_descEdited": false,
-            "_expanded": false,
+            "_expanded": true,
             "_jiraUpdatedAt": "2026-03-17T10:20:56.353-0700",
             "relatedWork": [],
-            "comments": null
+            "comments": null,
+            "_mediaLoaded": true
           },
           {
             "id": "241073",
