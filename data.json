@@ -1347,18 +1347,18 @@
             "designLinks": [
               {
                 "id": "local_1773805316632_b7ey",
-                "jiraId": null,
+                "jiraId": 55699,
                 "url": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&t=iicPOCVVGrVvUiu1-1",
                 "label": "Figma design",
-                "fromJira": false,
+                "fromJira": true,
                 "pendingRemove": false
               }
             ],
-            "_designLinksEdited": true,
+            "_designLinksEdited": false,
             "requirements": "",
             "specNotes": "",
-            "syncStatus": "dirty",
-            "lastSynced": "2026-03-18T03:41:52.140Z",
+            "syncStatus": "synced",
+            "lastSynced": "2026-03-18T03:42:03.575Z",
             "commentId": null,
             "syncError": null,
             "_descEdited": false,
