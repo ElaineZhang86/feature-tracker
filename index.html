@@ -9071,7 +9071,7 @@ function _renderDesignLinksSection(featureId, t) {
       <a href="${escHtml(active.url)}" target="_blank"
         style="flex:1;font-size:13px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
         title="${escHtml(active.url)}">${escHtml(active.label || active.url)}</a>
-      ${!active.jiraId ? '<span style="font-size:10px;color:var(--yellow);background:var(--yellow-bg);border-radius:3px;padding:1px 5px;flex-shrink:0;white-space:nowrap">not synced</span>' : ''}
+      ${!active.fromJira ? '<span style="font-size:10px;color:var(--yellow);background:var(--yellow-bg);border-radius:3px;padding:1px 5px;flex-shrink:0;white-space:nowrap">not synced</span>' : ''}
       <button onclick="removeDesignLink('${featureId}','${t.key}','${active.id}')"
         style="flex-shrink:0;border:none;background:none;cursor:pointer;color:var(--text-dim);padding:0 2px;line-height:1;font-size:16px;opacity:.5"
         onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5" title="Remove design link">×</button>
@@ -9155,8 +9155,8 @@ function addDesignLink(featureId, key, url, label) {
   // If there's a Jira-synced active link, mark it for deletion on next sync.
   // If it's local-only, just drop it.
   const newList = t.designLinks
-    .filter(dl => dl.pendingRemove || (dl.jiraId && !dl.pendingRemove))  // keep pending-removes + keep synced ones (mark them)
-    .map(dl => (!dl.pendingRemove && dl.jiraId) ? { ...dl, pendingRemove: true } : dl);
+    .filter(dl => dl.pendingRemove || (dl.fromJira && !dl.pendingRemove))  // keep pending-removes + keep synced ones (mark them)
+    .map(dl => (!dl.pendingRemove && dl.fromJira) ? { ...dl, pendingRemove: true } : dl);
 
   const id = 'local_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
   newList.push({ id, jiraId: null, url, label, fromJira: false, pendingRemove: false });
@@ -9175,7 +9175,7 @@ function removeDesignLink(featureId, key, dlId) {
   if (!t) return;
   const dl = (t.designLinks || []).find(l => l.id === dlId);
   if (!dl) return;
-  if (!dl.jiraId) {
+  if (!dl.fromJira) {
     t.designLinks = t.designLinks.filter(l => l.id !== dlId);
   } else {
     dl.pendingRemove = true;
@@ -9194,7 +9194,7 @@ function restoreDesignLink(featureId, key, dlId) {
   if (!t) return;
   const dl = (t.designLinks || []).find(l => l.id === dlId);
   if (dl) dl.pendingRemove = false;
-  t._designLinksEdited = (t.designLinks || []).some(l => l.pendingRemove || !l.jiraId);
+  t._designLinksEdited = (t.designLinks || []).some(l => l.pendingRemove || !l.fromJira);
   _updateTicketSyncStatus(featureId, t);
   saveImpl(featureId, impl);
   const sectionEl = document.getElementById(featureId + '_design_links_' + key);
