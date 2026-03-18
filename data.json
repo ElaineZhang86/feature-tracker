@@ -1346,12 +1346,12 @@
             "_dodEdited": false,
             "designLinks": [
               {
-                "id": "desc_design",
-                "jiraId": null,
+                "id": "jira_prop_0",
+                "jiraId": "prop_0",
                 "url": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&t=iicPOCVVGrVvUiu1-1",
                 "label": "Figma design",
-                "source": "description",
-                "propertyKey": null,
+                "source": "property",
+                "propertyKey": "com.atlassian.jira.designs",
                 "fromJira": true,
                 "pendingRemove": false
               }
@@ -1365,7 +1365,7 @@
             "syncError": null,
             "_descEdited": false,
             "_expanded": true,
-            "_jiraUpdatedAt": "2026-03-17T21:42:31.960-0700",
+            "_jiraUpdatedAt": "2026-03-17T21:43:03.682-0700",
             "relatedWork": [],
             "comments": null,
             "_designPropertyKey": "com.atlassian.jira.designs"
