@@ -1585,7 +1585,6 @@
             "_origSummary": "Spike: Technical Design Doc – AP & AR Sales Taxability Job Settings",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1595,6 +1594,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -1609,7 +1610,6 @@
             "_origSummary": "[Migration] Create database migration script for adding LineTaxabilityRule to WorkTaxabilityType",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1619,6 +1619,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -1633,7 +1635,6 @@
             "_origSummary": "[inventory-service] Extend WorkTaxabilityType entity in inventory-service",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1643,6 +1644,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -1657,7 +1660,6 @@
             "_origSummary": "[Web App] Update Work Taxability Type Settings",
             "description": "<p><strong>Repository: buildhero-webapp</strong></p><p>Dependencies: Ticket #2 (inventory-service entity extension)</p><p>Description:</p><p>Add a new configuration screen Tax Settings and:</p><ul><li><p>Move the Avalara Work Taxability Type Configuration there (available only when <code>work-taxability-types</code> is true)</p></li><li><p>Move the Sales Taxes List</p></li><li><p>Move the AP Taxes configuration (available only when <code>ap-taxes</code> = TRUE)</p></li><li><p>Add &quot;Line Taxability Rule&quot; dropdown to Work Taxability Type configurations (available only when <code>enable-job-level-taxability</code> FF is enabled)</p></li></ul><p><strong>Files to Modify:</strong></p><ul><li><p><code>packages/scenes/app/src/Settings/Integrations/components/AvalaraSettings/WorkTaxabilityTypes/WorkTaxabilityTypes.component.tsx</code></p></li><li><p><code>packages/scenes/app/src/Settings/Integrations/components/AvalaraSettings/WorkTaxabilityTypes/Drawer/Drawer.component.tsx</code></p></li><li><p><code>packages/scenes/app/src/Settings/Integrations/components/AvalaraSettings/WorkTaxabilityTypes/WorkTaxabilityTypes.columns.tsx</code></p></li><li><p><code>packages/global/src/types/taxes/workTaxabilityTypes/index.ts</code></p></li></ul><p><strong>UI Changes:</strong></p><ul><li><p>Add &quot;Line Taxability Rule&quot; column to table</p></li><li><p>Add dropdown in create/edit drawer with options: &quot;Always Taxable&quot;, &quot;Always Non-Taxable&quot;, &quot;None (Provider Tax Code only)&quot;</p></li><li><p>Add help text explaining the field</p></li><li><p>Default to &quot;None&quot;</p></li></ul><p><strong>Acceptance Criteria:</strong></p><ul><li><p>Tax Settings (from the Menu) is created and shown only if either <code>work-taxability-types</code> is true or <code>ap-taxes</code> is true.</p></li><li><p>AP Taxes tab is available only when <code>ap-taxes</code> = TRUE </p></li><li><p>Work Taxability Type setting only available if <code>work-taxability-types</code> = true (even if Avalara is disabled)</p></li><li><p>Line Taxability Rule can be added/edited and saved (visible only if <code>enable-job-level-taxability</code> = true)</p></li></ul>",
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1667,6 +1669,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": "2026-03-16T17:19:04.791-0700",
             "relatedWork": [
               {
@@ -1688,8 +1692,7 @@
                 "url": ""
               }
             ],
-            "comments": null,
-            "_expanded": false
+            "comments": null
           },
           {
             "id": "239246",
@@ -1701,7 +1704,6 @@
             "_origSummary": "[Web App] Enhance Create Purchase Order workflow and Purchase Order Lines Grid with LineTaxabilityRule logic",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1711,6 +1713,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -1725,7 +1729,6 @@
             "_origSummary": "[Web App] Enhance Add/Edit Purchase Order Line workflow with LineTaxabilityRule",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1735,6 +1738,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -1749,7 +1754,6 @@
             "_origSummary": "[Web App] Enhance Add/Edit Receipt Line workflow with LineTaxabilityRule",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1759,6 +1763,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -1773,7 +1779,6 @@
             "_origSummary": "[Web App] Enhance Add/Edit Bill Line workflow with LineTaxabilityRule",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1783,6 +1788,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -1797,7 +1804,6 @@
             "_origSummary": "[Web App] Add Job Template Settings",
             "description": "<p><strong>Repository: buildhero-webapp</strong></p><p>Dependencies: Ticket #4 (Create Purchase Order workflow)</p><p>Description:</p><p>If job-blueprints = ON: Add new Settings called Job Template Settings with a toggle button to require Job Template selection for a Job if enabled.</p><p><strong>Acceptance Criteria:</strong></p><ul><li><p>Job Template Setting is created and require Job Template toggle button updates &amp; persists the changes</p></li></ul>",
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1807,6 +1813,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": "2026-03-16T17:19:03.425-0700",
             "relatedWork": [
               {
@@ -1819,8 +1827,7 @@
                 "url": ""
               }
             ],
-            "comments": null,
-            "_expanded": false
+            "comments": null
           },
           {
             "id": "239252",
@@ -1832,7 +1839,6 @@
             "_origSummary": "[Deployment] Update Invoice item taxable defaulting logic during Invoice generation",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1842,6 +1848,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -1856,7 +1864,6 @@
             "_origSummary": "[Web App] Update Create Job wizard / Job Details screen",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1866,6 +1873,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -1880,7 +1889,6 @@
             "_origSummary": "[Web App] Add/Edit Invoice Item + grid labels",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1890,6 +1898,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -1904,7 +1914,6 @@
             "_origSummary": "[Web App] Update Job creation to require template selection in buildhero-webapp",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1914,6 +1923,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -1928,7 +1939,6 @@
             "_origSummary": "Deprecate enable-job-level-taxability FF",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1938,6 +1948,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -1952,7 +1964,6 @@
             "_origSummary": "create enable-job-level-taxability FF",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1962,6 +1973,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -1976,7 +1989,6 @@
             "_origSummary": "[Mobile] New Job: Job Template selection & required validation (job-blueprints flag) ",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -1986,6 +1998,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -2000,7 +2014,6 @@
             "_origSummary": "[Mobile] New Job: Display & override AP/AR Work Taxability Type on job creation (work-taxability-types flag)",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -2010,6 +2023,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -2024,7 +2039,6 @@
             "_origSummary": "[Mobile] Job View: Display Job Templates, AP & AR Work Taxability Type in Job Details",
             "description": "<h2>Context</h2><p>Web already shows Job Template, AP Work Taxability Type and AR Work Taxability Type in the job header. Mobile job detail/edit screens (job visit and mobile job invoice) need equivalent visibility so field technicians and mobile managers can see taxability settings on a job and (with appropriate permissions) override them. The mobile job detail screen in the Bravo design system (packages/mobile/app/screens) uses the Job model from WatermelonDB (local DB) which syncs from the backend.</p><h2>Requirements</h2><ul><li><p>Mobile job detail screen: display Job Template:  [value name or 'Not set']</p><ul><li><p>visible when <a href=\"https://app.launchdarkly.com/projects/default/flags/job-blueprints/targeting?env=production&amp;selected-env=production\" target=\"_blank\">job-blueprints</a> = True</p></li></ul></li><li><p>Mobile job detail screen: display AP Work Taxability: [value name or 'Not set'] and AR Work Taxability: [value name or 'Not set']</p><ul><li><p>visible when <a href=\"https://app.launchdarkly.com/projects/default/flags/work-taxability-types/targeting?env=production&amp;selected-env=production\" target=\"_blank\">work-taxability-types</a>  = True</p></li></ul></li><li><p><s>Job Edit: Allow users with the appropriate role/FGA permission to edit AP Work Taxability Type and AR Work Taxability Type. Use single-select pickers drawing from the WorkTaxabilityType list. Saving must call PATCH /v1/jobs/{id} (or the equivalent GraphQL mutation updateJobAndRelated) with the updated workTaxabilityTypeId and arWorkTaxabilityTypeId.</s> editing of a job does not exist</p></li><li><p>The Job WatermelonDB model may need to be extended with <code>jobTemplateId</code>, <code>jobTemplateName</code>,  <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code>, <code>workTaxabilityTypeName</code>, and <code>arWorkTaxabilityTypeName</code> sync fields (or resolved via a join to the WorkTaxabilityType table if already synced). Coordinate with mobile sync / backend team.</p></li><li><p>Roles &amp; Permissions: Only users with the permitted role (FGA/RBAC) should be able to view the job on mobile (already works like that). </p></li></ul><h2>Backend Changes</h2><p>GET /v1/jobs (mobile sync) must return <code>jobTemplateId</code>, <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code> (and ideally the name of each entity for display). PATCH /v1/jobs/{id} must accept <code>jobTemplateId</code>, <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code>. Confirm fields are included in the mobile sync payload. cc Samuel Seo.</p><h2>Files to Modify (Mobile)</h2><ul><li><p>Job model (packages/mobile/app/database/models/Job.ts) - add <code>jobTemplateId</code>, <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code> fields if missing</p></li><li><p>Job detail view screen - add Job Template:  [value name or 'Not set'], AP Work Taxability: [value name or 'Not set'] and AR Work Taxability: [value name or 'Not set']</p></li><li><p>Design: </p><ul><li><p>With Value</p></li><li><p>Not Set:</p></li><li></li></ul></li></ul><h2>Acceptance Criteria</h2><ul><li><p>When <a href=\"https://app.launchdarkly.com/projects/default/flags/work-taxability-types/targeting?env=production&amp;selected-env=production\" target=\"_blank\">work-taxability-types</a>  = True: AP and AR Work Taxability labels and values are visible in job details.</p></li><li><p>When <a href=\"https://app.launchdarkly.com/projects/default/flags/job-blueprints/targeting?env=production&amp;selected-env=production\" target=\"_blank\">job-blueprints</a> = True: Job Template label and value is visible in job details</p></li><li><p>Users with edit permission can change either value; update is reflected immediately on the job.</p></li><li><p>Users without edit permission see the values as read-only.</p></li><li><p>When work-taxability-types = False: section is hidden.</p></li></ul>",
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -2034,6 +2048,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": "2026-03-17T10:20:54.084-0700",
             "relatedWork": [
               {
@@ -2046,114 +2062,7 @@
                 "url": ""
               }
             ],
-            "comments": [
-              {
-                "id": "518772",
-                "author": "Tamara Mekhantseva",
-                "created": "2026-02-26T10:50:20.107-0800",
-                "bodyAdf": {
-                  "type": "doc",
-                  "version": 1,
-                  "content": [
-                    {
-                      "type": "paragraph",
-                      "content": [
-                        {
-                          "type": "text",
-                          "text": "cc "
-                        },
-                        {
-                          "type": "mention",
-                          "attrs": {
-                            "id": "712020:aef6db41-21e8-4fa4-9cc8-0608867c08f8",
-                            "text": "@Ying Zhang",
-                            "accessLevel": "",
-                            "localId": "6041187b-37ff-47de-ad78-f5a5b164efd4"
-                          }
-                        },
-                        {
-                          "type": "text",
-                          "text": " for the job detail mobile design"
-                        }
-                      ],
-                      "attrs": {
-                        "localId": "5b983d8c21b9"
-                      }
-                    }
-                  ]
-                },
-                "bodyHtml": "<p>cc <strong>@@Ying Zhang</strong> for the job detail mobile design</p>"
-              },
-              {
-                "id": "519718",
-                "author": "Ying Zhang",
-                "created": "2026-02-27T09:36:23.713-0800",
-                "bodyAdf": {
-                  "type": "doc",
-                  "version": 1,
-                  "content": [
-                    {
-                      "type": "paragraph",
-                      "content": [
-                        {
-                          "type": "mention",
-                          "attrs": {
-                            "id": "62b1daeedcafd965c5dde977",
-                            "text": "@Tamara Mekhantseva",
-                            "accessLevel": "",
-                            "localId": "c8ee7db19032"
-                          }
-                        },
-                        {
-                          "type": "text",
-                          "text": " Design is ready for review"
-                        }
-                      ],
-                      "attrs": {
-                        "localId": "07ebfcad500e"
-                      }
-                    }
-                  ]
-                },
-                "bodyHtml": "<p><strong>@@Tamara Mekhantseva</strong> Design is ready for review</p>"
-              },
-              {
-                "id": "526913",
-                "author": "WEN XIN MA",
-                "created": "2026-03-09T08:54:26.624-0700",
-                "bodyAdf": {
-                  "type": "doc",
-                  "version": 1,
-                  "content": [
-                    {
-                      "type": "paragraph",
-                      "content": [
-                        {
-                          "type": "text",
-                          "text": "The task to expose job template to the job details screen will be done in: "
-                        },
-                        {
-                          "type": "inlineCard",
-                          "attrs": {
-                            "url": "https://buildops.atlassian.net/browse/MOBILE-4816",
-                            "localId": "b6f712233a4c"
-                          }
-                        },
-                        {
-                          "type": "text",
-                          "text": " "
-                        }
-                      ],
-                      "attrs": {
-                        "localId": "35917611a920"
-                      }
-                    }
-                  ]
-                },
-                "bodyHtml": "<p>The task to expose job template to the job details screen will be done in: <a href=\"https://buildops.atlassian.net/browse/MOBILE-4816\" target=\"_blank\">https://buildops.atlassian.net/browse/MOBILE-4816</a> </p>"
-              }
-            ],
-            "_expanded": false
+            "comments": null
           },
           {
             "id": "241071",
@@ -2165,7 +2074,6 @@
             "_origSummary": "[Mobile] Invoice Generation (T&M): Inherit AR Work Taxability Type on invoice lines from job (work-taxability-types flag)",
             "description": "<h2>Context</h2><p>When a T&amp;M invoice is generated from a mobile job report, invoice lines should inherit the AR Work Taxability Type from the job and the Taxable checkbox should be auto-set based on the lineTaxabilityRule. For lines not originating from the job report (labor, etc.) and newly added lines - inherit the AR Work Taxability Type from the related job. The Taxable boolean will be automatically set based on <code>workTaxabilityType.lineTaxabilityRule</code>. This is a backend-driven change but mobile may need to ensure the invoice creation request and the invoice detail display are updated.</p><h2>Requirements</h2><p>Gate on: <a href=\"https://app.launchdarkly.com/projects/default/flags/work-taxability-types/targeting?env=production&amp;selected-env=production\" target=\"_blank\">work-taxability-types</a> = True AND <a href=\"https://app.launchdarkly.com/projects/default/flags/mobile-invoicing/targeting?env=production&amp;selected-env=production\" target=\"_blank\">mobile-invoicing</a> = True</p><ul><li><p>Invoice lines generated from the mobile T&amp;M job report must include <code>workTaxabilityTypeId</code> = <code>Job.arWorkTaxabilityTypeId</code>. Confirm whether this is handled entirely by the backend on invoice generation, or whether mobile needs to pass this explicitly.</p></li><li><p>Invoice line Taxable value must be auto-set per lineTaxabilityRule: TAXABLE → true, NON_TAXABLE → false. Confirm backend handles this or mobile must set it.</p><ul><li><p>Taxable checkbox is applicable ONLY when Avalara is disabled</p></li><li><p>If Avalara is enabled, provider tax code must be used, but it has not been implemented on mobile yet</p></li></ul></li><li><p>Invoice View (mobile): Show <strong>Work Taxability Type</strong> column/label on invoice line items when work-taxability-types = True (read-only on mobile invoice view.</p></li><li><p>Quoted job invoice (mobile): N/A  - no mobile quoted invoice exists yet.</p></li></ul><h2>Backend Changes</h2><p>Backend invoice generation endpoint should populate <code>InvoiceItem.workTaxabilityTypeId</code> from <code>Job.arWorkTaxabilityTypeId</code> and set <code>InvoiceItem.taxable</code> based on <code>WorkTaxabilityType.lineTaxabilityRule</code>. Confirm with <strong>@@Samuel Seo</strong>  whether this is already handled server-side or requires mobile to pass it. Mobile invoice-related changes are in packages/mobile/app/screens (Invoices or JobReport).</p><h2>Acceptance Criteria</h2><ul><li><p>After generating a T&amp;M invoice from a mobile job report, each invoice line has workTaxabilityTypeId matching the job's AR Work Taxability Type.</p></li><li><p>Taxable flag on each invoice line is set correctly per lineTaxabilityRule.</p></li><li><p>Work Taxability Type label is shown (read-only) on invoice lines in mobile invoice view when flag is on.</p></li><li><p>Make sure the following is observed (when Avalara is disabled  ): </p><ul><li><p><strong>Taxable Amount</strong> = SUM(<code>InvoiceItem.amount</code>, where <code>InvoiceItem.taxable</code> = True)</p><ul><li><p>If all lines are Non-Taxable: Taxable Amount = 0, Tax Amount = 0</p></li><li><p>If all lines are Taxable: Taxable Amount = pre-tax total SUM(<code>InvoiceItem.amount</code>), Tax Amount = tax rate × taxable amount</p></li></ul></li><li><p><strong>Tax Amount</strong> = <strong>Taxable Amount</strong> * <code>Invoice.taxRateId</code> → <code>TaxRate.taxRate</code></p></li></ul></li></ul>",
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [
               {
@@ -2186,10 +2094,11 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": true,
             "_jiraUpdatedAt": "2026-03-17T10:20:56.353-0700",
             "relatedWork": [],
-            "comments": null,
-            "_expanded": true
+            "comments": null
           },
           {
             "id": "241073",
@@ -2201,7 +2110,6 @@
             "_origSummary": "[Mobile] WatermelonDB: Sync JobBlueprint (Job Template) and WorkTaxabilityType entities & extend Job model with template and taxability fields",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -2211,6 +2119,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -2225,7 +2135,6 @@
             "_origSummary": "[Migration] Update Customer table and Job table with jobBlueprintIds",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -2235,6 +2144,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -2249,7 +2160,6 @@
             "_origSummary": "[Web App] Enhance PO, Bill, Receipt Line to inherit LineTaxabilityRule from product when Job does not have workTaxabilityType defined",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -2259,6 +2169,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -2273,7 +2185,6 @@
             "_origSummary": "Update WorkTaxabilityType inheritance logic (Job to PO > Receipt > Bill) to be based on work-taxability-types ff only (instead of additional avalara enabled check)",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -2283,6 +2194,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -2297,7 +2210,6 @@
             "_origSummary": "QA - E2E Work-taxability-type Transaction inheritance testing ",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -2307,6 +2219,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -2321,7 +2235,6 @@
             "_origSummary": "[Mobile] New Job: Job Template selection default logic based on Customer",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -2331,6 +2244,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -2345,7 +2260,6 @@
             "_origSummary": "[Mobile] Job Details: Display selected Job Template on Job Detail screen",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -2355,6 +2269,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -2369,7 +2285,6 @@
             "_origSummary": "[Mobile] Sync defaultJobBlueprintId (Customer) and jobBlueprintId (Job) to WatermelonDB",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -2379,6 +2294,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
@@ -2393,7 +2310,6 @@
             "_origSummary": "[Web App] Parts and Materials Table Job Report: Add an info tooltip in the Taxable column",
             "description": null,
             "dod": "",
-            "_descEdited": false,
             "_dodEdited": false,
             "designLinks": [],
             "_designLinksEdited": false,
@@ -2403,6 +2319,8 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
+            "_descEdited": false,
+            "_expanded": false,
             "_jiraUpdatedAt": null,
             "relatedWork": [],
             "comments": null
