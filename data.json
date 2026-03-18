@@ -3611,10 +3611,201 @@
           "content": "# Multiple Vendor Locations — Domain Docs (IP-1002)\n\n## What It Is\n\nBuildOps supports multiple locations per vendor — in production since IP-1002. Each vendor location represents a physical branch with its own contact, billing address, and shipping address.\n\nThis is especially important for large national vendors (Trane, Carrier, Ferguson) that operate across multiple US states. The correct vendor location determines:\n- Who to contact for the order\n- Where the order ships from\n- Which bill-to address appears on the PO\n\n## Data Model\n\n```\nVendor\n  ├── defaultLocationId (FK → VendorLocation.id)\n  └── VendorLocation (1:N)\n        ├── id\n        ├── vendorId\n        ├── name (e.g. \"Ferguson Denver\", \"Ferguson Phoenix\")\n        ├── billingAddress\n        ├── shippingAddress\n        ├── contact (name, phone, email)\n        └── isDefault (bool)\n```\n\n## How It Drives Bulk PO Grouping\n\nBulk POs are split into separate POs when any of these three dimensions differ:\n\n```\nvendorId + vendorLocationId + shippingDestination → ONE PO\n```\n\n**Concrete example:** 10 maintenances, all using Ferguson as the filter vendor:\n\n| Maintenances | State | Vendor Location | Ships to | Result |\n|---|---|---|---|---|\n| 7 maintenances | Colorado | Ferguson Denver | CO warehouse | **1 PO** |\n| 3 maintenances | Arizona | Ferguson Phoenix | AZ warehouse | **1 PO** |\n| **Total** | | | | **2 POs** |\n\n## Phase 1 vs Phase 2\n\n**Phase 1 (current):**\n- Default vendor location used (`Vendor.defaultLocationId`) when no override set\n- User can override location in the Bulk PO confirmation dialog\n\n**Phase 2 (deferred):**\n- Auto-suggest the vendor location whose state matches the property's state\n- E.g., if maintenance is in Colorado → auto-suggest Ferguson Denver\n\n## Shipping Destination Options\n\n| Option | Typical Use |\n|---|---|\n| **Warehouse** | ⭐ Most common — deliver ahead of time, \"tagged and bagged\" for tech pickup |\n| Vendor Location | Pick up from vendor's branch |\n| Job / Project Site | Deliver directly to the property address |\n| Manually entered | One-off address |\n\n## Related Links\n\n- [IP-1002 Multiple Vendor Locations PRD](https://buildops.atlassian.net/wiki/spaces/BPD/pages/3461316618)"
         }
       ]
+    },
+    "custom_1773442244486": {
+      "tasks": [],
+      "notesEntries": [],
+      "specLinks": []
+    },
+    "custom_1773511895391": {
+      "tasks": [],
+      "notesEntries": [],
+      "specLinks": []
+    },
+    "custom_1773550557137": {
+      "tasks": [
+        {
+          "id": "bt_0",
+          "text": "Expose vendor location selector in Bulk PO confirmation dialog",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_1",
+          "text": "Design vendor location management in unified Vendor Detail page",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bt_2",
+          "text": "Phase 2: auto-suggest vendor location by matching property state",
+          "status": "todo",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_0",
+          "text": "Multiple locations per vendor in production (IP-1002)",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_1",
+          "text": "Each location has billing address, shipping address, contact",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        },
+        {
+          "id": "bd_2",
+          "text": "Vendor.defaultLocationId field implemented",
+          "status": "done",
+          "reason": "",
+          "builtin": true
+        }
+      ],
+      "notesEntries": [],
+      "specLinks": []
     }
   },
-  "fh_custom_features": [],
+  "fh_custom_features": [
+    {
+      "id": "custom_1773442244486",
+      "icon": "warehouse",
+      "title": "My Own To Do List",
+      "status": "Discovery",
+      "hasDoc": false,
+      "hasDomainDoc": false,
+      "customer": "TBD",
+      "due": "TBD",
+      "team": [],
+      "currentFocus": "",
+      "summary": "",
+      "decisions": [],
+      "constraints": [],
+      "links": [],
+      "done": [],
+      "todo": [],
+      "questions": [],
+      "isCustom": true
+    },
+    {
+      "id": "custom_1773511895391",
+      "icon": "person_add",
+      "title": "Interview - Debbie",
+      "status": "Discovery",
+      "hasDoc": false,
+      "hasDomainDoc": false,
+      "customer": "TBD",
+      "due": "Mar 16, 2026",
+      "team": [],
+      "currentFocus": "",
+      "summary": "",
+      "decisions": [],
+      "constraints": [],
+      "links": [],
+      "done": [],
+      "todo": [],
+      "questions": [],
+      "isCustom": true
+    },
+    {
+      "id": "custom_1773550557137",
+      "icon": "location_on",
+      "title": "Multiple Vendor Locations",
+      "status": "Dev",
+      "hasDoc": true,
+      "docLabel": "Feature Understanding",
+      "customer": "General",
+      "due": "TBD",
+      "team": [],
+      "currentFocus": "Vendor location management and PO association",
+      "summary": "BuildOps supports multiple locations per vendor (IP-1002 — in production). Each vendor location has its own billing address, shipping address, and contact. Critical for Bulk PO — large vendors like Trane, Carrier, Ferguson have locations across the US, and the correct location determines who to contact and where the order ships from.",
+      "decisions": [
+        "Each vendor location has: billing address, shipping address, contact, and a default flag",
+        "Vendor has a defaultLocationId — used when no specific location is selected",
+        "Bulk PO groups by vendorId + vendorLocationId + shippingDestination → one PO per unique combination",
+        "Phase 1 Bulk PO: user overrides vendor location in the confirmation dialog",
+        "Phase 2 (deferred): auto-suggest location whose state matches the property's state"
+      ],
+      "constraints": [
+        "Phase 2 auto-suggestion (match vendor location state to property state) is deferred"
+      ],
+      "links": [
+        {
+          "label": "IP-1002 Multiple Vendor Locations PRD",
+          "url": "https://buildops.atlassian.net/wiki/spaces/BPD/pages/3461316618"
+        }
+      ],
+      "done": [
+        "Multiple locations per vendor in production (IP-1002)",
+        "Each location has billing address, shipping address, contact",
+        "Vendor.defaultLocationId field implemented"
+      ],
+      "todo": [
+        "Expose vendor location selector in Bulk PO confirmation dialog",
+        "Design vendor location management in unified Vendor Detail page",
+        "Phase 2: auto-suggest vendor location by matching property state"
+      ],
+      "questions": [
+        "In the unified Vendor Detail page, how do we surface location management — tab or section?",
+        "When a PO is created manually, should the vendor location field be required or optional?",
+        "How does vendor location interact with the Intacct vendor sync — are locations synced too?"
+      ],
+      "isCustom": true
+    }
+  ],
   "fh_hidden_builtins": [],
-  "fh_deleted_features": [],
+  "fh_deleted_features": [
+    {
+      "id": "custom_1773674780086",
+      "icon": "location_on",
+      "title": "Multiple Vendor Locations",
+      "status": "Dev",
+      "hasDoc": true,
+      "docLabel": "Feature Understanding",
+      "customer": "General",
+      "due": "TBD",
+      "team": [],
+      "currentFocus": "Vendor location management and PO association",
+      "summary": "BuildOps supports multiple locations per vendor (IP-1002 — in production). Each vendor location has its own billing address, shipping address, and contact. Critical for Bulk PO — large vendors like Trane, Carrier, Ferguson have locations across the US, and the correct location determines who to contact and where the order ships from.",
+      "decisions": [
+        "Each vendor location has: billing address, shipping address, contact, and a default flag",
+        "Vendor has a defaultLocationId — used when no specific location is selected",
+        "Bulk PO groups by vendorId + vendorLocationId + shippingDestination → one PO per unique combination",
+        "Phase 1 Bulk PO: user overrides vendor location in the confirmation dialog",
+        "Phase 2 (deferred): auto-suggest location whose state matches the property's state"
+      ],
+      "constraints": [
+        "Phase 2 auto-suggestion (match vendor location state to property state) is deferred"
+      ],
+      "links": [
+        {
+          "label": "IP-1002 Multiple Vendor Locations PRD",
+          "url": "https://buildops.atlassian.net/wiki/spaces/BPD/pages/3461316618"
+        }
+      ],
+      "done": [
+        "Multiple locations per vendor in production (IP-1002)",
+        "Each location has billing address, shipping address, contact",
+        "Vendor.defaultLocationId field implemented"
+      ],
+      "todo": [
+        "Expose vendor location selector in Bulk PO confirmation dialog",
+        "Design vendor location management in unified Vendor Detail page",
+        "Phase 2: auto-suggest vendor location by matching property state"
+      ],
+      "questions": [
+        "In the unified Vendor Detail page, how do we surface location management — tab or section?",
+        "When a PO is created manually, should the vendor location field be required or optional?",
+        "How does vendor location interact with the Intacct vendor sync — are locations synced too?"
+      ],
+      "isCustom": true,
+      "deletedAt": 1773690251578
+    }
+  ],
   "fh_feature_order": null
 }
