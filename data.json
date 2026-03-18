@@ -662,7 +662,7 @@
             "id": "235738",
             "key": "SERVICE-4260",
             "summary": "[Migration] New columns on Job table",
-            "status": "Ready for Release",
+            "status": "Released",
             "type": "Task",
             "url": "https://buildops.atlassian.net/browse/SERVICE-4260",
             "_origSummary": "[Migration] New columns on Job table",
@@ -1367,8 +1367,7 @@
             "_expanded": false,
             "_jiraUpdatedAt": "2026-03-17T21:43:37.663-0700",
             "relatedWork": [],
-            "comments": null,
-            "_designPropertyKey": "com.atlassian.jira.designs"
+            "comments": null
           },
           {
             "id": "250570",
