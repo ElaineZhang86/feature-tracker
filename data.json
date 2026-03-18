@@ -1362,7 +1362,7 @@
             "commentId": null,
             "syncError": null,
             "_descEdited": false,
-            "_expanded": true,
+            "_expanded": false,
             "_jiraUpdatedAt": "2026-03-17T20:47:53.154-0700",
             "relatedWork": [],
             "comments": null
