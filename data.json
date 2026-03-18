@@ -2153,7 +2153,7 @@
                 "bodyHtml": "<p>The task to expose job template to the job details screen will be done in: <a href=\"https://buildops.atlassian.net/browse/MOBILE-4816\" target=\"_blank\">https://buildops.atlassian.net/browse/MOBILE-4816</a> </p>"
               }
             ],
-            "_expanded": false
+            "_expanded": true
           },
           {
             "id": "241071",
