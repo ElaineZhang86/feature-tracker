@@ -9753,13 +9753,24 @@ async function _fetchTicketDesc(featureId, key) {
         t.dod = descDodHtml;
       }
     }
-    // Populate design link from description if present and not locally edited
-    if (!t._designLinksEdited && descDesignUrl) {
-      t.designLinks = [{
-        id: 'desc_design', jiraId: null, url: descDesignUrl,
-        label: descDesignName || descDesignUrl, source: 'description',
-        propertyKey: null, fromJira: true, pendingRemove: false
-      }];
+    // Populate design links from Jira on every load (unless user has local edits)
+    // Priority: description-embedded > issue property > remote link
+    if (!t._designLinksEdited) {
+      if (descDesignUrl) {
+        t.designLinks = [{
+          id: 'desc_design', jiraId: null, url: descDesignUrl,
+          label: descDesignName || descDesignUrl, source: 'description',
+          propertyKey: null, fromJira: true, pendingRemove: false
+        }];
+      } else if (data.designLinks?.length) {
+        t.designLinks = data.designLinks.map(dl => ({
+          id: 'jira_' + dl.id, jiraId: dl.id, url: dl.url,
+          label: dl.label || dl.url, source: dl.source || 'remotelink',
+          propertyKey: dl.propertyKey || null, fromJira: true, pendingRemove: false
+        }));
+      } else {
+        t.designLinks = [];
+      }
     }
 
     // Refresh summary + status from Jira (always authoritative on a content load)
@@ -9777,19 +9788,7 @@ async function _fetchTicketDesc(featureId, key) {
     t._jiraUpdatedAt = data.updatedAt || null;
     t.relatedWork = data.relatedWork || [];
 
-    // Populate design links from Jira property/remote links if not already set from description or local edits
-    if (!t._designLinksEdited && !t.designLinks?.length && data.designLinks?.length) {
-      t.designLinks = data.designLinks.map(dl => ({
-        id: 'jira_' + dl.id,
-        jiraId: dl.id,
-        url: dl.url,
-        label: dl.label || dl.url,
-        source: dl.source || 'remotelink',
-        propertyKey: dl.propertyKey || null,
-        fromJira: true,
-        pendingRemove: false
-      }));
-    }
+
 
     saveImpl(featureId, impl);
 
@@ -14248,7 +14247,7 @@ function generateConfluenceContent(featureId, f) {
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/MOBILE-4742",
             "_origSummary": "[Mobile] Job View: Display Job Templates, AP & AR Work Taxability Type in Job Details",
-            "description": null,
+            "description": "<h2>Context</h2><p>Web already shows Job Template, AP Work Taxability Type and AR Work Taxability Type in the job header. Mobile job detail/edit screens (job visit and mobile job invoice) need equivalent visibility so field technicians and mobile managers can see taxability settings on a job and (with appropriate permissions) override them. The mobile job detail screen in the Bravo design system (packages/mobile/app/screens) uses the Job model from WatermelonDB (local DB) which syncs from the backend.</p><h2>Requirements</h2><ul><li><p>Mobile job detail screen: display Job Template:  [value name or 'Not set']</p><ul><li><p>visible when <a href=\"https://app.launchdarkly.com/projects/default/flags/job-blueprints/targeting?env=production&amp;selected-env=production\" target=\"_blank\">job-blueprints</a> = True</p></li></ul></li><li><p>Mobile job detail screen: display AP Work Taxability: [value name or 'Not set'] and AR Work Taxability: [value name or 'Not set']</p><ul><li><p>visible when <a href=\"https://app.launchdarkly.com/projects/default/flags/work-taxability-types/targeting?env=production&amp;selected-env=production\" target=\"_blank\">work-taxability-types</a>  = True</p></li></ul></li><li><p><s>Job Edit: Allow users with the appropriate role/FGA permission to edit AP Work Taxability Type and AR Work Taxability Type. Use single-select pickers drawing from the WorkTaxabilityType list. Saving must call PATCH /v1/jobs/{id} (or the equivalent GraphQL mutation updateJobAndRelated) with the updated workTaxabilityTypeId and arWorkTaxabilityTypeId.</s> editing of a job does not exist</p></li><li><p>The Job WatermelonDB model may need to be extended with <code>jobTemplateId</code>, <code>jobTemplateName</code>,  <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code>, <code>workTaxabilityTypeName</code>, and <code>arWorkTaxabilityTypeName</code> sync fields (or resolved via a join to the WorkTaxabilityType table if already synced). Coordinate with mobile sync / backend team.</p></li><li><p>Roles &amp; Permissions: Only users with the permitted role (FGA/RBAC) should be able to view the job on mobile (already works like that). </p></li></ul><h2>Backend Changes</h2><p>GET /v1/jobs (mobile sync) must return <code>jobTemplateId</code>, <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code> (and ideally the name of each entity for display). PATCH /v1/jobs/{id} must accept <code>jobTemplateId</code>, <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code>. Confirm fields are included in the mobile sync payload. cc Samuel Seo.</p><h2>Files to Modify (Mobile)</h2><ul><li><p>Job model (packages/mobile/app/database/models/Job.ts) - add <code>jobTemplateId</code>, <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code> fields if missing</p></li><li><p>Job detail view screen - add Job Template:  [value name or 'Not set'], AP Work Taxability: [value name or 'Not set'] and AR Work Taxability: [value name or 'Not set']</p></li><li><p>Design: </p><ul><li><p>With Value</p></li><li><p>Not Set:</p></li><li></li></ul></li></ul><h2>Acceptance Criteria</h2><ul><li><p>When <a href=\"https://app.launchdarkly.com/projects/default/flags/work-taxability-types/targeting?env=production&amp;selected-env=production\" target=\"_blank\">work-taxability-types</a>  = True: AP and AR Work Taxability labels and values are visible in job details.</p></li><li><p>When <a href=\"https://app.launchdarkly.com/projects/default/flags/job-blueprints/targeting?env=production&amp;selected-env=production\" target=\"_blank\">job-blueprints</a> = True: Job Template label and value is visible in job details</p></li><li><p>Users with edit permission can change either value; update is reflected immediately on the job.</p></li><li><p>Users without edit permission see the values as read-only.</p></li><li><p>When work-taxability-types = False: section is hidden.</p></li></ul>",
             "dod": "",
             "_descEdited": false,
             "_dodEdited": false,
@@ -14260,9 +14259,20 @@ function generateConfluenceContent(featureId, f) {
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
-            "_jiraUpdatedAt": null,
-            "relatedWork": [],
-            "comments": null
+            "_jiraUpdatedAt": "2026-03-17T10:20:54.084-0700",
+            "relatedWork": [
+              {
+                "type": "Relates",
+                "direction": "outward",
+                "label": "relates to",
+                "key": "MOBILE-4816",
+                "summary": "[Mobile] Job Details: Display selected Job Template on Job Detail screen",
+                "status": "In Testing",
+                "url": ""
+              }
+            ],
+            "comments": null,
+            "_expanded": true
           },
           {
             "id": "241071",
@@ -14298,7 +14308,7 @@ function generateConfluenceContent(featureId, f) {
             "_jiraUpdatedAt": "2026-03-17T10:20:56.353-0700",
             "relatedWork": [],
             "comments": null,
-            "_expanded": true
+            "_expanded": false
           },
           {
             "id": "241073",
