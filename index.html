@@ -8927,7 +8927,7 @@ function saveImpl(featureId, impl) {
 }
 
 // ── ADF ↔ HTML conversion (client-side) ────────────────────────────────────
-function adfToHtml(adf) {
+function adfToHtml(adf, opts) {
   if (!adf) return '';
   if (typeof adf === 'string') return escHtml(adf);
   function renderMark(t, mark) {
@@ -8962,7 +8962,18 @@ function adfToHtml(adf) {
         const rows=(b.content||[]).map(row=>`<tr>${(row.content||[]).map(cell=>{const tag=cell.type==='tableHeader'?'th':'td';return `<${tag}>${(cell.content||[]).map(renderBlock).join('')}</${tag}>`;}).join('')}</tr>`).join('');
         return `<table>${rows}</table>`;
       }
-      default: return renderInline(b.content);
+      case 'mediaSingle': return `<div style="margin:8px 0">${(b.content||[]).map(renderBlock).join('')}</div>`;
+      case 'mediaGroup':  return `<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">${(b.content||[]).map(renderBlock).join('')}</div>`;
+      case 'media': {
+        const id = b.attrs?.id;
+        if (!id) return '';
+        if (opts?.mediaProxy) {
+          const src = opts.mediaProxy(id);
+          return `<img src="${escHtml(src)}" style="max-width:100%;border-radius:4px;cursor:pointer" loading="lazy" onclick="window.open(this.src,'_blank')">`;
+        }
+        return `<span style="font-size:11px;color:var(--text-dim)">[image]</span>`;
+      }
+      default: return (b.content||[]).length ? (b.content||[]).map(renderBlock).join('') : '';
     }
   }
   return (adf.content||[]).map(renderBlock).join('');
@@ -9745,10 +9756,11 @@ async function _fetchTicketDesc(featureId, key) {
     // Extract DoD and Design link from description
     const { cleanAdf: adfAfterDod, dodHtml: descDodHtml } = _extractDodFromAdf(data.descriptionAdf);
     const { cleanAdf, designUrl: descDesignUrl, designName: descDesignName } = _extractDesignFromAdf(adfAfterDod);
-    t.description = cleanAdf ? adfToHtml(cleanAdf) : '';
+    const mediaProxy = id => `/api/jira/attachment?id=${encodeURIComponent(id)}&domain=${encodeURIComponent(impl.domain)}&email=${encodeURIComponent(creds.email)}&token=${encodeURIComponent(creds.token)}`;
+    t.description = cleanAdf ? adfToHtml(cleanAdf, { mediaProxy }) : '';
     if (!t._dodEdited) {
       if (fieldIds.dodFieldId && data.dodFieldValue) {
-        t.dod = adfToHtml(data.dodFieldValue);
+        t.dod = adfToHtml(data.dodFieldValue, { mediaProxy });
       } else {
         t.dod = descDodHtml;
       }
@@ -14378,7 +14390,7 @@ function generateConfluenceContent(featureId, f) {
                 "bodyHtml": "<p>The task to expose job template to the job details screen will be done in: <a href=\"https://buildops.atlassian.net/browse/MOBILE-4816\" target=\"_blank\">https://buildops.atlassian.net/browse/MOBILE-4816</a> </p>"
               }
             ],
-            "_expanded": true
+            "_expanded": false
           },
           {
             "id": "241071",
@@ -14414,7 +14426,7 @@ function generateConfluenceContent(featureId, f) {
             "_jiraUpdatedAt": "2026-03-17T10:20:56.353-0700",
             "relatedWork": [],
             "comments": null,
-            "_expanded": false
+            "_expanded": true
           },
           {
             "id": "241073",
