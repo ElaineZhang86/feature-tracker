@@ -1350,22 +1350,23 @@
                 "jiraId": null,
                 "url": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&t=iicPOCVVGrVvUiu1-1",
                 "label": "Figma design",
-                "fromJira": false,
+                "fromJira": true,
                 "pendingRemove": false
               }
             ],
-            "_designLinksEdited": true,
+            "_designLinksEdited": false,
             "requirements": "",
             "specNotes": "",
-            "syncStatus": "dirty",
-            "lastSynced": "2026-03-18T04:15:41.132Z",
+            "syncStatus": "synced",
+            "lastSynced": "2026-03-18T04:20:47.325Z",
             "commentId": null,
             "syncError": null,
             "_descEdited": false,
             "_expanded": true,
             "_jiraUpdatedAt": "2026-03-17T21:15:40.860-0700",
             "relatedWork": [],
-            "comments": null
+            "comments": null,
+            "_designPropertyKey": "com.atlassian.jira.designs"
           },
           {
             "id": "250570",
