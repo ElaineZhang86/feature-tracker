@@ -1344,7 +1344,18 @@
             "description": "<p>Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only). </p><p>Design: <a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&amp;t=iicPOCVVGrVvUiu1-1\" target=\"_blank\">https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&amp;t=iicPOCVVGrVvUiu1-1</a> </p>",
             "dod": "",
             "_dodEdited": false,
-            "designLinks": [],
+            "designLinks": [
+              {
+                "id": "jira_prop_0",
+                "jiraId": "prop_0",
+                "url": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&t=iicPOCVVGrVvUiu1-1",
+                "label": "Figma design",
+                "source": "property",
+                "propertyKey": "com.atlassian.jira.designs",
+                "fromJira": true,
+                "pendingRemove": false
+              }
+            ],
             "_designLinksEdited": false,
             "requirements": "",
             "specNotes": "",
@@ -1354,7 +1365,7 @@
             "syncError": null,
             "_descEdited": false,
             "_expanded": true,
-            "_jiraUpdatedAt": "2026-03-17T21:37:32.793-0700",
+            "_jiraUpdatedAt": "2026-03-17T21:37:55.187-0700",
             "relatedWork": [],
             "comments": null,
             "_designPropertyKey": "com.atlassian.jira.designs"
@@ -1367,19 +1378,10 @@
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/SERVICE-4403",
             "_origSummary": "[FE] Create Pricebook – Cost Component Based",
-            "description": "<p>Add Cost Component selector (Material / Labor / Equipment) to the Create Pricebook modal. Enforce single selection only. Cost component is required and immutable after creation — if a different cost type is needed the user must create or clone a new pricebook. Existing full pricebook creation flow is unaffected for tenants without the feature flag. Rollout: Behind feature flag (new PB model only). </p><p>Figma: <a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2574-44939\" target=\"_blank\">https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2574-44939</a> </p>",
+            "description": "<p>Add Cost Component selector (Material / Labor / Equipment) to the Create Pricebook modal. Enforce single selection only. Cost component is required and immutable after creation — if a different cost type is needed the user must create or clone a new pricebook. Existing full pricebook creation flow is unaffected for tenants without the feature flag. Rollout: Behind feature flag (new PB model only). </p><p>Figma: <a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2574-44939\" target=\"_blank\">https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2574-44939</a> </p><h2>Design</h2><p><a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&amp;t=iicPOCVVGrVvUiu1-1\" target=\"_blank\">Figma design</a></p>",
             "dod": "",
             "_dodEdited": false,
-            "designLinks": [
-              {
-                "id": "local_1773808709083_1jip",
-                "jiraId": null,
-                "url": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&t=iicPOCVVGrVvUiu1-1",
-                "label": "Figma design",
-                "fromJira": true,
-                "pendingRemove": false
-              }
-            ],
+            "designLinks": [],
             "_designLinksEdited": false,
             "requirements": "",
             "specNotes": "",
@@ -1389,7 +1391,7 @@
             "syncError": null,
             "_descEdited": false,
             "_expanded": true,
-            "_jiraUpdatedAt": "2026-03-17T10:24:13.719-0700",
+            "_jiraUpdatedAt": "2026-03-17T21:38:31.693-0700",
             "relatedWork": [],
             "comments": null
           },
