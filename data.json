@@ -427,11 +427,11 @@
             "_dodEdited": false,
             "designLinks": [
               {
-                "id": "desc_design",
-                "jiraId": null,
-                "url": "https://www.figma.com/design/6C4HT8buUwyDowuKPvn9d6/%E2%9C%85-Customer-Page?m=auto&node-id=3628-94328&t=oaLxpN4gZxch8ak7-1",
-                "label": "Figma design",
-                "source": "description",
+                "id": "jira_55735",
+                "jiraId": 55735,
+                "url": "https://buildops.atlassian.net/wiki/pages/viewpage.action?pageId=4334288898",
+                "label": "TDD - IP-5363 Avalara Tax Exemptions",
+                "source": "remotelink",
                 "propertyKey": null,
                 "fromJira": true,
                 "pendingRemove": false
@@ -444,7 +444,7 @@
             "lastSynced": "2026-03-18T05:06:09.060Z",
             "commentId": null,
             "syncError": null,
-            "_jiraUpdatedAt": "2026-03-17T22:06:08.666-0700",
+            "_jiraUpdatedAt": "2026-03-17T22:08:25.105-0700",
             "relatedWork": [
               {
                 "type": "Blocks",
