@@ -425,11 +425,20 @@
             "dod": "",
             "_descEdited": false,
             "_dodEdited": false,
-            "designLinks": [],
-            "_designLinksEdited": false,
+            "designLinks": [
+              {
+                "id": "local_1773810366372_nv2d",
+                "jiraId": null,
+                "url": "https://www.figma.com/design/6C4HT8buUwyDowuKPvn9d6/%E2%9C%85-Customer-Page?m=auto&node-id=3628-94328&t=oaLxpN4gZxch8ak7-1",
+                "label": "Figma design",
+                "fromJira": false,
+                "pendingRemove": false
+              }
+            ],
+            "_designLinksEdited": true,
             "requirements": "",
             "specNotes": "",
-            "syncStatus": "empty",
+            "syncStatus": "unsynced",
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
