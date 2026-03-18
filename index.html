@@ -8828,10 +8828,15 @@ async function _getJiraFieldIds(domain) {
   if (stored) { try { _jiraFieldsCache[domain] = JSON.parse(stored); return _jiraFieldsCache[domain]; } catch {} }
   const creds = _jiraCreds();
   try {
-    const r = await fetch(`/api/jira/fields?domain=${encodeURIComponent(domain)}`, {
-      headers: { 'x-cf-email': creds.email, 'x-cf-token': creds.token }
+    const data = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', `/api/jira/fields?domain=${encodeURIComponent(domain)}`);
+      xhr.setRequestHeader('x-cf-email', creds.email);
+      xhr.setRequestHeader('x-cf-token', creds.token);
+      xhr.onload = () => { try { resolve(JSON.parse(xhr.responseText)); } catch(e) { reject(e); } };
+      xhr.onerror = () => reject(new Error('Network error'));
+      xhr.send();
     });
-    const data = await r.json();
     if (!data.ok) { _jiraFieldsCache[domain] = {}; return {}; }
     const dodField = data.fields.find(f => /^definition of done$/i.test(f.name)) ||
                      data.fields.find(f => /definition of done/i.test(f.name));
@@ -8867,10 +8872,15 @@ async function _checkTicketJiraUpdate(featureId, key) {
   if (!t?._jiraUpdatedAt || !_jiraIsConnected()) return;
   const creds = _jiraCreds();
   try {
-    const r = await fetch(`/api/jira/ticket?key=${encodeURIComponent(key)}&domain=${encodeURIComponent(impl.domain)}`, {
-      headers: { 'x-cf-email': creds.email, 'x-cf-token': creds.token }
+    const data = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', `/api/jira/ticket?key=${encodeURIComponent(key)}&domain=${encodeURIComponent(impl.domain)}`);
+      xhr.setRequestHeader('x-cf-email', creds.email);
+      xhr.setRequestHeader('x-cf-token', creds.token);
+      xhr.onload = () => { try { resolve(JSON.parse(xhr.responseText)); } catch(e) { reject(e); } };
+      xhr.onerror = () => reject(new Error('Network error'));
+      xhr.send();
     });
-    const data = await r.json();
     if (!data.ok || !data.updatedAt || data.updatedAt === t._jiraUpdatedAt) return;
     const hasLocalEdits = t._descEdited || t._dodEdited || t._designLinksEdited ||
                           (t._origSummary !== undefined && t.summary !== t._origSummary);
@@ -9308,6 +9318,15 @@ function renderImplementationTab(featureId) {
   if (!panel) return;
   const impl = loadImpl(featureId);
   panel.innerHTML = impl.epicKey ? _renderImplConnected(featureId, impl) : _renderImplEmpty(featureId);
+  // Resume polling + immediately check for Jira changes on all already-expanded tickets
+  if (impl.epicKey && _jiraIsConnected()) {
+    (impl.items || []).forEach(t => {
+      if (t._expanded && !t.manual) {
+        _startTicketPoll(featureId, t.key);
+        if (t._jiraUpdatedAt) _checkTicketJiraUpdate(featureId, t.key);
+      }
+    });
+  }
 }
 
 function _renderImplEmpty(featureId) {
@@ -9655,10 +9674,15 @@ async function _fetchTicketDesc(featureId, key) {
     // Discover custom fields for this domain (cached after first call)
     const fieldIds = await _getJiraFieldIds(impl.domain);
     const dodParam = fieldIds.dodFieldId ? `&dodFieldId=${encodeURIComponent(fieldIds.dodFieldId)}` : '';
-    const res = await fetch(`/api/jira/ticket?key=${encodeURIComponent(key)}&domain=${encodeURIComponent(impl.domain)}${dodParam}`, {
-      headers: { 'x-cf-email': creds.email, 'x-cf-token': creds.token }
+    const data = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', `/api/jira/ticket?key=${encodeURIComponent(key)}&domain=${encodeURIComponent(impl.domain)}${dodParam}`);
+      xhr.setRequestHeader('x-cf-email', creds.email);
+      xhr.setRequestHeader('x-cf-token', creds.token);
+      xhr.onload = () => { try { resolve(JSON.parse(xhr.responseText)); } catch(e) { reject(e); } };
+      xhr.onerror = () => reject(new Error('Network error'));
+      xhr.send();
     });
-    const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'Failed');
 
     // Extract DoD: prefer custom field, fall back to embedded section in description
@@ -9838,6 +9862,8 @@ function toggleTicket(featureId, key) {
   // Start/stop change-detection poll
   if (!isOpen && t && !t.manual && _jiraIsConnected()) {
     _startTicketPoll(featureId, key);
+    // If already loaded, immediately check for Jira changes
+    if (t._jiraUpdatedAt) _checkTicketJiraUpdate(featureId, key);
   } else {
     _stopTicketPoll(featureId, key);
   }
@@ -9886,10 +9912,15 @@ async function syncTicket(featureId, key) {
   // Conflict check: if ticket was loaded before, verify Jira hasn't changed since
   if (t._jiraUpdatedAt && _jiraIsConnected()) {
     try {
-      const cr = await fetch(`/api/jira/ticket?key=${encodeURIComponent(key)}&domain=${encodeURIComponent(impl.domain)}`, {
-        headers: { 'x-cf-email': creds.email, 'x-cf-token': creds.token }
+      const cd = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `/api/jira/ticket?key=${encodeURIComponent(key)}&domain=${encodeURIComponent(impl.domain)}`);
+        xhr.setRequestHeader('x-cf-email', creds.email);
+        xhr.setRequestHeader('x-cf-token', creds.token);
+        xhr.onload = () => { try { resolve(JSON.parse(xhr.responseText)); } catch(e) { reject(e); } };
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send();
       });
-      const cd = await cr.json();
       if (cd.ok && cd.updatedAt && cd.updatedAt !== t._jiraUpdatedAt) {
         if (!confirm(`${key} was updated in Jira after you loaded it.\n\nSync anyway? Your changes will overwrite the Jira version.`)) return;
       }
@@ -9913,10 +9944,15 @@ async function syncTicket(featureId, key) {
       let currentDescHtml = t.description;
       if ((currentDescHtml === null || currentDescHtml === undefined) && _jiraIsConnected()) {
         try {
-          const prefetchRes = await fetch(`/api/jira/ticket?key=${encodeURIComponent(t.key)}&domain=${encodeURIComponent(impl.domain)}`, {
-            headers: { 'x-cf-email': creds.email, 'x-cf-token': creds.token }
+          const prefetchData = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `/api/jira/ticket?key=${encodeURIComponent(t.key)}&domain=${encodeURIComponent(impl.domain)}`);
+            xhr.setRequestHeader('x-cf-email', creds.email);
+            xhr.setRequestHeader('x-cf-token', creds.token);
+            xhr.onload = () => { try { resolve(JSON.parse(xhr.responseText)); } catch(e) { reject(e); } };
+            xhr.onerror = () => reject(new Error('Network error'));
+            xhr.send();
           });
-          const prefetchData = await prefetchRes.json();
           if (prefetchData.ok) {
             const { cleanAdf } = _extractDodFromAdf(prefetchData.descriptionAdf);
             currentDescHtml = cleanAdf ? adfToHtml(cleanAdf) : '';
@@ -13427,31 +13463,83 @@ function generateConfluenceContent(featureId, f) {
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/SERVICE-4402",
             "_origSummary": "[FE] Pricebook Settings – Archive Configuration",
-            "description": "<p>Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only). </p>",
-            "dod": "jjj",
+            "description": "<p>Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only). </p><p>test</p>",
+            "dod": "",
             "_dodEdited": false,
-            "designLinks": [
-              {
-                "id": "local_1773805229991_g9gr",
-                "jiraId": 55698,
-                "url": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&t=iicPOCVVGrVvUiu1-1",
-                "label": "Figma design",
-                "fromJira": true,
-                "pendingRemove": false
-              }
-            ],
+            "designLinks": [],
             "_designLinksEdited": false,
             "requirements": "",
             "specNotes": "",
             "syncStatus": "synced",
-            "lastSynced": "2026-03-18T03:41:06.515Z",
+            "lastSynced": "2026-03-18T03:42:03.575Z",
             "commentId": null,
             "syncError": null,
             "_descEdited": false,
             "_expanded": true,
-            "_jiraUpdatedAt": "2026-03-17T20:37:48.568-0700",
+            "_jiraUpdatedAt": "2026-03-17T20:46:29.576-0700",
             "relatedWork": [],
-            "comments": null
+            "comments": [
+              {
+                "id": "535441",
+                "author": "Ying Zhang",
+                "created": "2026-03-17T20:46:12.029-0700",
+                "bodyAdf": {
+                  "type": "doc",
+                  "version": 1,
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "test"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "bodyHtml": "<p>test</p>"
+              },
+              {
+                "id": "535442",
+                "author": "Ying Zhang",
+                "created": "2026-03-17T20:46:29.576-0700",
+                "bodyAdf": {
+                  "type": "doc",
+                  "version": 1,
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "mention",
+                          "attrs": {
+                            "id": "712020:aef6db41-21e8-4fa4-9cc8-0608867c08f8",
+                            "text": "@Ying Zhang",
+                            "accessLevel": "",
+                            "localId": "44d5b8271329"
+                          }
+                        },
+                        {
+                          "type": "text",
+                          "text": " test"
+                        }
+                      ],
+                      "attrs": {
+                        "localId": "031c85e9af6c"
+                      }
+                    }
+                  ]
+                },
+                "bodyHtml": "<p><strong>@@Ying Zhang</strong> test</p>"
+              },
+              {
+                "id": "535443",
+                "author": "You",
+                "created": "2026-03-17T20:46:58.960-0700",
+                "bodyHtml": "rre"
+              }
+            ]
           },
           {
             "id": "250570",
