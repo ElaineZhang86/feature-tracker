@@ -425,23 +425,12 @@
             "dod": "",
             "_descEdited": false,
             "_dodEdited": false,
-            "designLinks": [
-              {
-                "id": "jira_55735",
-                "jiraId": 55735,
-                "url": "https://buildops.atlassian.net/wiki/pages/viewpage.action?pageId=4334288898",
-                "label": "TDD - IP-5363 Avalara Tax Exemptions",
-                "source": "remotelink",
-                "propertyKey": null,
-                "fromJira": true,
-                "pendingRemove": true
-              }
-            ],
-            "_designLinksEdited": true,
+            "designLinks": [],
+            "_designLinksEdited": false,
             "requirements": "",
             "specNotes": "",
-            "syncStatus": "dirty",
-            "lastSynced": "2026-03-18T05:06:09.060Z",
+            "syncStatus": "synced",
+            "lastSynced": "2026-03-18T05:09:26.847Z",
             "commentId": null,
             "syncError": null,
             "_jiraUpdatedAt": "2026-03-17T22:08:25.105-0700",
