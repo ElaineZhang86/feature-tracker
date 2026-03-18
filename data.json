@@ -1378,7 +1378,7 @@
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/SERVICE-4403",
             "_origSummary": "[FE] Create Pricebook – Cost Component Based",
-            "description": "<p>Add Cost Component selector (Material / Labor / Equipment) to the Create Pricebook modal. Enforce single selection only. Cost component is required and immutable after creation — if a different cost type is needed the user must create or clone a new pricebook. Existing full pricebook creation flow is unaffected for tenants without the feature flag. Rollout: Behind feature flag (new PB model only).</p><h2>Design</h2><p><a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2574-44939\" target=\"_blank\">Figma design</a></p>",
+            "description": "<p>Add Cost Component selector (Material / Labor / Equipment) to the Create Pricebook modal. Enforce single selection only. Cost component is required and immutable after creation — if a different cost type is needed the user must create or clone a new pricebook. Existing full pricebook creation flow is unaffected for tenants without the feature flag. Rollout: Behind feature flag (new PB model only).</p>",
             "dod": "",
             "_dodEdited": false,
             "designLinks": [],
@@ -1391,7 +1391,7 @@
             "syncError": null,
             "_descEdited": false,
             "_expanded": true,
-            "_jiraUpdatedAt": "2026-03-17T21:39:59.190-0700",
+            "_jiraUpdatedAt": "2026-03-17T21:44:23.710-0700",
             "relatedWork": [],
             "comments": null
           },
