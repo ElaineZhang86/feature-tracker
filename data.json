@@ -1353,13 +1353,13 @@
                 "source": "property",
                 "propertyKey": "com.atlassian.jira.designs",
                 "fromJira": true,
-                "pendingRemove": false
+                "pendingRemove": true
               }
             ],
-            "_designLinksEdited": false,
+            "_designLinksEdited": true,
             "requirements": "",
             "specNotes": "",
-            "syncStatus": "synced",
+            "syncStatus": "dirty",
             "lastSynced": "2026-03-18T04:33:07.884Z",
             "commentId": null,
             "syncError": null,
