@@ -1370,11 +1370,20 @@
             "description": "<p>Add Cost Component selector (Material / Labor / Equipment) to the Create Pricebook modal. Enforce single selection only. Cost component is required and immutable after creation — if a different cost type is needed the user must create or clone a new pricebook. Existing full pricebook creation flow is unaffected for tenants without the feature flag. Rollout: Behind feature flag (new PB model only). </p><p>Figma: <a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2574-44939\" target=\"_blank\">https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2574-44939</a> </p>",
             "dod": "",
             "_dodEdited": false,
-            "designLinks": [],
-            "_designLinksEdited": false,
+            "designLinks": [
+              {
+                "id": "local_1773808709083_1jip",
+                "jiraId": null,
+                "url": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&t=iicPOCVVGrVvUiu1-1",
+                "label": "Figma design",
+                "fromJira": false,
+                "pendingRemove": false
+              }
+            ],
+            "_designLinksEdited": true,
             "requirements": "",
             "specNotes": "",
-            "syncStatus": "empty",
+            "syncStatus": "unsynced",
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
