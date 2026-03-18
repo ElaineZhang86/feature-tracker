@@ -1351,10 +1351,10 @@
                 "url": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&t=iicPOCVVGrVvUiu1-1",
                 "label": "Figma design",
                 "fromJira": true,
-                "pendingRemove": true
+                "pendingRemove": false
               }
             ],
-            "_designLinksEdited": true,
+            "_designLinksEdited": false,
             "requirements": "",
             "specNotes": "",
             "syncStatus": "dirty",
