@@ -8819,6 +8819,85 @@ function _jiraCreds() {
 function _jiraIsConnected() {
   const c = _jiraCreds(); return !!(c.domain && c.email && c.token);
 }
+
+// ── Jira custom field discovery (cached per domain) ──────────────────────────
+const _jiraFieldsCache = {}; // domain → { dodFieldId, dodFieldName, dodFieldType }
+async function _getJiraFieldIds(domain) {
+  if (_jiraFieldsCache[domain] !== undefined) return _jiraFieldsCache[domain];
+  const stored = localStorage.getItem('jira_fields_' + domain);
+  if (stored) { try { _jiraFieldsCache[domain] = JSON.parse(stored); return _jiraFieldsCache[domain]; } catch {} }
+  const creds = _jiraCreds();
+  try {
+    const r = await fetch(`/api/jira/fields?domain=${encodeURIComponent(domain)}`, {
+      headers: { 'x-cf-email': creds.email, 'x-cf-token': creds.token }
+    });
+    const data = await r.json();
+    if (!data.ok) { _jiraFieldsCache[domain] = {}; return {}; }
+    const dodField = data.fields.find(f => /^definition of done$/i.test(f.name)) ||
+                     data.fields.find(f => /definition of done/i.test(f.name));
+    const result = {
+      dodFieldId:   dodField?.id   || null,
+      dodFieldName: dodField?.name || null,
+      dodFieldType: dodField?.type || null,
+    };
+    _jiraFieldsCache[domain] = result;
+    localStorage.setItem('jira_fields_' + domain, JSON.stringify(result));
+    return result;
+  } catch { _jiraFieldsCache[domain] = {}; return {}; }
+}
+
+// ── Jira change-detection polling ───────────────────────────────────────────
+const _jiraPollIntervals = {}; // 'featureId:key' → intervalId
+
+function _startTicketPoll(featureId, key) {
+  const pk = featureId + ':' + key;
+  if (_jiraPollIntervals[pk]) return;
+  _jiraPollIntervals[pk] = setInterval(() => _checkTicketJiraUpdate(featureId, key), 60000);
+}
+
+function _stopTicketPoll(featureId, key) {
+  const pk = featureId + ':' + key;
+  clearInterval(_jiraPollIntervals[pk]);
+  delete _jiraPollIntervals[pk];
+}
+
+async function _checkTicketJiraUpdate(featureId, key) {
+  const impl = loadImpl(featureId);
+  const t = impl?.items?.find(t => t.key === key);
+  if (!t?._jiraUpdatedAt || !_jiraIsConnected()) return;
+  const creds = _jiraCreds();
+  try {
+    const r = await fetch(`/api/jira/ticket?key=${encodeURIComponent(key)}&domain=${encodeURIComponent(impl.domain)}`, {
+      headers: { 'x-cf-email': creds.email, 'x-cf-token': creds.token }
+    });
+    const data = await r.json();
+    if (!data.ok || !data.updatedAt || data.updatedAt === t._jiraUpdatedAt) return;
+    const hasLocalEdits = t._descEdited || t._dodEdited || t._designLinksEdited ||
+                          (t._origSummary !== undefined && t.summary !== t._origSummary);
+    if (!hasLocalEdits) {
+      await reloadTicketFromJira(featureId, key);
+    } else {
+      _showTicketUpdateBanner(featureId, key);
+    }
+  } catch { /* ignore poll errors */ }
+}
+
+function _showTicketUpdateBanner(featureId, key) {
+  const bid = `${featureId}_jira_update_banner_${key}`;
+  if (document.getElementById(bid)) return;
+  const body = document.getElementById(`${featureId}_ticket_body_${key}`);
+  if (!body) return;
+  const el = document.createElement('div');
+  el.id = bid;
+  el.innerHTML = `<div style="background:#fef9c3;border:1px solid #ca8a04;border-radius:6px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:10px;color:inherit">
+    <span>⚠ This ticket was updated in Jira</span>
+    <div style="display:flex;gap:6px">
+      <button onclick="reloadTicketFromJira('${featureId}','${key}');document.getElementById('${bid}')?.remove()" style="font-size:11px;padding:3px 8px;border-radius:4px;border:1px solid #ca8a04;background:transparent;cursor:pointer">Reload latest</button>
+      <button onclick="document.getElementById('${bid}')?.remove()" style="font-size:11px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text-dim)">Dismiss</button>
+    </div>
+  </div>`;
+  body.insertBefore(el, body.firstChild);
+}
 function loadImpl(featureId) {
   const s = STATE[featureId] || {};
   return s.implementation || { epicUrl:'', epicKey:'', epicTitle:'', domain:'', items:[] };
@@ -9573,16 +9652,27 @@ async function _fetchTicketDesc(featureId, key) {
   const rtBtn = (cmd,title,inner) =>
     `<button type="button" class="prd-rt-btn" title="${title}" onmousedown="event.preventDefault()" onclick="_ticketExecCmd('${featureId}','${key}','${cmd}')">${inner}</button>`;
   try {
-    const res = await fetch(`/api/jira/ticket?key=${encodeURIComponent(key)}&domain=${encodeURIComponent(impl.domain)}`, {
+    // Discover custom fields for this domain (cached after first call)
+    const fieldIds = await _getJiraFieldIds(impl.domain);
+    const dodParam = fieldIds.dodFieldId ? `&dodFieldId=${encodeURIComponent(fieldIds.dodFieldId)}` : '';
+    const res = await fetch(`/api/jira/ticket?key=${encodeURIComponent(key)}&domain=${encodeURIComponent(impl.domain)}${dodParam}`, {
       headers: { 'x-cf-email': creds.email, 'x-cf-token': creds.token }
     });
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || 'Failed');
 
-    // Extract DoD section from ADF, then convert remaining ADF to HTML for the editor
-    const { cleanAdf, dodHtml } = _extractDodFromAdf(data.descriptionAdf);
+    // Extract DoD: prefer custom field, fall back to embedded section in description
+    const { cleanAdf, dodHtml: descDodHtml } = _extractDodFromAdf(data.descriptionAdf);
     t.description = cleanAdf ? adfToHtml(cleanAdf) : '';
-    if (!t._dodEdited) t.dod = dodHtml;  // populate from Jira only if not already locally edited
+    if (!t._dodEdited) {
+      if (fieldIds.dodFieldId && data.dodFieldValue) {
+        // DoD is stored in its own custom field
+        t.dod = adfToHtml(data.dodFieldValue);
+      } else {
+        // Fall back to DoD extracted from description
+        t.dod = descDodHtml;
+      }
+    }
 
     // Refresh summary + status from Jira (always authoritative on a content load)
     if (data.summary && data.summary !== t.summary) {
@@ -9745,6 +9835,12 @@ function toggleTicket(featureId, key) {
   if (!isOpen && t && (t.description === null || t.description === undefined) && !t.manual && _jiraIsConnected()) {
     _fetchTicketDesc(featureId, key);
   }
+  // Start/stop change-detection poll
+  if (!isOpen && t && !t.manual && _jiraIsConnected()) {
+    _startTicketPoll(featureId, key);
+  } else {
+    _stopTicketPoll(featureId, key);
+  }
 }
 
 function updateTicketField(featureId, key, field, value) {
@@ -9809,11 +9905,11 @@ async function syncTicket(featureId, key) {
     const syncCreds = { domain: impl.domain || creds.domain, email: creds.email, token: creds.token };
 
     // ── Sync issue fields (summary + description + DoD) ──────────────────────
+    const fieldIds = await _getJiraFieldIds(impl.domain);
     const body = { ...syncCreds, ticketKey: t.key };
     if (summaryChanged) body.summary = t.summary;
     if (t._descEdited || t._dodEdited) {
-      // If description hasn't been loaded yet, fetch it from Jira first so we
-      // don't wipe the existing Jira description when only DoD was edited.
+      // If description hasn't been loaded yet, fetch it first so we don't wipe Jira's description
       let currentDescHtml = t.description;
       if ((currentDescHtml === null || currentDescHtml === undefined) && _jiraIsConnected()) {
         try {
@@ -9827,22 +9923,37 @@ async function syncTicket(featureId, key) {
           }
         } catch { currentDescHtml = ''; }
       }
-      const descAdf = htmlToAdf(currentDescHtml || '');
-      const cleanBlocks = _stripDodBlocks(descAdf.content || []);
-      let dodBlocks = [];
-      if (t._dodEdited && t.dod) {
+
+      if (t._descEdited || (t._dodEdited && !fieldIds.dodFieldId)) {
+        // Build description ADF — always strip any embedded DoD section
+        const descAdf = htmlToAdf(currentDescHtml || '');
+        const cleanBlocks = _stripDodBlocks(descAdf.content || []);
+        // If no custom DoD field, embed DoD as a section in the description (fallback)
+        let dodBlocks = [];
+        if (t._dodEdited && t.dod && !fieldIds.dodFieldId) {
+          const dodAdf = htmlToAdf(typeof t.dod === 'string' ? t.dod : '');
+          const dodContent = (dodAdf.content || []).filter(b => b.type !== 'paragraph' || (b.content && b.content.length > 0));
+          if (dodContent.length) {
+            dodBlocks = [
+              { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Definition of Done' }] },
+              ...dodContent
+            ];
+          }
+        }
+        body.descriptionAdf = { type: 'doc', version: 1, content: [...cleanBlocks, ...dodBlocks] };
+      }
+
+      // If a DoD custom field exists, write DoD there (not in description)
+      if (t._dodEdited && t.dod && fieldIds.dodFieldId) {
         const dodAdf = htmlToAdf(typeof t.dod === 'string' ? t.dod : '');
         const dodContent = (dodAdf.content || []).filter(b => b.type !== 'paragraph' || (b.content && b.content.length > 0));
         if (dodContent.length) {
-          dodBlocks = [
-            { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Definition of Done' }] },
-            ...dodContent
-          ];
+          body.dodFieldId = fieldIds.dodFieldId;
+          body.dodAdf = { type: 'doc', version: 1, content: dodContent };
         }
       }
-      body.descriptionAdf = { type: 'doc', version: 1, content: [...cleanBlocks, ...dodBlocks] };
     }
-    if (body.summary !== undefined || body.descriptionAdf !== undefined) {
+    if (body.summary !== undefined || body.descriptionAdf !== undefined || body.dodFieldId !== undefined) {
       const res = await fetch('/api/jira/ticket/push', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
