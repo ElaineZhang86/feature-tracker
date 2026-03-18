@@ -1795,7 +1795,7 @@
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/IP-5476",
             "_origSummary": "[Web App] Add Job Template Settings",
-            "description": null,
+            "description": "<p><strong>Repository: buildhero-webapp</strong></p><p>Dependencies: Ticket #4 (Create Purchase Order workflow)</p><p>Description:</p><p>If job-blueprints = ON: Add new Settings called Job Template Settings with a toggle button to require Job Template selection for a Job if enabled.</p><p><strong>Acceptance Criteria:</strong></p><ul><li><p>Job Template Setting is created and require Job Template toggle button updates &amp; persists the changes</p></li></ul>",
             "dod": "",
             "_descEdited": false,
             "_dodEdited": false,
@@ -1807,9 +1807,20 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
-            "_jiraUpdatedAt": null,
-            "relatedWork": [],
-            "comments": null
+            "_jiraUpdatedAt": "2026-03-16T17:19:03.425-0700",
+            "relatedWork": [
+              {
+                "type": "Released in WebApp",
+                "direction": "inward",
+                "label": "included in this WebApp release",
+                "key": "REL-67",
+                "summary": "Release crowbar-valet-guided",
+                "status": "Deployed to Prod",
+                "url": ""
+              }
+            ],
+            "comments": null,
+            "_expanded": true
           },
           {
             "id": "239252",
