@@ -9721,6 +9721,9 @@ async function _fetchTicketDesc(featureId, key) {
     t._jiraUpdatedAt = data.updatedAt || null;
     t.relatedWork = data.relatedWork || [];
 
+    // Store the design property key if Jira's Designs section uses issue properties
+    if (data.designPropertyKey) t._designPropertyKey = data.designPropertyKey;
+
     // Populate design links from Jira if not already locally edited
     if (!t._designLinksEdited && data.designLinks) {
       t.designLinks = data.designLinks.map(dl => ({
@@ -9728,6 +9731,8 @@ async function _fetchTicketDesc(featureId, key) {
         jiraId: dl.id,
         url: dl.url,
         label: dl.label || dl.url,
+        source: dl.source || 'remotelink',
+        propertyKey: dl.propertyKey || null,
         fromJira: true,
         pendingRemove: false
       }));
@@ -10011,13 +10016,27 @@ async function syncTicket(featureId, key) {
       const activeLink = (t.designLinks || []).find(dl => !dl.pendingRemove);
       const removedLinks = (t.designLinks || []).filter(dl => dl.jiraId && dl.pendingRemove);
 
-      if (fieldIds.designFieldId) {
-        // Write to custom field (URL or text): just store the URL value
-        const dlBody = {
-          ...syncCreds, ticketKey: t.key,
-          designFieldId: fieldIds.designFieldId,
-          designLinkUrl: activeLink?.url || ''
-        };
+      // Determine which property key to use for the Designs section
+      const propKey = t._designPropertyKey ||
+                      (t.designLinks || []).find(dl => dl.source === 'property')?.propertyKey ||
+                      null;
+
+      if (propKey) {
+        // Write to issue property — this is what Jira's native "Add design" uses
+        const propValue = activeLink ? [{ url: activeLink.url, name: activeLink.label || activeLink.url }] : [];
+        const dlRes = await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', '/api/jira/ticket/property');
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.onload = () => { try { resolve(JSON.parse(xhr.responseText)); } catch(e) { reject(e); } };
+          xhr.onerror = () => reject(new Error('Network error'));
+          xhr.send(JSON.stringify({ ...syncCreds, ticketKey: t.key, propertyKey: propKey, value: propValue }));
+        });
+        if (!dlRes.ok) throw new Error('Design link: ' + (dlRes.error || 'Sync failed'));
+        if (activeLink) { activeLink.fromJira = true; t._designPropertyKey = propKey; }
+      } else if (fieldIds.designFieldId) {
+        // Custom field approach
+        const dlBody = { ...syncCreds, ticketKey: t.key, designFieldId: fieldIds.designFieldId, designLinkUrl: activeLink?.url || '' };
         const dlRes = await new Promise((resolve, reject) => {
           const xhr = new XMLHttpRequest();
           xhr.open('POST', '/api/jira/ticket/push');
@@ -13498,26 +13517,17 @@ function generateConfluenceContent(featureId, f) {
             "description": "<p>Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only). test</p>",
             "dod": "",
             "_dodEdited": false,
-            "designLinks": [
-              {
-                "id": "jira_55702",
-                "jiraId": 55702,
-                "url": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&t=iicPOCVVGrVvUiu1-1",
-                "label": "Figma design",
-                "fromJira": true,
-                "pendingRemove": false
-              }
-            ],
+            "designLinks": [],
             "_designLinksEdited": false,
             "requirements": "",
             "specNotes": "",
             "syncStatus": "synced",
-            "lastSynced": "2026-03-18T03:58:57.553Z",
+            "lastSynced": "2026-03-18T04:08:37.498Z",
             "commentId": null,
             "syncError": null,
             "_descEdited": false,
             "_expanded": true,
-            "_jiraUpdatedAt": "2026-03-17T20:58:57.190-0700",
+            "_jiraUpdatedAt": "2026-03-17T21:08:50.405-0700",
             "relatedWork": [],
             "comments": null
           },
