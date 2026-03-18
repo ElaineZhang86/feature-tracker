@@ -8840,10 +8840,17 @@ async function _getJiraFieldIds(domain) {
     if (!data.ok) { _jiraFieldsCache[domain] = {}; return {}; }
     const dodField = data.fields.find(f => /^definition of done$/i.test(f.name)) ||
                      data.fields.find(f => /definition of done/i.test(f.name));
+    const designField = data.fields.find(f => /^design link$/i.test(f.name)) ||
+                        data.fields.find(f => /^design$/i.test(f.name) && f.custom) ||
+                        data.fields.find(f => /^figma$/i.test(f.name) && f.custom) ||
+                        data.fields.find(f => /figma.*(link|url)/i.test(f.name) && f.custom) ||
+                        data.fields.find(f => /design.*(link|url)/i.test(f.name) && f.custom);
     const result = {
-      dodFieldId:   dodField?.id   || null,
-      dodFieldName: dodField?.name || null,
-      dodFieldType: dodField?.type || null,
+      dodFieldId:      dodField?.id     || null,
+      dodFieldName:    dodField?.name   || null,
+      dodFieldType:    dodField?.type   || null,
+      designFieldId:   designField?.id  || null,
+      designFieldName: designField?.name || null,
     };
     _jiraFieldsCache[domain] = result;
     localStorage.setItem('jira_fields_' + domain, JSON.stringify(result));
@@ -8886,6 +8893,7 @@ async function _checkTicketJiraUpdate(featureId, key) {
                           (t._origSummary !== undefined && t.summary !== t._origSummary);
     if (!hasLocalEdits) {
       await reloadTicketFromJira(featureId, key);
+      showToast(key + ' updated in Jira — reloaded');
     } else {
       _showTicketUpdateBanner(featureId, key);
     }
@@ -9998,32 +10006,56 @@ async function syncTicket(featureId, key) {
       if (!data.ok) throw new Error(data.error || 'Sync failed');
     }
 
-    // ── Sync design link (one per ticket, upsert via stable globalId) ────────
+    // ── Sync design link ──────────────────────────────────────────────────────
     if (t._designLinksEdited) {
       const activeLink = (t.designLinks || []).find(dl => !dl.pendingRemove);
       const removedLinks = (t.designLinks || []).filter(dl => dl.jiraId && dl.pendingRemove);
 
-      // Upsert the active design link (POST with stable globalId = create or update)
-      if (activeLink) {
-        try {
-          const dlRes = await fetch('/api/jira/ticket/design-link', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...syncCreds, ticketKey: t.key, url: activeLink.url, label: activeLink.label })
-          });
-          const dlData = await dlRes.json();
-          if (dlData.ok) { activeLink.jiraId = dlData.id; activeLink.fromJira = true; }
-          else throw new Error(dlData.error || 'Design link sync failed');
-        } catch(dlErr) { throw new Error('Design link: ' + dlErr.message); }
-      }
-
-      // Delete any replaced/removed Jira-synced links
-      for (const dl of removedLinks) {
-        try {
-          await fetch('/api/jira/ticket/design-link', {
-            method: 'DELETE', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...syncCreds, ticketKey: t.key, linkId: dl.jiraId })
-          });
-        } catch { /* deletion failure is non-fatal */ }
+      if (fieldIds.designFieldId) {
+        // Write to custom field (URL or text): just store the URL value
+        const dlBody = {
+          ...syncCreds, ticketKey: t.key,
+          designFieldId: fieldIds.designFieldId,
+          designLinkUrl: activeLink?.url || ''
+        };
+        const dlRes = await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', '/api/jira/ticket/push');
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.onload = () => { try { resolve(JSON.parse(xhr.responseText)); } catch(e) { reject(e); } };
+          xhr.onerror = () => reject(new Error('Network error'));
+          xhr.send(JSON.stringify(dlBody));
+        });
+        if (!dlRes.ok) throw new Error('Design link: ' + (dlRes.error || 'Sync failed'));
+        if (activeLink) { activeLink.fromJira = true; }
+      } else {
+        // Fallback: remote link (upsert via stable globalId)
+        if (activeLink) {
+          try {
+            const dlData = await new Promise((resolve, reject) => {
+              const xhr = new XMLHttpRequest();
+              xhr.open('POST', '/api/jira/ticket/design-link');
+              xhr.setRequestHeader('Content-Type', 'application/json');
+              xhr.onload = () => { try { resolve(JSON.parse(xhr.responseText)); } catch(e) { reject(e); } };
+              xhr.onerror = () => reject(new Error('Network error'));
+              xhr.send(JSON.stringify({ ...syncCreds, ticketKey: t.key, url: activeLink.url, label: activeLink.label }));
+            });
+            if (dlData.ok) { activeLink.jiraId = dlData.id; activeLink.fromJira = true; }
+            else throw new Error(dlData.error || 'Design link sync failed');
+          } catch(dlErr) { throw new Error('Design link: ' + dlErr.message); }
+        }
+        for (const dl of removedLinks) {
+          try {
+            await new Promise((resolve, reject) => {
+              const xhr = new XMLHttpRequest();
+              xhr.open('DELETE', '/api/jira/ticket/design-link');
+              xhr.setRequestHeader('Content-Type', 'application/json');
+              xhr.onload = () => resolve();
+              xhr.onerror = () => resolve(); // non-fatal
+              xhr.send(JSON.stringify({ ...syncCreds, ticketKey: t.key, linkId: dl.jiraId }));
+            });
+          } catch { /* non-fatal */ }
+        }
       }
 
       t.designLinks = (t.designLinks || []).filter(dl => !dl.pendingRemove);
@@ -13463,29 +13495,20 @@ function generateConfluenceContent(featureId, f) {
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/SERVICE-4402",
             "_origSummary": "[FE] Pricebook Settings – Archive Configuration",
-            "description": "<p>Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only).</p>",
+            "description": "<p>Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only). test</p>",
             "dod": "",
             "_dodEdited": false,
-            "designLinks": [
-              {
-                "id": "jira_55700",
-                "jiraId": 55700,
-                "url": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&t=iicPOCVVGrVvUiu1-1",
-                "label": "Figma design",
-                "fromJira": true,
-                "pendingRemove": false
-              }
-            ],
+            "designLinks": [],
             "_designLinksEdited": false,
             "requirements": "",
             "specNotes": "",
             "syncStatus": "synced",
-            "lastSynced": "2026-03-18T03:49:41.990Z",
+            "lastSynced": "2026-03-18T03:56:20.786Z",
             "commentId": null,
             "syncError": null,
             "_descEdited": false,
             "_expanded": true,
-            "_jiraUpdatedAt": "2026-03-17T20:50:59.566-0700",
+            "_jiraUpdatedAt": "2026-03-17T20:56:43.586-0700",
             "relatedWork": [],
             "comments": null
           },
@@ -13497,7 +13520,7 @@ function generateConfluenceContent(featureId, f) {
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/SERVICE-4403",
             "_origSummary": "[FE] Create Pricebook – Cost Component Based",
-            "description": null,
+            "description": "<p>Add Cost Component selector (Material / Labor / Equipment) to the Create Pricebook modal. Enforce single selection only. Cost component is required and immutable after creation — if a different cost type is needed the user must create or clone a new pricebook. Existing full pricebook creation flow is unaffected for tenants without the feature flag. Rollout: Behind feature flag (new PB model only). </p><p>Figma: <a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2574-44939\" target=\"_blank\">https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/Pricebook?node-id=2574-44939</a> </p>",
             "dod": "",
             "_dodEdited": false,
             "designLinks": [],
@@ -13510,7 +13533,7 @@ function generateConfluenceContent(featureId, f) {
             "syncError": null,
             "_descEdited": false,
             "_expanded": false,
-            "_jiraUpdatedAt": null,
+            "_jiraUpdatedAt": "2026-03-17T10:24:13.719-0700",
             "relatedWork": [],
             "comments": null
           },
