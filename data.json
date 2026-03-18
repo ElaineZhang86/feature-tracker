@@ -279,7 +279,7 @@
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/IP-5650",
             "_origSummary": "[webapp] Add taxability default fields to Customer Create/Edit forms",
-            "description": null,
+            "description": "<h2>Overview</h2><p>Add AP and AR Work Taxability Type dropdown selectors to the Customer Create and Edit forms in the webapp.</p><p><strong>Phase:</strong> 3 – Customer UI\n<strong>Feature Flag:</strong> <code>taxExemptions</code>\n<strong>Blocked by:</strong> IP-5649</p><h2>Changes Required</h2><h3>Customer Create Form</h3><ul><li><p>Add &quot;AP Work Taxability Type&quot; dropdown (using existing <code>WorkTaxabilityTypeSelect</code> component)</p></li><li><p>Add &quot;AR Work Taxability Type&quot; dropdown</p></li><li><p>Place in a new &quot;Tax Defaults&quot; section within the customer form</p></li><li><p>Both fields optional, default to empty/null</p></li></ul><h3>Customer Edit Form</h3><ul><li><p>Add same two dropdowns to the edit form</p></li><li><p>Pre-populate with existing values from customer record</p></li><li><p>Allow clearing (set back to null)</p></li></ul><h3>Component Reuse</h3><ul><li><p>Reuse <code>WorkTaxabilityTypeSelect</code> from <code>packages/scenes/app/src/ServiceAgreements/components/</code></p></li><li><p>Or create a shared version in a common location if not already importable</p></li></ul><h3>Feature Flag Gating</h3><ul><li><p>Entire &quot;Tax Defaults&quot; section gated behind <code>taxExemptions</code> flag</p></li><li><p>When flag is off, section is not rendered</p></li></ul><h2>Acceptance Criteria</h2><ul><li><p>[ ] AP Work Taxability Type dropdown on Create form</p></li><li><p>[ ] AR Work Taxability Type dropdown on Create form</p></li><li><p>[ ] Both dropdowns on Edit form with pre-populated values</p></li><li><p>[ ] Values persist correctly on save (create and edit)</p></li><li><p>[ ] Fields gated behind <code>taxExemptions</code> feature flag</p></li><li><p>[ ] Dropdowns show correct WTT options from backend</p></li><li><p>[ ] Clearing a selection sets value to null</p></li><li><p>[ ] Unit tests for new form fields</p></li><li><p>[ ] Use E5 components where available, fall back to Sergeant</p></li></ul><h2>Repo</h2><p><code>buildhero-webapp</code></p><h2>Related</h2><ul><li><p>TDD: <a href=\"https://buildops.atlassian.net/wiki/spaces/EN/pages/4334288898\" target=\"_blank\">TDD — IP-5363 Avalara Tax Exemptions</a></p></li><li><p>Depends on: IP-5649 (backend model)</p></li><li><p>Reference: <code>WorkTaxabilityTypeSelect.tsx</code> in ServiceAgreements</p></li></ul>",
             "dod": "",
             "_descEdited": false,
             "_dodEdited": false,
@@ -291,9 +291,20 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
-            "_jiraUpdatedAt": null,
-            "relatedWork": [],
-            "comments": null
+            "_jiraUpdatedAt": "2026-03-17T12:26:43.206-0700",
+            "relatedWork": [
+              {
+                "type": "Blocks",
+                "direction": "outward",
+                "label": "blocks",
+                "key": "IP-5649",
+                "summary": "[Deployment] Update Customer model and mutations for taxability fields",
+                "status": "To Do",
+                "url": ""
+              }
+            ],
+            "comments": null,
+            "_expanded": true
           },
           {
             "id": "248232",
