@@ -1354,70 +1354,9 @@
             "syncError": null,
             "_descEdited": false,
             "_expanded": true,
-            "_jiraUpdatedAt": "2026-03-17T20:46:29.576-0700",
+            "_jiraUpdatedAt": "2026-03-17T20:47:19.464-0700",
             "relatedWork": [],
-            "comments": [
-              {
-                "id": "535441",
-                "author": "Ying Zhang",
-                "created": "2026-03-17T20:46:12.029-0700",
-                "bodyAdf": {
-                  "type": "doc",
-                  "version": 1,
-                  "content": [
-                    {
-                      "type": "paragraph",
-                      "content": [
-                        {
-                          "type": "text",
-                          "text": "test"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                "bodyHtml": "<p>test</p>"
-              },
-              {
-                "id": "535442",
-                "author": "Ying Zhang",
-                "created": "2026-03-17T20:46:29.576-0700",
-                "bodyAdf": {
-                  "type": "doc",
-                  "version": 1,
-                  "content": [
-                    {
-                      "type": "paragraph",
-                      "content": [
-                        {
-                          "type": "mention",
-                          "attrs": {
-                            "id": "712020:aef6db41-21e8-4fa4-9cc8-0608867c08f8",
-                            "text": "@Ying Zhang",
-                            "accessLevel": "",
-                            "localId": "44d5b8271329"
-                          }
-                        },
-                        {
-                          "type": "text",
-                          "text": " test"
-                        }
-                      ],
-                      "attrs": {
-                        "localId": "031c85e9af6c"
-                      }
-                    }
-                  ]
-                },
-                "bodyHtml": "<p><strong>@@Ying Zhang</strong> test</p>"
-              },
-              {
-                "id": "535443",
-                "author": "You",
-                "created": "2026-03-17T20:46:58.960-0700",
-                "bodyHtml": "rre"
-              }
-            ]
+            "comments": null
           },
           {
             "id": "250570",
