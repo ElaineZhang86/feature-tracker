@@ -8918,7 +8918,17 @@ function _showTicketUpdateBanner(featureId, key) {
 }
 function loadImpl(featureId) {
   const s = STATE[featureId] || {};
-  return s.implementation || { epicUrl:'', epicKey:'', epicTitle:'', domain:'', items:[] };
+  const impl = s.implementation || { epicUrl:'', epicKey:'', epicTitle:'', domain:'', items:[] };
+  // Migration: clear _mediaLoaded on tickets with old baked-credential img srcs
+  // so they get re-fetched with the new data-attribute format.
+  if (impl.items) {
+    impl.items.forEach(t => {
+      if (t._mediaLoaded && t.description && t.description.includes('src="/api/jira/attachment?')) {
+        t._mediaLoaded = false;
+      }
+    });
+  }
+  return impl;
 }
 function saveImpl(featureId, impl) {
   if (!STATE[featureId]) STATE[featureId] = {};
@@ -8967,8 +8977,11 @@ function adfToHtml(adf, opts) {
       case 'media': {
         if (!b.attrs) return '';
         if (opts?.mediaProxy) {
-          const src = opts.mediaProxy(b.attrs);
-          if (src) return `<img src="${escHtml(src)}" style="max-width:100%;border-radius:4px;cursor:pointer;display:block;margin:4px 0" loading="lazy" onclick="window.open(this.src,'_blank')">`;
+          const contentUrl = opts.mediaProxy(b.attrs);
+          if (contentUrl) {
+            const mime = escHtml(b.attrs.mimeType || 'image/png');
+            return `<img data-attachment-url="${escHtml(contentUrl)}" data-attachment-mime="${mime}" style="max-width:100%;border-radius:4px;cursor:pointer;display:block;margin:4px 0" onclick="window.open(this.src,'_blank')">`;
+          }
         }
         const alt = escHtml(b.attrs.alt || 'image');
         return `<span style="font-size:11px;color:var(--text-dim)">[${alt}]</span>`;
@@ -8977,6 +8990,37 @@ function adfToHtml(adf, opts) {
     }
   }
   return (adf.content||[]).map(renderBlock).join('');
+}
+
+// Replaces data-attachment-url img placeholders with src using current Jira credentials.
+// Also updates legacy baked-credential srcs so stale tokens are refreshed at display time.
+function _hydrateAttachmentUrls(html) {
+  if (!html || !html.includes('jira/attachment')) return html;
+  const creds = _jiraCreds();
+  if (!creds || !creds.email || !creds.token) return html;
+  const emailEnc = encodeURIComponent(creds.email);
+  const tokenEnc = encodeURIComponent(creds.token);
+  // New format: img has data-attachment-url and data-attachment-mime — generate src
+  html = html.replace(
+    /(<img\b[^>]*?)data-attachment-url="([^"]*)"([^>]*?)data-attachment-mime="([^"]*)"/g,
+    (m, pre, contentUrl, mid, mimeType) => {
+      const src = `/api/jira/attachment?contentUrl=${encodeURIComponent(contentUrl)}&mimeType=${encodeURIComponent(mimeType)}&email=${emailEnc}&token=${tokenEnc}`;
+      return `${pre}data-attachment-url="${contentUrl}"${mid}data-attachment-mime="${mimeType}" src="${escHtml(src)}"`;
+    }
+  );
+  // Old format: img src already has /api/jira/attachment — refresh email & token params
+  html = html.replace(
+    /src="(\/api\/jira\/attachment\?[^"]*)"/g,
+    (m, srcVal) => {
+      // Strip old credentials and add current ones (handle &amp; encoded separators)
+      const cleaned = srcVal
+        .replace(/(?:&amp;|&)email=[^&"?]*/g, '')
+        .replace(/(?:&amp;|&)token=[^&"?]*/g, '');
+      const sep = cleaned.includes('?') ? '&amp;' : '?';
+      return `src="${cleaned}${sep}email=${emailEnc}&amp;token=${tokenEnc}"`;
+    }
+  );
+  return html;
 }
 
 function htmlToAdf(html) {
@@ -9468,7 +9512,7 @@ function _renderTicketRow(featureId, t) {
         class="prd-content prd-content-edit"
         contenteditable="true" spellcheck="true"
         style="min-height:100px;font-size:13px;border-radius:6px;padding:10px 12px;box-sizing:border-box"
-        oninput="updateTicketField('${featureId}','${t.key}','description',this.innerHTML)">${t.description||''}</div>`;
+        oninput="updateTicketField('${featureId}','${t.key}','description',this.innerHTML)">${_hydrateAttachmentUrls(t.description||'')}</div>`;
   }
 
   return `
@@ -9768,9 +9812,7 @@ async function _fetchTicketDesc(featureId, key) {
     const mediaProxy = attrs => {
       const filename = attrs.alt || '';
       const attachment = attachmentByName[filename];
-      if (attachment) {
-        return `/api/jira/attachment?contentUrl=${encodeURIComponent(attachment.contentUrl)}&mimeType=${encodeURIComponent(attachment.mimeType || 'image/png')}&email=${encodeURIComponent(creds.email)}&token=${encodeURIComponent(creds.token)}`;
-      }
+      if (attachment) return attachment.contentUrl;
       return '';
     };
     t.description = cleanAdf ? adfToHtml(cleanAdf, { mediaProxy }) : '';
@@ -9847,7 +9889,7 @@ async function _fetchTicketDesc(featureId, key) {
         class="prd-content prd-content-edit"
         contenteditable="true" spellcheck="true"
         style="min-height:100px;font-size:13px;border-radius:6px;padding:10px 12px;box-sizing:border-box"
-        oninput="updateTicketField('${featureId}','${key}','description',this.innerHTML)">${t.description}</div>`;
+        oninput="updateTicketField('${featureId}','${key}','description',this.innerHTML)">${_hydrateAttachmentUrls(t.description)}</div>`;
   } catch(e) {
     if (wrap) wrap.innerHTML = `<div style="font-size:12px;color:#ef4444;display:flex;align-items:center;gap:8px">
       Failed to load: ${escHtml(e.message)}
@@ -14292,7 +14334,7 @@ function generateConfluenceContent(featureId, f) {
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/MOBILE-4742",
             "_origSummary": "[Mobile] Job View: Display Job Templates, AP & AR Work Taxability Type in Job Details",
-            "description": "<h2>Context</h2><p>Web already shows Job Template, AP Work Taxability Type and AR Work Taxability Type in the job header. Mobile job detail/edit screens (job visit and mobile job invoice) need equivalent visibility so field technicians and mobile managers can see taxability settings on a job and (with appropriate permissions) override them. The mobile job detail screen in the Bravo design system (packages/mobile/app/screens) uses the Job model from WatermelonDB (local DB) which syncs from the backend.</p><h2>Requirements</h2><ul><li><p>Mobile job detail screen: display Job Template:  [value name or 'Not set']</p><ul><li><p>visible when <a href=\"https://app.launchdarkly.com/projects/default/flags/job-blueprints/targeting?env=production&amp;selected-env=production\" target=\"_blank\">job-blueprints</a> = True</p></li></ul></li><li><p>Mobile job detail screen: display AP Work Taxability: [value name or 'Not set'] and AR Work Taxability: [value name or 'Not set']</p><ul><li><p>visible when <a href=\"https://app.launchdarkly.com/projects/default/flags/work-taxability-types/targeting?env=production&amp;selected-env=production\" target=\"_blank\">work-taxability-types</a>  = True</p></li></ul></li><li><p><s>Job Edit: Allow users with the appropriate role/FGA permission to edit AP Work Taxability Type and AR Work Taxability Type. Use single-select pickers drawing from the WorkTaxabilityType list. Saving must call PATCH /v1/jobs/{id} (or the equivalent GraphQL mutation updateJobAndRelated) with the updated workTaxabilityTypeId and arWorkTaxabilityTypeId.</s> editing of a job does not exist</p></li><li><p>The Job WatermelonDB model may need to be extended with <code>jobTemplateId</code>, <code>jobTemplateName</code>,  <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code>, <code>workTaxabilityTypeName</code>, and <code>arWorkTaxabilityTypeName</code> sync fields (or resolved via a join to the WorkTaxabilityType table if already synced). Coordinate with mobile sync / backend team.</p></li><li><p>Roles &amp; Permissions: Only users with the permitted role (FGA/RBAC) should be able to view the job on mobile (already works like that). </p></li></ul><h2>Backend Changes</h2><p>GET /v1/jobs (mobile sync) must return <code>jobTemplateId</code>, <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code> (and ideally the name of each entity for display). PATCH /v1/jobs/{id} must accept <code>jobTemplateId</code>, <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code>. Confirm fields are included in the mobile sync payload. cc Samuel Seo.</p><h2>Files to Modify (Mobile)</h2><ul><li><p>Job model (packages/mobile/app/database/models/Job.ts) - add <code>jobTemplateId</code>, <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code> fields if missing</p></li><li><p>Job detail view screen - add Job Template:  [value name or 'Not set'], AP Work Taxability: [value name or 'Not set'] and AR Work Taxability: [value name or 'Not set']</p></li><li><p>Design: </p><ul><li><p>With Value</p><div style=\"margin:8px 0\"><img src=\"/api/jira/attachment?contentUrl=https%3A%2F%2Fbuildops.atlassian.net%2Frest%2Fapi%2F3%2Fattachment%2Fcontent%2F328699&amp;mimeType=image%2Fpng&amp;email=elaine%40buildops.com&amp;token=ATATT3xFfGF0edqtUm71-6r7ptH2pR2oC6fCqffNPid8igWmADAjnm-gohFW8RAj_WErdqWIGsF6y2CrwvtDJJ3nbY9NVttNy9B08ezHIDW_TrK6HUsw5knYTRluOwmxBV4ryF2ZXy_b7Uo_dz0xBsxM4yuvNdMsaMCNTlWXqriKzSwbcqeVJa8%3DA0067D36\" style=\"max-width:100%;border-radius:4px;cursor:pointer;display:block;margin:4px 0\" loading=\"lazy\" onclick=\"window.open(this.src,'_blank')\"></div></li><li><p>Not Set:</p></li><li><div style=\"margin:8px 0\"><img src=\"/api/jira/attachment?contentUrl=https%3A%2F%2Fbuildops.atlassian.net%2Frest%2Fapi%2F3%2Fattachment%2Fcontent%2F328700&amp;mimeType=image%2Fpng&amp;email=elaine%40buildops.com&amp;token=ATATT3xFfGF0edqtUm71-6r7ptH2pR2oC6fCqffNPid8igWmADAjnm-gohFW8RAj_WErdqWIGsF6y2CrwvtDJJ3nbY9NVttNy9B08ezHIDW_TrK6HUsw5knYTRluOwmxBV4ryF2ZXy_b7Uo_dz0xBsxM4yuvNdMsaMCNTlWXqriKzSwbcqeVJa8%3DA0067D36\" style=\"max-width:100%;border-radius:4px;cursor:pointer;display:block;margin:4px 0\" loading=\"lazy\" onclick=\"window.open(this.src,'_blank')\"></div></li></ul></li></ul><h2>Acceptance Criteria</h2><ul><li><p>When <a href=\"https://app.launchdarkly.com/projects/default/flags/work-taxability-types/targeting?env=production&amp;selected-env=production\" target=\"_blank\">work-taxability-types</a>  = True: AP and AR Work Taxability labels and values are visible in job details.</p></li><li><p>When <a href=\"https://app.launchdarkly.com/projects/default/flags/job-blueprints/targeting?env=production&amp;selected-env=production\" target=\"_blank\">job-blueprints</a> = True: Job Template label and value is visible in job details</p></li><li><p>Users with edit permission can change either value; update is reflected immediately on the job.</p></li><li><p>Users without edit permission see the values as read-only.</p></li><li><p>When work-taxability-types = False: section is hidden.</p></li></ul>",
+            "description": "<h2>Context</h2><p>Web already shows Job Template, AP Work Taxability Type and AR Work Taxability Type in the job header. Mobile job detail/edit screens (job visit and mobile job invoice) need equivalent visibility so field technicians and mobile managers can see taxability settings on a job and (with appropriate permissions) override them. The mobile job detail screen in the Bravo design system (packages/mobile/app/screens) uses the Job model from WatermelonDB (local DB) which syncs from the backend.</p><h2>Requirements</h2><ul><li><p>Mobile job detail screen: display Job Template:  [value name or 'Not set']</p><ul><li><p>visible when <a href=\"https://app.launchdarkly.com/projects/default/flags/job-blueprints/targeting?env=production&amp;selected-env=production\" target=\"_blank\">job-blueprints</a> = True</p></li></ul></li><li><p>Mobile job detail screen: display AP Work Taxability: [value name or 'Not set'] and AR Work Taxability: [value name or 'Not set']</p><ul><li><p>visible when <a href=\"https://app.launchdarkly.com/projects/default/flags/work-taxability-types/targeting?env=production&amp;selected-env=production\" target=\"_blank\">work-taxability-types</a>  = True</p></li></ul></li><li><p><s>Job Edit: Allow users with the appropriate role/FGA permission to edit AP Work Taxability Type and AR Work Taxability Type. Use single-select pickers drawing from the WorkTaxabilityType list. Saving must call PATCH /v1/jobs/{id} (or the equivalent GraphQL mutation updateJobAndRelated) with the updated workTaxabilityTypeId and arWorkTaxabilityTypeId.</s> editing of a job does not exist</p></li><li><p>The Job WatermelonDB model may need to be extended with <code>jobTemplateId</code>, <code>jobTemplateName</code>,  <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code>, <code>workTaxabilityTypeName</code>, and <code>arWorkTaxabilityTypeName</code> sync fields (or resolved via a join to the WorkTaxabilityType table if already synced). Coordinate with mobile sync / backend team.</p></li><li><p>Roles &amp; Permissions: Only users with the permitted role (FGA/RBAC) should be able to view the job on mobile (already works like that). </p></li></ul><h2>Backend Changes</h2><p>GET /v1/jobs (mobile sync) must return <code>jobTemplateId</code>, <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code> (and ideally the name of each entity for display). PATCH /v1/jobs/{id} must accept <code>jobTemplateId</code>, <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code>. Confirm fields are included in the mobile sync payload. cc Samuel Seo.</p><h2>Files to Modify (Mobile)</h2><ul><li><p>Job model (packages/mobile/app/database/models/Job.ts) - add <code>jobTemplateId</code>, <code>workTaxabilityTypeId</code>, <code>arWorkTaxabilityTypeId</code> fields if missing</p></li><li><p>Job detail view screen - add Job Template:  [value name or 'Not set'], AP Work Taxability: [value name or 'Not set'] and AR Work Taxability: [value name or 'Not set']</p></li><li><p>Design: </p><ul><li><p>With Value</p><div style=\"margin:8px 0\"><img data-attachment-url=\"https://buildops.atlassian.net/rest/api/3/attachment/content/328699\" data-attachment-mime=\"image/png\" style=\"max-width:100%;border-radius:4px;cursor:pointer;display:block;margin:4px 0\" onclick=\"window.open(this.src,'_blank')\"></div></li><li><p>Not Set:</p></li><li><div style=\"margin:8px 0\"><img data-attachment-url=\"https://buildops.atlassian.net/rest/api/3/attachment/content/328700\" data-attachment-mime=\"image/png\" style=\"max-width:100%;border-radius:4px;cursor:pointer;display:block;margin:4px 0\" onclick=\"window.open(this.src,'_blank')\"></div></li></ul></li></ul><h2>Acceptance Criteria</h2><ul><li><p>When <a href=\"https://app.launchdarkly.com/projects/default/flags/work-taxability-types/targeting?env=production&amp;selected-env=production\" target=\"_blank\">work-taxability-types</a>  = True: AP and AR Work Taxability labels and values are visible in job details.</p></li><li><p>When <a href=\"https://app.launchdarkly.com/projects/default/flags/job-blueprints/targeting?env=production&amp;selected-env=production\" target=\"_blank\">job-blueprints</a> = True: Job Template label and value is visible in job details</p></li><li><p>Users with edit permission can change either value; update is reflected immediately on the job.</p></li><li><p>Users without edit permission see the values as read-only.</p></li><li><p>When work-taxability-types = False: section is hidden.</p></li></ul>",
             "dod": "",
             "_dodEdited": false,
             "designLinks": [],
@@ -14340,7 +14382,7 @@ function generateConfluenceContent(featureId, f) {
             "commentId": null,
             "syncError": null,
             "_descEdited": false,
-            "_expanded": true,
+            "_expanded": false,
             "_jiraUpdatedAt": "2026-03-17T10:20:56.353-0700",
             "relatedWork": [],
             "comments": null,
