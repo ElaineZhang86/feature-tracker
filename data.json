@@ -1357,7 +1357,7 @@
             "_designLinksEdited": true,
             "requirements": "",
             "specNotes": "",
-            "syncStatus": "dirty",
+            "syncStatus": "syncing",
             "lastSynced": "2026-03-18T03:58:57.553Z",
             "commentId": null,
             "syncError": null,
