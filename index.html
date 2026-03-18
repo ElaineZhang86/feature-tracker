@@ -9632,6 +9632,55 @@ function _stripDodBlocks(blocks) {
   return [...blocks.slice(0, idx), ...blocks.slice(end)];
 }
 
+function _stripDesignBlocks(blocks) {
+  const idx = blocks.findIndex(b =>
+    b.type === 'heading' &&
+    (b.content || []).map(n => n.text || '').join('').trim() === 'Design'
+  );
+  if (idx === -1) return blocks;
+  const level = blocks[idx].attrs?.level || 2;
+  let end = idx + 1;
+  while (end < blocks.length) {
+    const b = blocks[end];
+    if (b.type === 'heading' && (b.attrs?.level || 1) <= level) break;
+    end++;
+  }
+  return [...blocks.slice(0, idx), ...blocks.slice(end)];
+}
+
+function _extractDesignFromAdf(adf) {
+  if (!adf || !adf.content) return { cleanAdf: adf, designUrl: '', designName: '' };
+  const blocks = adf.content;
+  const idx = blocks.findIndex(b =>
+    b.type === 'heading' &&
+    (b.content || []).map(n => n.text || '').join('').trim() === 'Design'
+  );
+  if (idx === -1) return { cleanAdf: adf, designUrl: '', designName: '' };
+  const level = blocks[idx].attrs?.level || 2;
+  let end = idx + 1;
+  while (end < blocks.length) {
+    const b = blocks[end];
+    if (b.type === 'heading' && (b.attrs?.level || 1) <= level) break;
+    end++;
+  }
+  // Extract first link from the section
+  let designUrl = '', designName = '';
+  for (let i = idx + 1; i < end; i++) {
+    const para = blocks[i];
+    if (para.type === 'paragraph') {
+      for (const node of (para.content || [])) {
+        const linkMark = (node.marks || []).find(m => m.type === 'link');
+        if (linkMark) { designUrl = linkMark.attrs?.href || ''; designName = node.text || ''; break; }
+      }
+    }
+    if (designUrl) break;
+  }
+  return {
+    cleanAdf: { ...adf, content: [...blocks.slice(0, idx), ...blocks.slice(end)] },
+    designUrl, designName
+  };
+}
+
 function _extractDodFromAdf(adf) {
   if (!adf || !adf.content) return { cleanAdf: adf, dodHtml: '' };
   const blocks = adf.content;
@@ -9693,17 +9742,24 @@ async function _fetchTicketDesc(featureId, key) {
     });
     if (!data.ok) throw new Error(data.error || 'Failed');
 
-    // Extract DoD: prefer custom field, fall back to embedded section in description
-    const { cleanAdf, dodHtml: descDodHtml } = _extractDodFromAdf(data.descriptionAdf);
+    // Extract DoD and Design link from description
+    const { cleanAdf: adfAfterDod, dodHtml: descDodHtml } = _extractDodFromAdf(data.descriptionAdf);
+    const { cleanAdf, designUrl: descDesignUrl, designName: descDesignName } = _extractDesignFromAdf(adfAfterDod);
     t.description = cleanAdf ? adfToHtml(cleanAdf) : '';
     if (!t._dodEdited) {
       if (fieldIds.dodFieldId && data.dodFieldValue) {
-        // DoD is stored in its own custom field
         t.dod = adfToHtml(data.dodFieldValue);
       } else {
-        // Fall back to DoD extracted from description
         t.dod = descDodHtml;
       }
+    }
+    // Populate design link from description if present and not locally edited
+    if (!t._designLinksEdited && descDesignUrl) {
+      t.designLinks = [{
+        id: 'desc_design', jiraId: null, url: descDesignUrl,
+        label: descDesignName || descDesignUrl, source: 'description',
+        propertyKey: null, fromJira: true, pendingRemove: false
+      }];
     }
 
     // Refresh summary + status from Jira (always authoritative on a content load)
@@ -9721,11 +9777,8 @@ async function _fetchTicketDesc(featureId, key) {
     t._jiraUpdatedAt = data.updatedAt || null;
     t.relatedWork = data.relatedWork || [];
 
-    // Store the design property key if Jira's Designs section uses issue properties
-    if (data.designPropertyKey) t._designPropertyKey = data.designPropertyKey;
-
-    // Populate design links from Jira if not already locally edited
-    if (!t._designLinksEdited && data.designLinks) {
+    // Populate design links from Jira property/remote links if not already set from description or local edits
+    if (!t._designLinksEdited && !t.designLinks?.length && data.designLinks?.length) {
       t.designLinks = data.designLinks.map(dl => ({
         id: 'jira_' + dl.id,
         jiraId: dl.id,
@@ -10014,27 +10067,68 @@ async function syncTicket(featureId, key) {
       if (!data.ok) throw new Error(data.error || 'Sync failed');
     }
 
-    // ── Sync design link ──────────────────────────────────────────────────────
+    // ── Sync design link (embed in description) ─────────────────────────────
     if (t._designLinksEdited) {
       const activeLink = (t.designLinks || []).find(dl => !dl.pendingRemove);
-      const removedLinks = (t.designLinks || []).filter(dl => dl.jiraId && dl.pendingRemove);
-
-      // Always write to Jira issue property — this is what Jira's native "Add design" uses.
-      // Use the discovered property key if available, otherwise default to com.atlassian.jira.designs.
-      const propKey = t._designPropertyKey ||
-                      (t.designLinks || []).find(dl => dl.source === 'property')?.propertyKey ||
-                      'com.atlassian.jira.designs';
-      const propValue = activeLink ? [{ url: activeLink.url, name: activeLink.label || activeLink.url }] : [];
+      // Fetch current description if not already loaded so we don't wipe it
+      let descHtmlForDesign = t.description;
+      if ((descHtmlForDesign === null || descHtmlForDesign === undefined) && _jiraIsConnected()) {
+        try {
+          const pd = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `/api/jira/ticket?key=${encodeURIComponent(t.key)}&domain=${encodeURIComponent(impl.domain)}`);
+            xhr.setRequestHeader('x-cf-email', creds.email);
+            xhr.setRequestHeader('x-cf-token', creds.token);
+            xhr.onload = () => { try { resolve(JSON.parse(xhr.responseText)); } catch(e) { reject(e); } };
+            xhr.onerror = () => reject(new Error('Network error'));
+            xhr.send();
+          });
+          if (pd.ok) {
+            const { cleanAdf } = _extractDodFromAdf(pd.descriptionAdf);
+            descHtmlForDesign = cleanAdf ? adfToHtml(cleanAdf) : '';
+          }
+        } catch { descHtmlForDesign = ''; }
+      }
+      // Build description with design section replaced/removed
+      const baseAdf = htmlToAdf(descHtmlForDesign || '');
+      const cleanBlocks = _stripDesignBlocks(_stripDodBlocks(baseAdf.content || []));
+      // Re-add DoD if it exists
+      let dodBlocks = [];
+      if (t.dod && !fieldIds.dodFieldId) {
+        const dodAdf = htmlToAdf(typeof t.dod === 'string' ? t.dod : '');
+        const dodContent = (dodAdf.content || []).filter(b => b.type !== 'paragraph' || (b.content && b.content.length > 0));
+        if (dodContent.length) {
+          dodBlocks = [
+            { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Definition of Done' }] },
+            ...dodContent
+          ];
+        }
+      }
+      // Add design section if there's an active link
+      let designBlocks = [];
+      if (activeLink) {
+        designBlocks = [
+          { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Design' }] },
+          { type: 'paragraph', content: [{
+            type: 'text',
+            text: activeLink.label || activeLink.url,
+            marks: [{ type: 'link', attrs: { href: activeLink.url } }]
+          }] }
+        ];
+      }
+      const designDescBody = { ...syncCreds, ticketKey: t.key,
+        descriptionAdf: { type: 'doc', version: 1, content: [...cleanBlocks, ...dodBlocks, ...designBlocks] }
+      };
       const dlRes = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open('PUT', '/api/jira/ticket/property');
+        xhr.open('POST', '/api/jira/ticket/push');
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onload = () => { try { resolve(JSON.parse(xhr.responseText)); } catch(e) { reject(e); } };
         xhr.onerror = () => reject(new Error('Network error'));
-        xhr.send(JSON.stringify({ ...syncCreds, ticketKey: t.key, propertyKey: propKey, value: propValue }));
+        xhr.send(JSON.stringify(designDescBody));
       });
       if (!dlRes.ok) throw new Error('Design link: ' + (dlRes.error || 'Sync failed'));
-      if (activeLink) { activeLink.fromJira = true; t._designPropertyKey = propKey; }
+      if (activeLink) { activeLink.fromJira = true; }
 
       t.designLinks = (t.designLinks || []).filter(dl => !dl.pendingRemove);
       t._designLinksEdited = false;
@@ -13473,29 +13567,20 @@ function generateConfluenceContent(featureId, f) {
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/SERVICE-4402",
             "_origSummary": "[FE] Pricebook Settings – Archive Configuration",
-            "description": "<p>Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only). test</p>",
+            "description": "<p>Add archive validation states, confirmation modals, and restriction messaging. When a pricebook is set as default for a cost type, the archive action should be blocked with a clear message. Confirmation modal required for archiving non-default pricebooks. Also includes Markup vs Margin behavior configuration. Rollout: Behind feature flag (new PB model only). </p><p>Design: <a href=\"https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&amp;t=iicPOCVVGrVvUiu1-1\" target=\"_blank\">https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&amp;t=iicPOCVVGrVvUiu1-1</a> </p>",
             "dod": "",
             "_dodEdited": false,
-            "designLinks": [
-              {
-                "id": "local_1773808384236_xrs4",
-                "jiraId": null,
-                "url": "https://www.figma.com/design/BuIpKHXRax1mrLRcV5daZW/%F0%9F%9A%A7-Pricebook-%F0%9F%9A%A7?node-id=2517-33744&t=iicPOCVVGrVvUiu1-1",
-                "label": "Figma design",
-                "fromJira": true,
-                "pendingRemove": false
-              }
-            ],
+            "designLinks": [],
             "_designLinksEdited": false,
             "requirements": "",
             "specNotes": "",
             "syncStatus": "synced",
-            "lastSynced": "2026-03-18T04:33:07.884Z",
+            "lastSynced": "2026-03-18T04:37:55.526Z",
             "commentId": null,
             "syncError": null,
             "_descEdited": false,
             "_expanded": true,
-            "_jiraUpdatedAt": "2026-03-17T21:15:40.860-0700",
+            "_jiraUpdatedAt": "2026-03-17T21:37:32.793-0700",
             "relatedWork": [],
             "comments": null,
             "_designPropertyKey": "com.atlassian.jira.designs"
