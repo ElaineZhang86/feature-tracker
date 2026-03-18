@@ -434,13 +434,13 @@
                 "source": "remotelink",
                 "propertyKey": null,
                 "fromJira": true,
-                "pendingRemove": false
+                "pendingRemove": true
               }
             ],
-            "_designLinksEdited": false,
+            "_designLinksEdited": true,
             "requirements": "",
             "specNotes": "",
-            "syncStatus": "synced",
+            "syncStatus": "dirty",
             "lastSynced": "2026-03-18T05:06:09.060Z",
             "commentId": null,
             "syncError": null,
