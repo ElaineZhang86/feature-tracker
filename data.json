@@ -662,7 +662,7 @@
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/SERVICE-4321",
             "_origSummary": "[FE] Cost Catalogue list page",
-            "description": null,
+            "description": "<p><strong>Epic:</strong> SERVICE-4214 | <strong>Feature Flag:</strong> <code>cost-catalogues</code></p><p><strong>Problem / Why:</strong>\nAdmins need a dedicated page to view and manage all Cost Catalogues for their organization, analogous to the Pricebooks list page.</p><p><strong>Acceptance Criteria:</strong></p><ul><li><p>Page accessible under Settings (confirm navigation location with Design/PM)</p></li><li><p>Displays table of active catalogues: Name, Description, Created Date, actions (Edit, Archive)</p></li><li><p>Paginated; supports search by name</p></li><li><p>&quot;Create New Catalogue&quot; button opens creation modal</p></li><li><p>Empty state displayed when no catalogues exist</p></li><li><p>Entire page is hidden/inaccessible when <code>cost-catalogues</code> FF is off</p></li><li><p>&quot;Include Archived&quot; toggle shows/hides archived catalogues (grayed out rows)</p></li><li><p>Uses <code>GET /cost-catalogues</code> API (SERVICE-4302)</p></li><li><p>Component tests: renders list, empty state, archived toggle, FF-off hides page</p></li></ul><p><strong>Dependencies:</strong> SERVICE-4302 (GET /cost-catalogues)</p><p><strong>Notes / Out of Scope:</strong></p><ul><li><p>Entry management is on the details page, not this list page</p></li></ul>",
             "dod": "",
             "_descEdited": false,
             "_dodEdited": false,
@@ -674,9 +674,10 @@
             "lastSynced": null,
             "commentId": null,
             "syncError": null,
-            "_jiraUpdatedAt": null,
+            "_jiraUpdatedAt": "2026-03-11T07:02:51.735-0700",
             "relatedWork": [],
-            "comments": null
+            "comments": null,
+            "_expanded": true
           },
           {
             "id": "239910",
