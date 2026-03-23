@@ -57,6 +57,11 @@ function handleSync(req, res) {
       // Sanitize: re-parse and re-serialize to escape any control characters
       const cleanState = JSON.parse(JSON.stringify(state));
       cleanState.seed_version = Date.now();
+      // Strip credentials from seed — tokens must never be committed to git
+      if (cleanState.fh_integrations) {
+        delete cleanState.fh_integrations.cf_token;
+        delete cleanState.fh_integrations.cf_email;
+      }
       const seedTag = `<script id="fh-seed" type="application/json">\n${JSON.stringify(cleanState, null, 2)}\n</script>\n`;
       const initScriptMarker = '<script>const _prdEditing';
       if (html.includes(initScriptMarker)) {
