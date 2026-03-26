@@ -3092,7 +3092,55 @@
       ]
     },
     "custom_1773442244486": {
-      "tasks": [],
+      "tasks": [
+        {
+          "id": "sec_1773678941799",
+          "type": "section",
+          "title": "Jira ticket need design"
+        },
+        {
+          "id": "ct_1773678297577",
+          "text": "Jira Ticket Need Design - https://buildops.atlassian.net/browse/IP-5515?focusedCommentId=527326&sourceType=mention",
+          "status": "done",
+          "reason": "",
+          "builtin": false
+        },
+        {
+          "id": "ct_1773678343893",
+          "text": "Jira Ticket Need Design - https://buildops.atlassian.net/browse/IP-2575?focusedCommentId=527334&sourceType=mention",
+          "status": "todo",
+          "reason": "",
+          "builtin": false
+        },
+        {
+          "id": "ct_1773678716226",
+          "text": "Jira Ticket Need Design - https://buildops.atlassian.net/browse/IP-5585",
+          "status": "done",
+          "reason": "",
+          "builtin": false
+        },
+        {
+          "id": "ct_1773687131802",
+          "text": "https://buildops.atlassian.net/browse/IP-5329. question on the second \"Select Line Items from ...\" modal. The text indicates that they should select line items to add to the CCO modal, so does this mean that only lines that are not already added to the CCO modal should display in this list? what if the list is empty?",
+          "status": "done",
+          "reason": "",
+          "builtin": false
+        },
+        {
+          "id": "ct_1773853262622",
+          "text": "https://buildops.atlassian.net/browse/MOBILE-3419?actionerId=62b1daeedcafd965c5dde977&sourceType=assign",
+          "status": "todo",
+          "reason": "",
+          "builtin": false
+        },
+        {
+          "id": "ct_1774462905774",
+          "text": "For datagrid enhancement, compare mode -> Detail Version toggle? change indicator green to blue",
+          "status": "todo",
+          "reason": "",
+          "builtin": false
+        }
+      ],
       "notesEntries": [],
       "specLinks": []
     },
