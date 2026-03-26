@@ -8940,8 +8940,8 @@ function toggleTheme() {
 let _firstLaunch = false;
 
 function init() {
-  // Trim large Jira-sourced fields on startup; saveState auto-clears cache if still full.
-  saveState(STATE);
+  // Trim large Jira-sourced fields on startup (no toast, no sync triggers).
+  _writeState(STATE);
 
   const savedTheme = localStorage.getItem('fh_theme') || 'light';
   document.documentElement.setAttribute('data-theme', savedTheme);
