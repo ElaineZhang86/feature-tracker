@@ -56,7 +56,7 @@ function handleSync(req, res) {
       // find the element when it runs. Fallback to </body> if not found.
       // Sanitize: re-parse and re-serialize to escape any control characters
       const cleanState = JSON.parse(JSON.stringify(state));
-      cleanState.seed_version = Date.now();
+      cleanState.seed_version = Date.now() + 1_000_000_000_000;
       // Strip credentials from seed — tokens must never be committed to git
       if (cleanState.fh_integrations) {
         delete cleanState.fh_integrations.cf_token;
