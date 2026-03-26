@@ -10694,8 +10694,10 @@ function loadFromSeed() {
   }
 }
 function getFullState() {
+  // Use in-memory STATE (not loadState) so syncs always reflect the latest data,
+  // even if a localStorage write failed due to quota.
   return {
-    fh_state:            loadState(),
+    fh_state:            STATE,
     fh_custom_features:  loadCustomFeatures(),
     fh_hidden_builtins:  loadHiddenBuiltins(),
     fh_deleted_features: loadDeletedFeatures(),
@@ -10705,7 +10707,23 @@ function getFullState() {
 }
 
 function _ghMergeData(data) {
-  if (data.fh_state)            localStorage.setItem('fh_state',            JSON.stringify(data.fh_state));
+  if (data.fh_state) {
+    // Merge remote fh_state into local: only fill in values that are missing locally.
+    // Never overwrite existing local data with remote data — local is always more recent.
+    const isEmpty = v => v === undefined || v === null || v === '' ||
+                         (Array.isArray(v) && v.length === 0) ||
+                         (typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0);
+    const cur = loadState();
+    let changed = false;
+    Object.keys(data.fh_state).forEach(fid => {
+      const remote = data.fh_state[fid];
+      if (!cur[fid]) { cur[fid] = remote; changed = true; return; }
+      Object.keys(remote).forEach(k => {
+        if (!isEmpty(remote[k]) && isEmpty(cur[fid][k])) { cur[fid][k] = remote[k]; changed = true; }
+      });
+    });
+    if (changed) try { localStorage.setItem('fh_state', JSON.stringify(cur)); } catch(e) { /* quota */ }
+  }
   if (data.fh_custom_features) {
     // Merge: union of incoming + any local IDs not present in incoming
     const localCF = JSON.parse(localStorage.getItem('fh_custom_features') || '[]');
