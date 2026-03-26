@@ -856,7 +856,7 @@
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/SERVICE-4327",
             "_origSummary": "[FE] Remove CostCatalogueEntry (\"Restore Default Cost\")",
-            "description": null,
+            "description": "<p><strong>Epic:</strong> SERVICE-4214 | <strong>Feature Flag:</strong> <code>cost-catalogues</code></p><p><strong>Problem / Why:</strong>\nWhen an index cost is no longer appropriate for a specific product, users need to remove the entry so that the product falls back to standard pricing behavior.</p><p><strong>Acceptance Criteria:</strong></p><ul><li><p>&quot;Restore Default Cost&quot; action on each row in the entry list on the details page</p></li><li><p>Confirmation dialog: &quot;Removing this entry will revert [Product Name] to standard cost-based pricing.&quot;</p></li><li><p>On confirm, calls <code>DELETE /cost-catalogues/:id/entries/:entryId</code> (SERVICE-4306); entry removed from the list on success</p></li><li><p>Error toast on failure</p></li><li><p>Component tests: confirmation, confirm action, cancel action, entry removed from list</p></li></ul><p><strong>Dependencies:</strong> SERVICE-4306 (DELETE entry), Cost Catalogue details page ticket</p><p><strong>Notes / Out of Scope:</strong></p><ul><li><p>Restoring archived entries is out of scope for v1</p></li></ul>",
             "dod": "",
             "_descEdited": false,
             "_dodEdited": false,
@@ -872,7 +872,7 @@
             "relatedWork": [],
             "comments": null,
             "_expanded": true,
-            "_mediaLoaded": false
+            "_mediaLoaded": true
           },
           {
             "id": "239916",
@@ -1234,7 +1234,7 @@
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/IP-5650",
             "_origSummary": "[webapp] Add taxability default fields to Customer Create/Edit forms",
-            "description": null,
+            "description": "<h2>Overview</h2><p>Add AP and AR Work Taxability Type dropdown selectors to the Customer Create and Edit forms in the webapp.</p><p><strong>Phase:</strong> 3 – Customer UI\n<strong>Feature Flag:</strong> <code>taxExemptions</code>\n<strong>Blocked by:</strong> IP-5649</p><h2>Changes Required</h2><h3>Customer Create Form</h3><ul><li><p>Add &quot;AP Work Taxability Type&quot; dropdown (using existing <code>WorkTaxabilityTypeSelect</code> component)</p></li><li><p>Add &quot;AR Work Taxability Type&quot; dropdown</p></li><li><p>Place in a new &quot;Tax Defaults&quot; section within the customer form</p></li><li><p>Both fields optional, default to empty/null</p></li></ul><h3>Customer Edit Form</h3><ul><li><p>Add same two dropdowns to the edit form</p></li><li><p>Pre-populate with existing values from customer record</p></li><li><p>Allow clearing (set back to null)</p></li></ul><h3>Component Reuse</h3><ul><li><p>Reuse <code>WorkTaxabilityTypeSelect</code> from <code>packages/scenes/app/src/ServiceAgreements/components/</code></p></li><li><p>Or create a shared version in a common location if not already importable</p></li></ul><h3>Feature Flag Gating</h3><ul><li><p>Entire &quot;Tax Defaults&quot; section gated behind <code>taxExemptions</code> flag</p></li><li><p>When flag is off, section is not rendered</p></li></ul><h2>Acceptance Criteria</h2><ul><li><p>[ ] AP Work Taxability Type dropdown on Create form</p></li><li><p>[ ] AR Work Taxability Type dropdown on Create form</p></li><li><p>[ ] Both dropdowns on Edit form with pre-populated values</p></li><li><p>[ ] Values persist correctly on save (create and edit)</p></li><li><p>[ ] Fields gated behind <code>taxExemptions</code> feature flag</p></li><li><p>[ ] Dropdowns show correct WTT options from backend</p></li><li><p>[ ] Clearing a selection sets value to null</p></li><li><p>[ ] Unit tests for new form fields</p></li><li><p>[ ] Use E5 components where available, fall back to Sergeant</p></li></ul><h2>Repo</h2><p><code>buildhero-webapp</code></p><h2>Related</h2><ul><li><p>TDD: <a href=\"https://buildops.atlassian.net/wiki/spaces/EN/pages/4334288898\" target=\"_blank\">TDD — IP-5363 Avalara Tax Exemptions</a></p></li><li><p>Depends on: IP-5649 (backend model)</p></li><li><p>Reference: <code>WorkTaxabilityTypeSelect.tsx</code> in ServiceAgreements</p></li></ul>",
             "dod": "",
             "_dodEdited": false,
             "designLinks": [],
@@ -1247,7 +1247,7 @@
             "syncError": null,
             "_descEdited": false,
             "_expanded": true,
-            "_mediaLoaded": false,
+            "_mediaLoaded": true,
             "_jiraUpdatedAt": "2026-03-25T09:16:14.120-0700",
             "relatedWork": [
               {
@@ -1564,7 +1564,7 @@
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/IP-5671",
             "_origSummary": "[Frontend] Display tax exemption badge on PO, Receipt, and Bill views",
-            "description": null,
+            "description": "<h2>Overview</h2><p>Add the <code>TaxExemptionBadge</code> component to AP document views (Purchase Orders, Receipts, Bills) so users can see at a glance if the associated customer/vendor has tax exemption certificates.</p><p><strong>Phase:</strong> 5 – Exemption Badges (AP)\n<strong>Feature Flag:</strong> <code>taxExemptions</code>\n<strong>Blocked by:</strong> Ticket 5.1 (Badge component)</p><h2>Changes Required</h2><h3>Purchase Order Detail View</h3><ul><li><p>Add <code>TaxExemptionBadge</code> near the customer/vendor info section</p></li><li><p>Pass the customer ID associated with the PO</p></li></ul><h3>Receipt Detail View</h3><ul><li><p>Add <code>TaxExemptionBadge</code> near the customer/vendor info section</p></li></ul><h3>Bill Detail View</h3><ul><li><p>Add <code>TaxExemptionBadge</code> near the customer/vendor info section</p></li></ul><h3>Integration with Existing Tax Columns</h3><ul><li><p>Badge should complement existing tax columns (controlled by <code>isApTaxesEnabled</code>, <code>isAvalaraEnabled</code>, <code>isWorkTaxabilityTypesEnabled</code>)</p></li><li><p>Badge visibility gated behind <code>taxExemptions</code> flag independently</p></li></ul><h2>Acceptance Criteria</h2><ul><li><p>[ ] Badge displayed on PO detail view</p></li><li><p>[ ] Badge displayed on Receipt detail view</p></li><li><p>[ ] Badge displayed on Bill detail view</p></li><li><p>[ ] Badge shows correct status for associated customer</p></li><li><p>[ ] Feature flag gating</p></li><li><p>[ ] No performance impact (certificates fetched once per document view, not per line)</p></li><li><p>[ ] Graceful handling when customer has no Avalara mapping</p></li><li><p>[ ] Unit tests for badge integration on each view</p></li></ul><h2>Repo</h2><p><code>buildhero-webapp</code></p><h2>Related</h2><ul><li><p>TDD: <a href=\"https://buildops.atlassian.net/wiki/spaces/EN/pages/4334288898\" target=\"_blank\">TDD — IP-5363 Avalara Tax Exemptions</a></p></li><li><p>Reference: <code>PurchaseOrderLines.columns.tsx</code> for existing tax flag patterns</p></li><li><p>Depends on: Ticket 5.1 (Badge component)</p></li></ul>",
             "dod": "",
             "_dodEdited": false,
             "designLinks": [],
@@ -1577,7 +1577,7 @@
             "syncError": null,
             "_descEdited": false,
             "_expanded": true,
-            "_mediaLoaded": false,
+            "_mediaLoaded": true,
             "_jiraUpdatedAt": "2026-03-25T07:21:32.735-0700",
             "relatedWork": [
               {
@@ -1600,7 +1600,7 @@
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/IP-5672",
             "_origSummary": "[Frontend] AR exemption badge and certificate summary on Invoice view",
-            "description": null,
+            "description": "<h2>Overview</h2><p>Add the <code>TaxExemptionBadge</code> and a certificate summary section to the Invoice detail view (AR side), so users can see tax exemption status and details when reviewing invoices.</p><p><strong>Phase:</strong> 6 – Exemption Badges (AR)\n<strong>Feature Flag:</strong> <code>taxExemptions</code>\n<strong>Blocked by:</strong> Ticket 5.1 (Badge component)</p><h2>Changes Required</h2><h3>Invoice Detail View</h3><ul><li><p>Add <code>TaxExemptionBadge</code> near the customer info section on Invoice detail</p></li><li><p>Add a collapsible &quot;Tax Exemption Details&quot; section showing:List of applicable certificates (exemption reason, zone, status, expiration)Summary of exempt percentage if applicable</p></li><li><p>This is the AR counterpart to the AP badges on PO/Receipt/Bill</p></li></ul><h3>Certificate Summary</h3><ul><li><p>Show more detail than the badge alone since invoices are the primary AR tax document</p></li><li><p>Include exemption reason, exposure zone, expiration date, and status for each certificate</p></li><li><p>Read-only — link to Customer Detail Tax Exemptions tab for full view</p></li></ul><h2>Acceptance Criteria</h2><ul><li><p>[ ] Badge displayed on Invoice detail view</p></li><li><p>[ ] Certificate summary section on Invoice detail</p></li><li><p>[ ] Shows correct certificates for the invoice's customer</p></li><li><p>[ ] Collapsible/expandable summary section</p></li><li><p>[ ] Feature flag gating</p></li><li><p>[ ] Link to Customer Detail Tax Exemptions tab</p></li><li><p>[ ] Graceful handling when customer has no Avalara mapping</p></li><li><p>[ ] Unit tests for badge and summary on Invoice view</p></li><li><p>[ ] Use E5 components where available</p></li></ul><h2>Repo</h2><p><code>buildhero-webapp</code></p><h2>Related</h2><ul><li><p>TDD: <a href=\"https://buildops.atlassian.net/wiki/spaces/EN/pages/4334288898\" target=\"_blank\">TDD — IP-5363 Avalara Tax Exemptions</a></p></li><li><p>Depends on: Ticket 5.1 (Badge component)</p></li></ul>",
             "dod": "",
             "_dodEdited": false,
             "designLinks": [
@@ -1624,7 +1624,7 @@
             "syncError": null,
             "_descEdited": false,
             "_expanded": true,
-            "_mediaLoaded": false,
+            "_mediaLoaded": true,
             "_jiraUpdatedAt": "2026-03-25T09:16:22.380-0700",
             "relatedWork": [
               {
@@ -2814,7 +2814,7 @@
             "type": "Story",
             "url": "https://buildops.atlassian.net/browse/SERVICE-4403",
             "_origSummary": "[FE] Create Pricebook – Cost Component Based",
-            "description": null,
+            "description": "<p>Add Cost Component selector (Material / Labor / Equipment) to the Create Pricebook modal. Enforce single selection only. Cost component is required and immutable after creation — if a different cost type is needed the user must create or clone a new pricebook. Existing full pricebook creation flow is unaffected for tenants without the feature flag. Rollout: Behind feature flag (new PB model only).</p>",
             "dod": "",
             "_dodEdited": false,
             "designLinks": [
@@ -2841,7 +2841,7 @@
             "_jiraUpdatedAt": "2026-03-18T07:39:24.012-0700",
             "relatedWork": [],
             "comments": null,
-            "_mediaLoaded": false
+            "_mediaLoaded": true
           },
           {
             "id": "250572",
