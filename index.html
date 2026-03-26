@@ -10626,10 +10626,12 @@ let _syncStatus = 'idle'; // idle | pending | syncing | synced | error
 let _lastSyncTime = null;
 let _gitSyncAvailable = false;
 
-// Seed localStorage from embedded <script id="fh-seed"> on fresh load
+// Seed localStorage from embedded <script id="fh-seed"> on fresh load.
+// Returns the merged fh_state so the caller can populate STATE directly
+// even when localStorage writes fail due to quota.
 function loadFromSeed() {
   const seed = document.getElementById('fh-seed');
-  if (!seed) return;
+  if (!seed) return null;
   try {
     const data = JSON.parse(seed.textContent);
     const seedVer = data.seed_version || 0;
@@ -10638,59 +10640,59 @@ function loadFromSeed() {
     const isFresh = !existing || Object.keys(JSON.parse(existing || '{}')).length === 0;
     const isNewSeed = seedVer > lastLoaded;
 
-    if (isFresh || isNewSeed) {
-      if (data.fh_state) {
-        if (isFresh) {
-          localStorage.setItem('fh_state', JSON.stringify(data.fh_state));
-        } else {
-          const state = JSON.parse(existing);
-          const isEmpty = v => v === undefined || v === null || v === '' ||
-                               (Array.isArray(v) && v.length === 0) ||
-                               (typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0);
-          Object.keys(data.fh_state).forEach(featureId => {
-            const seedFeature = data.fh_state[featureId];
-            if (!seedFeature || typeof seedFeature !== 'object') return;
-            if (!state[featureId]) { state[featureId] = seedFeature; return; }
-            Object.keys(seedFeature).forEach(key => {
-              if (!isEmpty(seedFeature[key]) && isEmpty(state[featureId][key])) {
-                state[featureId][key] = seedFeature[key];
-              }
-            });
-          });
-          localStorage.setItem('fh_state', JSON.stringify(state));
-        }
-      }
-      if (data.fh_custom_features) {
-        const localCF = isFresh ? [] : JSON.parse(localStorage.getItem('fh_custom_features') || '[]');
-        const localIds = new Set(localCF.map(f => f.id));
-        const merged = [...localCF, ...data.fh_custom_features.filter(f => !localIds.has(f.id))];
-        localStorage.setItem('fh_custom_features', JSON.stringify(merged));
-      }
-      if (data.fh_hidden_builtins) {
-        const localHB = isFresh ? [] : JSON.parse(localStorage.getItem('fh_hidden_builtins') || '[]');
-        localStorage.setItem('fh_hidden_builtins', JSON.stringify([...new Set([...localHB, ...data.fh_hidden_builtins])]));
-      }
-      if (data.fh_deleted_features) {
-        const localDF = isFresh ? [] : JSON.parse(localStorage.getItem('fh_deleted_features') || '[]');
-        const dfIds = new Set(localDF.map(f => f.id));
-        localStorage.setItem('fh_deleted_features', JSON.stringify([...localDF, ...data.fh_deleted_features.filter(f => !dfIds.has(f.id))]));
-      }
-      if (data.fh_feature_order && !localStorage.getItem('fh_feature_order')) {
-        localStorage.setItem('fh_feature_order', JSON.stringify(data.fh_feature_order));
-      }
-      if (data.fh_integrations) {
-        const localInt = loadIntegrations();
-        if (!localInt.cf_domain && data.fh_integrations.cf_domain) {
-          localStorage.setItem('fh_integrations', JSON.stringify(data.fh_integrations));
-        }
-      }
-      localStorage.setItem('fh_seed_version', String(seedVer));
-      console.log('[git-sync] Loaded seed v' + seedVer + ' (isFresh=' + isFresh + ', isNewSeed=' + isNewSeed + ')');
-    } else {
+    if (!(isFresh || isNewSeed)) {
       console.log('[git-sync] Seed v' + seedVer + ' already loaded, skipping.');
+      return null;
     }
+
+    const isEmpty = v => v === undefined || v === null || v === '' ||
+                         (Array.isArray(v) && v.length === 0) ||
+                         (typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0);
+
+    // Build merged state in memory first — works even if localStorage is full
+    let mergedState = isFresh ? {} : JSON.parse(existing || '{}');
+    if (data.fh_state) {
+      Object.keys(data.fh_state).forEach(featureId => {
+        const sf = data.fh_state[featureId];
+        if (!sf || typeof sf !== 'object') return;
+        if (!mergedState[featureId]) { mergedState[featureId] = sf; return; }
+        Object.keys(sf).forEach(key => {
+          if (!isEmpty(sf[key]) && isEmpty(mergedState[featureId][key]))
+            mergedState[featureId][key] = sf[key];
+        });
+      });
+      try { localStorage.setItem('fh_state', JSON.stringify(mergedState)); }
+      catch(e) { console.warn('[git-sync] quota hit during seed load — using in-memory fallback'); }
+    }
+    if (data.fh_custom_features) {
+      const localCF = isFresh ? [] : JSON.parse(localStorage.getItem('fh_custom_features') || '[]');
+      const localIds = new Set(localCF.map(f => f.id));
+      try { localStorage.setItem('fh_custom_features', JSON.stringify([...localCF, ...data.fh_custom_features.filter(f => !localIds.has(f.id))])); } catch(e) {}
+    }
+    if (data.fh_hidden_builtins) {
+      const localHB = isFresh ? [] : JSON.parse(localStorage.getItem('fh_hidden_builtins') || '[]');
+      try { localStorage.setItem('fh_hidden_builtins', JSON.stringify([...new Set([...localHB, ...data.fh_hidden_builtins])])); } catch(e) {}
+    }
+    if (data.fh_deleted_features) {
+      const localDF = isFresh ? [] : JSON.parse(localStorage.getItem('fh_deleted_features') || '[]');
+      const dfIds = new Set(localDF.map(f => f.id));
+      try { localStorage.setItem('fh_deleted_features', JSON.stringify([...localDF, ...data.fh_deleted_features.filter(f => !dfIds.has(f.id))])); } catch(e) {}
+    }
+    if (data.fh_feature_order && !localStorage.getItem('fh_feature_order')) {
+      try { localStorage.setItem('fh_feature_order', JSON.stringify(data.fh_feature_order)); } catch(e) {}
+    }
+    if (data.fh_integrations) {
+      const localInt = loadIntegrations();
+      if (!localInt.cf_domain && data.fh_integrations.cf_domain) {
+        try { localStorage.setItem('fh_integrations', JSON.stringify(data.fh_integrations)); } catch(e) {}
+      }
+    }
+    try { localStorage.setItem('fh_seed_version', String(seedVer)); } catch(e) {}
+    console.log('[git-sync] Loaded seed v' + seedVer + ' (isFresh=' + isFresh + ', isNewSeed=' + isNewSeed + ')');
+    return mergedState;
   } catch(e) {
     console.warn('[git-sync] Failed to parse fh-seed:', e);
+    return null;
   }
 }
 function getFullState() {
@@ -15141,7 +15143,7 @@ document.addEventListener('click', () => {
   "seed_version": 1774533434313
 }
 </script>
-<script>const _prdEditing = {};const _prdSavedSel = {};const _prdInputTimer = {};loadFromSeed();STATE=loadState();init();initGitSync();initFileStorage();initGHSync();
+<script>const _prdEditing = {};const _prdSavedSel = {};const _prdInputTimer = {};const _seedState=loadFromSeed();STATE=loadState();if(_seedState&&Object.keys(STATE).length===0)STATE=_seedState;init();initGitSync();initFileStorage();initGHSync();
 // ══════════════════════════════════════════════════════════════════════════════
 // CONFLUENCE INTEGRATION
 // ══════════════════════════════════════════════════════════════════════════════
