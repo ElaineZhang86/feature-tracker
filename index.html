@@ -4163,24 +4163,32 @@ function clearJiraCache(silent) {
   if (!silent) showToast('Jira cache cleared — storage freed');
 }
 
-function saveState(state) {
-  let saved = false;
+function _writeState(state) {
+  // Attempt to write slim state; on quota error, clear Jira cache and retry.
+  // Returns true if saved successfully.
   try {
     localStorage.setItem('fh_state', JSON.stringify(_slimStateForStorage(state)));
-    saved = true;
+    return true;
   } catch(e) {
-    // Storage full — auto-clear Jira cache and retry immediately so user data is not lost
-    console.warn('localStorage full, clearing Jira cache and retrying save…');
+    console.warn('localStorage full, clearing Jira cache and retrying…');
     clearJiraCache(true);
     try {
       localStorage.setItem('fh_state', JSON.stringify(_slimStateForStorage(STATE)));
-      saved = true;
-      showToast('Jira cache auto-cleared to free space');
+      return true;
     } catch(e2) {
-      console.error('Save failed even after cache clear:', e2);
+      console.error('Save failed even after Jira cache clear:', e2);
+      return false;
     }
   }
-  if (!saved) showToast('⚠ Storage still full — some data may not persist', true);
+}
+
+function saveState(state) {
+  const ok = _writeState(state);
+  if (ok) {
+    showToast();
+  } else {
+    showToast('⚠ Storage full — some data may not persist', true);
+  }
   if (typeof scheduleSyncToGit === 'function') scheduleSyncToGit();
   if (typeof scheduleFileSave === 'function') scheduleFileSave();
   if (typeof scheduleGHSync === 'function') scheduleGHSync();
@@ -15100,7 +15108,7 @@ document.addEventListener('click', () => {
   "fh_integrations": {
     "cf_domain": "buildops.atlassian.net"
   },
-  "seed_version": 1774532377387
+  "seed_version": 1774532497857
 }
 </script>
 <script>const _prdEditing = {};const _prdSavedSel = {};const _prdInputTimer = {};loadFromSeed();STATE=loadState();init();initGitSync();initFileStorage();initGHSync();
