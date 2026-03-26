@@ -10957,9 +10957,22 @@ async function initGHSync() {
   try {
     const data = await _ghFetchFile(cfg);
     if (data) {
-      _ghMergeData(data);
-      STATE = loadState();
-      init();
+      // Merge GH data into current in-memory STATE (fill empty fields only).
+      // Do NOT reset STATE via loadState() or call init() — that would wipe
+      // data that was correctly loaded from the seed into STATE in memory.
+      const _ghIsEmpty = v => v === undefined || v === null || v === '' ||
+        (Array.isArray(v) && v.length === 0) ||
+        (typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0);
+      if (data.fh_state) {
+        Object.keys(data.fh_state).forEach(fid => {
+          const remote = data.fh_state[fid];
+          if (!STATE[fid]) { STATE[fid] = remote; return; }
+          Object.keys(remote).forEach(k => {
+            if (_ghIsEmpty(STATE[fid][k]) && !_ghIsEmpty(remote[k])) STATE[fid][k] = remote[k];
+          });
+        });
+      }
+      _ghMergeData(data); // still update localStorage + custom features
     }
     _gh.status = 'saved';
     _gh.lastSaved = new Date();
