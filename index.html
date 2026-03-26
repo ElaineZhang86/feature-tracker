@@ -10638,12 +10638,7 @@ function loadFromSeed() {
     const lastLoaded = parseInt(localStorage.getItem('fh_seed_version') || '0', 10);
     const existing = localStorage.getItem('fh_state');
     const isFresh = !existing || Object.keys(JSON.parse(existing || '{}')).length === 0;
-    const isNewSeed = seedVer > lastLoaded;
-
-    if (!(isFresh || isNewSeed)) {
-      console.log('[git-sync] Seed v' + seedVer + ' already loaded, skipping.');
-      return null;
-    }
+    const isNewSeed = seedVer >= lastLoaded;  // always re-merge (seed may have recovered data)
 
     const isEmpty = v => v === undefined || v === null || v === '' ||
                          (Array.isArray(v) && v.length === 0) ||
