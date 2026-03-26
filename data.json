@@ -3153,7 +3153,15 @@
       "specLinks": []
     },
     "custom_1774471774475": {
-      "tasks": [],
+      "tasks": [
+        {
+          "id": "ct_1774532300973",
+          "text": "Prototype implementation for current ticket (Amanda)",
+          "status": "todo",
+          "reason": "",
+          "builtin": false
+        }
+      ],
       "notesEntries": [],
       "specLinks": []
     }
